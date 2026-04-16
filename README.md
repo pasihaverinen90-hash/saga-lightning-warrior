@@ -1,8 +1,10 @@
 # Saga of the Lightning Warrior
 
-A browser-based 2D fantasy JRPG built with Phaser 3, TypeScript, and Vite.
+![CI](https://github.com/pasihaverinen90-hash/saga-lightning-warrior/actions/workflows/ci.yml/badge.svg)
 
-Inspired by Suikoden, early Final Fantasy, and Pokémon-style exploration rhythm.
+A browser-based 2D fantasy JRPG.
+**Stack:** Phaser 3 · TypeScript · Vite · localStorage saves
+**Input:** Keyboard only · **Resolution:** 1280 × 720
 
 ---
 
@@ -13,16 +15,21 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000` in a modern browser. Keyboard only — no mouse required for core gameplay.
+Open `http://localhost:3000`. No mouse needed for core gameplay.
 
-> **First clone:** after running `npm install`, commit the generated `package-lock.json` to the repository. The package.json uses `^` version ranges; a lock file ensures every contributor and CI environment installs the same versions.
+> **First clone:** after `npm install`, commit the generated `package-lock.json`. The `package.json` uses `^` version ranges; a lock file ensures every environment installs identical versions.
 
-```bash
-npm run build     # production build → dist/
-npm run preview   # preview the production build locally
-```
+### All scripts
 
-**Requirements:** Node.js 18+, a modern browser (Chrome, Firefox, Edge, Safari).
+| Script | Command | Purpose |
+|--------|---------|---------|
+| `dev` | `vite` | Start local dev server on port 3000 |
+| `build` | `vite build` | Production bundle → `dist/` |
+| `preview` | `vite preview` | Preview the production build locally |
+| `typecheck` | `tsc --noEmit` | Type-check without building (fast, use before pushing) |
+| `ci` | `tsc --noEmit && vite build` | Full quality gate: typecheck + build |
+
+**Node.js 18+ required.** Recommended: Node 22 (see `.nvmrc`).
 
 ---
 
@@ -31,70 +38,89 @@ npm run preview   # preview the production build locally
 | Key | Action |
 |-----|--------|
 | Arrow keys | Move (world map, town) |
-| `E` | Interact (talk, enter building, examine) |
-| `Enter` / `Space` | Confirm (menus, dialogue) |
-| `Esc` | Cancel / go back (menus) |
+| `E` | Interact / examine |
+| `Enter` / `Space` | Confirm in menus and dialogue |
+| `Esc` | Cancel / go back |
 | `Up` / `Down` | Navigate menus |
 
 ---
 
 ## What is playable
 
-The current build is a complete vertical slice of Chapter 1.
+The current build is a complete Chapter 1 vertical slice.
 
-- **World map exploration** — walk through Border Fields, reach Lumen Town, travel the Ashenveil Road, and push into the Thornwood
-- **Town exploration** — Lumen Town and Ashenveil, each with an inn, shop, NPCs, and a save point
-- **Dialogue and story events** — Serelle joins in Lumen Town; Kael joins in Ashenveil; story flags gate further progression
-- **Random encounters** — active in North Pass, Ashenveil Road, and Thornwood zones; never in towns
-- **Turn-based battle** — Attack, Skill, Item, Defend; speed-based turn order; floating damage/heal numbers; party status panel
-- **Boss battles** — Shadecaster Veyr (North Pass, scripted), Grove Warden (Thornwood, optional scripted)
-- **Shop and inn** — buy consumables and equipment; rest to restore HP/MP; save at the inn or save crystal
-- **XP and leveling** — XP split across active members; stat growth per character; level-up shown on result panel
-- **Equipment** — weapon and armor slots per character; stat bonuses applied at battle time
+| System | Status |
+|--------|--------|
+| World map exploration | ✓ |
+| Town exploration — Lumen Town, Ashenveil | ✓ |
+| NPC dialogue with story-flag overrides | ✓ |
+| Story events — Serelle joins, Kael joins | ✓ |
+| Inn (rest + save) | ✓ |
+| Shop — consumables and equipment | ✓ |
+| Save / load via localStorage | ✓ |
+| Random encounters — North Pass, Ashenveil Road, Thornwood | ✓ |
+| Turn-based battle — Attack, Skill, Item, Defend | ✓ |
+| Boss battles — Shadecaster Veyr, Grove Warden | ✓ |
+| XP, leveling, stat growth | ✓ |
+| Equipment slots — weapon and armor | ✓ |
+| Floating damage and heal popups (sprite digits) | ✓ |
+| Custom UI art — dialogue box, result panel, command buttons | ✓ |
+
+---
+
+## Repository layout
+
+```
+CLAUDE.md               Working guide for future Claude sessions — read first
+README.md               This file
+docs/
+  master-design-spec.md Original game design intent
+  architecture.md       Module map and boundary rules
+  gameplay-rules.md     Precise rules for every system
+  ui-art-style-guide.md Visual direction and colour palette
+  content-bible.md      All content ids and values
+  roadmap.md            Current state vs future plans
+  testing-checklist.md  Manual test protocol
+  change-log.md         Version history
+  id-stability-rules.md Rules for managing internal identifiers
+  review-checklist.md   Code review checklist
+
+.github/
+  workflows/ci.yml              GitHub Actions — typecheck + build
+  pull_request_template.md      Pre-filled PR checklist
+
+src/
+  main.ts               Phaser game entry point
+  game/
+    core/               Config, scene keys, fonts, colours, boot/preload scenes
+    state/              Game state types, singleton, actions, selectors
+    save/               localStorage read/write, version tracking
+    data/               All content (characters, enemies, skills, items, equipment,
+                        maps, encounter tables, dialogue, story flags)
+    world/              World map scene and systems
+    town/               Town scene and systems
+    battle/             Battle scene and engine
+    dialogue/           DialogueOverlay scene and event handler
+    ui/                 TitleScene, shared panel helper
+    shared/             Cross-module utilities (movement, player constants)
+
+public/assets/
+  images/               Sprite sheets (damage-digits, heal-digits)
+  ui/                   Panel and button art (dialogue-box, result-panel, btn-*)
+```
 
 ---
 
 ## Save data
 
-Saves use `localStorage`. One save slot. The save key is `saga_save_slot_1`.
-
-Current save version: **5**. Loading a save from a different version rejects it and starts a clean state. See `docs/ARCHITECTURE.md` for the version history.
-
----
-
-## Project layout
-
-```
-src/game/
-  core/          Config, scene keys, input constants, boot/preload scenes
-  state/         Runtime game state types, singleton state object, actions, selectors
-  save/          localStorage serialization, save types, version tracking
-  data/          All content definitions (characters, enemies, skills, items, equipment,
-                 maps, encounter tables, dialogue, story flags) — pure data, no Phaser
-  world/         World map scene, movement, encounter tracking, zone transitions
-  town/          Town scene, NPC system, interaction system, shop service
-  battle/        Battle scene, turn-order engine, damage, enemy AI, XP system
-  dialogue/      DialogueOverlay scene, dialogue types, event-handler (story effects)
-  ui/            Shared panel helper, TitleScene
-  shared/        Cross-module constants (player dimensions)
-
-public/assets/
-  images/        damage-digits.png, heal-digits.png (battle popup sprites)
-  ui/            dialogue-box.png, result-panel.png, btn-*.png (command buttons)
-```
-
-See `docs/ARCHITECTURE.md` for a full description of every module and how they communicate.
+- Storage: `localStorage` key `saga_save_slot_1`
+- One save slot
+- Current save format version: **5**
+- Loading a save from a different version silently rejects it and starts fresh
+- See `docs/change-log.md` for the full version history
 
 ---
 
-## Technology
+## AI-assisted development
 
-| | |
-|--|--|
-| Renderer | Phaser 3.60 |
-| Language | TypeScript 5 (strict) |
-| Bundler | Vite 5 |
-| Persistence | `localStorage` |
-| External deps | None beyond the above |
-
-No UI frameworks. No backend. No build-time code generation.
+This project uses Claude for development. Read `CLAUDE.md` before making any changes — it defines architecture boundaries, data-driven content rules, save-version protocol, style rules, and output expectations that must be maintained across all sessions.
