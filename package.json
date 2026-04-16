@@ -2,10 +2,15 @@
   "name": "saga-lightning-warrior",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "ci": "tsc --noEmit && vite build"
   },
   "dependencies": {
     "phaser": "^3.60.0"
