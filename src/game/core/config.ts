@@ -45,6 +45,8 @@ export const COLOR_HEX = {
   goldAccent: '#D9B35B',
   iceBlue: '#8FC8FF',
   lightningYellow: '#E8D25F',
+  dangerCrimson: '#A84747',
+  successGreen: '#5E9B63',
   panelBg: '#14233B',
   hugoName: '#E8D25F',
   serelleName: '#8FC8FF',
