@@ -16,16 +16,6 @@ export class PreloadScene extends Phaser.Scene {
     this.createLoadingBar();
 
     // ── Game assets ───────────────────────────────────────────────────────────
-    // Damage digit sprite sheet — 10 frames (0–9), fire-styled, 154×1024 per frame.
-    this.load.spritesheet('damage-digits', 'assets/images/damage-digits.png', {
-      frameWidth:  154,
-      frameHeight: 1024,
-    });
-    // Healing digit sprite sheet — 10 frames (0–9), green glow, 154×1024 per frame.
-    this.load.spritesheet('heal-digits', 'assets/images/heal-digits.png', {
-      frameWidth:  154,
-      frameHeight: 1024,
-    });
     // Dialogue box background art — 1536×1024 RGBA, displayed at 1200×521.
     // Includes the portrait oval frame (left) and text area (right).
     // All dialogue text is rendered by code on top.

@@ -107,7 +107,10 @@ export const LUMEN_TOWN_CONFIG: TownMapConfig = {
       ],
     },
 
-    // ── Serelle (join event on first talk; post-join dialogue after) ──────────
+    // ── Serelle (join event on first talk; hidden after joining) ─────────────
+    // hideWhenFlag removes her from the map once serelle_joined is set.
+    // 'serelle_travel_ready' in dialogue-data.ts is kept for future scripted use
+    // (e.g. a camp or cutscene scene) and is not wired here intentionally.
     {
       id:               'serelle_town',
       type:             'npc',
@@ -115,10 +118,7 @@ export const LUMEN_TOWN_CONFIG: TownMapConfig = {
       activationRadius: 56,
       label:            'Talk to Serelle',
       dialogueId:       'serelle_join_event',
-      dialogueOverrides: [
-        // Once serelle_joined is set, show the travel-ready dialogue instead.
-        { requiredFlag: STORY_FLAGS.SERELLE_JOINED, dialogueId: 'serelle_travel_ready' },
-      ],
+      hideWhenFlag:     STORY_FLAGS.SERELLE_JOINED,
     },
 
     // ── Guard NPC near exit ────────────────────────────────────────────────────

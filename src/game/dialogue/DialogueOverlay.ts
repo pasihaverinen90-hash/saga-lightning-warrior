@@ -35,16 +35,16 @@ const PANEL_Y = GAME_HEIGHT - PANEL_H - 8;          // 191
 // Portrait oval frame (panel-local centre of the oval in the art).
 // We render a placeholder ellipse + initial letter inside this area.
 const OVL_CX  = 215;   // oval centre x (panel-local)
-const OVL_CY  = 282;   // oval centre y (panel-local)
-const OVL_RX  = 120;   // portrait fill radius x (inset from gold frame edge)
-const OVL_RY  = 155;   // portrait fill radius y
+const OVL_CY  = 262;   // oval centre y (panel-local) — raised slightly to sit inside frame
+const OVL_RX  =  90;   // portrait fill radius x — inset more to avoid frame overlap
+const OVL_RY  = 115;   // portrait fill radius y
 
 // Text zone (panel-local) — inside the right rectangular parchment area.
 const TXT_L   = 349;   // left edge of text zone
-const TXT_R   = 1161;  // right edge of text zone
-const TXT_W   = TXT_R - TXT_L - 12;  // word-wrap width (leave small right margin)
-const NAME_Y  = 108;   // speaker name baseline (panel-local)
-const BODY_Y  = 150;   // body text top (panel-local)
+const TXT_R   = 1128;  // right edge — pulled in to stay clear of the frame border
+const TXT_W   = TXT_R - TXT_L - 16;  // word-wrap width (leave right margin)
+const NAME_Y  = 128;   // speaker name baseline (panel-local) — lowered from art top edge
+const BODY_Y  = 172;   // body text top (panel-local) — comfortable below name
 const PROMPT_X = TXT_R - 8;   // continue prompt right-anchor (panel-local)
 const PROMPT_Y = 408;          // continue prompt baseline (panel-local)
 
@@ -175,7 +175,7 @@ export class DialogueOverlay extends Phaser.Scene {
       '',
       {
         fontFamily: FONTS.title,
-        fontSize:   '64px',
+        fontSize:   '48px',
         fontStyle:  'bold',
         color:      '#f0e4c8',
       },
@@ -212,7 +212,7 @@ export class DialogueOverlay extends Phaser.Scene {
     this.continuePrompt = this.add.text(
       PANEL_X + PROMPT_X,
       PANEL_Y + PROMPT_Y,
-      'Enter ▸',
+      '',    // set per-line by renderLine()
       {
         fontFamily: FONTS.ui,
         fontSize:   '16px',
@@ -270,7 +270,7 @@ export class DialogueOverlay extends Phaser.Scene {
     this.bodyText.setText(line.text);
 
     // ── Continue prompt ────────────────────────────────────────────────────
-    this.continuePrompt.setText(isLast ? 'Close ▸' : 'Enter ▸');
+    this.continuePrompt.setText(isLast ? 'Space ▸  Close' : 'Space ▸');
   }
 
   // ─── Advance ───────────────────────────────────────────────────────────────

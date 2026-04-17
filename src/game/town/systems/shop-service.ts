@@ -28,6 +28,36 @@ export type PurchaseResult =
 // ─── Label helpers ────────────────────────────────────────────────────────────
 
 /**
+ * Returns a short preview string describing what the item does.
+ * Shown in the shop modal while the player browses, before buying.
+ * Format examples:
+ *   "♥ +60 HP  ·  one ally"
+ *   "ATK +11  ·  weapon"
+ *   "MAG +13  SPD +1  ·  weapon"
+ */
+export function shopItemPreview(itemId: string): string {
+  const equip = EQUIPMENT[itemId];
+  if (equip) {
+    const b = equip.bonuses;
+    const parts: string[] = [];
+    if (b.attack  !== undefined) parts.push(`ATK ${b.attack  >= 0 ? '+' : ''}${b.attack}`);
+    if (b.magic   !== undefined) parts.push(`MAG ${b.magic   >= 0 ? '+' : ''}${b.magic}`);
+    if (b.defense !== undefined) parts.push(`DEF ${b.defense >= 0 ? '+' : ''}${b.defense}`);
+    if (b.maxHP   !== undefined) parts.push(`HP ${b.maxHP    >= 0 ? '+' : ''}${b.maxHP}`);
+    if (b.maxMP   !== undefined) parts.push(`MP ${b.maxMP    >= 0 ? '+' : ''}${b.maxMP}`);
+    if (b.speed   !== undefined) parts.push(`SPD ${b.speed   >= 0 ? '+' : ''}${b.speed}`);
+    return parts.join('  ·  ') + `  [${equip.slot}]`;
+  }
+  const item = ITEMS[itemId];
+  if (!item) return '';
+  const parts: string[] = [];
+  if (item.effect.restoreHP) parts.push(`♥ +${item.effect.restoreHP} HP`);
+  if (item.effect.restoreMP) parts.push(`✦ +${item.effect.restoreMP} MP`);
+  const target = item.targetType === 'all_allies' ? 'all allies' : 'one ally';
+  return parts.length > 0 ? `${parts.join('  ')}  ·  ${target}` : item.description;
+}
+
+/**
  * Returns the display label for a shop row.
  * Works for both consumable items and equipment.
  * Format examples:

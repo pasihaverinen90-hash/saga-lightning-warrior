@@ -30,7 +30,7 @@ import { setCurrentLocation, restorePartyFull } from '../../state/state-actions'
 import { getStoryFlags, getGold } from '../../state/state-selectors';
 import { saveGame } from '../../save/save-service';
 import { runEffects } from '../../dialogue/event-handler';
-import { shopItemLabel, purchaseItem, purchaseEquipment, isEquipmentId, getInnRestCost } from '../systems/shop-service';
+import { shopItemLabel, shopItemPreview, purchaseItem, purchaseEquipment, isEquipmentId, getInnRestCost } from '../systems/shop-service';
 import { PLAYER_W, PLAYER_H } from '../../shared/constants/player';
 import type { Interactable, TownInitData } from '../types/town-types';
 import type { WorldMapInitData } from '../../world/types/world-types';
@@ -65,8 +65,10 @@ type ModalType  = 'none' | 'inn' | 'shop' | 'save';
 type ModalPhase = 'select' | 'result';
 
 interface ModalOption {
-  label:  string;
-  action: () => void;
+  label:    string;
+  action:   () => void;
+  /** Short effect/stat preview shown in the shop detail line while browsing. */
+  preview?: string;
 }
 
 // ─── Scene ────────────────────────────────────────────────────────────────────
@@ -82,7 +84,6 @@ export class TownScene extends Phaser.Scene {
 
   // ── Input ──────────────────────────────────────────────────────────────────
   private cursors!:   Phaser.Types.Input.Keyboard.CursorKeys;
-  private keyE!:      Phaser.Input.Keyboard.Key;
   private keyEnter!:  Phaser.Input.Keyboard.Key; // fix: registered once in setupInput, not per-frame
   private keyEsc!:    Phaser.Input.Keyboard.Key;
   private keyWASD!: {
@@ -190,7 +191,7 @@ export class TownScene extends Phaser.Scene {
     // Check nearby interactable
     this.activeInteractable = getNearbyInteractable(
       this.px, this.py, PLAYER_W, PLAYER_H,
-      this.cfg.interactables,
+      this.getVisibleInteractables(),
     );
 
     // Check exit zone
@@ -204,7 +205,7 @@ export class TownScene extends Phaser.Scene {
     this.updateHUD();
 
     // Handle interaction key
-    if (this.activeInteractable && Phaser.Input.Keyboard.JustDown(this.keyE)) {
+    if (this.activeInteractable && Phaser.Input.Keyboard.JustDown(this.cursors.space)) {
       this.activateInteractable(this.activeInteractable);
     }
   }
@@ -502,6 +503,13 @@ export class TownScene extends Phaser.Scene {
     }).setOrigin(0.5, 1);
   }
 
+  private getVisibleInteractables(): Interactable[] {
+    const flags = getStoryFlags();
+    return this.cfg.interactables.filter(
+      item => !item.hideWhenFlag || !flags[item.hideWhenFlag],
+    );
+  }
+
   private drawNPCPlaceholders(): void {
     // Cycle through distinct palette entries so adjacent NPCs are distinguishable.
     const NPC_PALETTE: Array<[number, number]> = [
@@ -512,7 +520,7 @@ export class TownScene extends Phaser.Scene {
     ];
     let npcIndex = 0;
 
-    for (const item of this.cfg.interactables) {
+    for (const item of this.getVisibleInteractables()) {
       if (item.type === 'npc') {
         const [body, accent] = NPC_PALETTE[npcIndex % NPC_PALETTE.length];
         this.drawNPCShape(item.x, item.y, body, accent, String(npcIndex + 1));
@@ -690,7 +698,7 @@ export class TownScene extends Phaser.Scene {
     this.hudHintPanel.setVisible(hasInteractable);
     this.hudHintText.setVisible(hasInteractable);
     if (hasInteractable) {
-      this.hudHintText.setText(`[ E ]  ${this.activeInteractable!.label}`);
+      this.hudHintText.setText(`[SPACE]  ${this.activeInteractable!.label}`);
     }
   }
 
@@ -700,7 +708,6 @@ export class TownScene extends Phaser.Scene {
 
   private setupInput(): void {
     this.cursors  = this.input.keyboard!.createCursorKeys();
-    this.keyE     = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.keyEnter = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
     this.keyEsc   = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
     this.keyWASD  = {
@@ -835,8 +842,9 @@ export class TownScene extends Phaser.Scene {
         // Equipment IDs are routed to purchaseEquipment; consumables to purchaseItem.
         return [
           ...this.cfg.shopStock.map(itemId => ({
-            label:  shopItemLabel(itemId),
-            action: () => {
+            label:   shopItemLabel(itemId),
+            preview: shopItemPreview(itemId),
+            action:  () => {
               const result = isEquipmentId(itemId)
                 ? purchaseEquipment(itemId)
                 : purchaseItem(itemId);
@@ -942,6 +950,21 @@ export class TownScene extends Phaser.Scene {
       lineSpacing: 4,
     }).setOrigin(0.5, 0).setScrollFactor(0);
     this.modalContainer.add(msg);
+
+    // ── Item preview line (shop only — shown for the currently selected option) ─
+    // Sits between the flavour message and the option buttons.
+    // Gives the player stat/effect info before committing to a purchase.
+    const selectedPreview = this.modalOptions[this.modalSelectedIdx]?.preview ?? '';
+    if (selectedPreview) {
+      const prevLine = this.add.text(MX + MW / 2, MY + 175, selectedPreview, {
+        fontFamily: FONTS.ui,
+        fontSize:   '17px',
+        fontStyle:  'italic',
+        color:      COLOR_HEX.goldAccent,
+        align:      'center',
+      }).setOrigin(0.5, 0).setScrollFactor(0);
+      this.modalContainer.add(prevLine);
+    }
 
     // ── Result message (shown in 'result' phase) ───────────────────────────
     const result = this.add.text(MX + MW / 2, MY + 200, '', {

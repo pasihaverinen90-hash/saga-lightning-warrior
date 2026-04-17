@@ -69,7 +69,6 @@ export const FONT_SIZES = {
   hpMp: 20,
   locationLabel: 18,
   hint: 16,
-  debug: 14,
 } as const;
 
 // ─── Panel defaults ───────────────────────────────────────────────────────────

@@ -47,6 +47,12 @@ export interface Interactable {
    * First entry whose flag is set in game state wins.
    */
   dialogueOverrides?: DialogueOverride[];
+  /**
+   * If set, this interactable is hidden entirely (not drawn, not activatable)
+   * once the named story flag is set. Use for recruitable NPCs that should
+   * disappear from the map after joining the party.
+   */
+  hideWhenFlag?: string;
 }
 
 // ─── Town map configuration ───────────────────────────────────────────────────

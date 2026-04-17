@@ -37,9 +37,9 @@ Open `http://localhost:3000`. No mouse needed for core gameplay.
 
 | Key | Action |
 |-----|--------|
-| Arrow keys | Move (world map, town) |
-| `E` | Interact / examine |
-| `Enter` / `Space` | Confirm in menus and dialogue |
+| Arrow keys / WASD | Move (world map, town) |
+| `Space` | Interact / examine / advance dialogue |
+| `Enter` / `Space` | Confirm in menus |
 | `Esc` | Cancel / go back |
 | `Up` / `Down` | Navigate menus |
 
@@ -63,7 +63,7 @@ The current build is a complete Chapter 1 vertical slice.
 | Boss battles — Shadecaster Veyr, Grove Warden | ✓ |
 | XP, leveling, stat growth | ✓ |
 | Equipment slots — weapon and armor | ✓ |
-| Floating damage and heal popups (sprite digits) | ✓ |
+| Floating damage and heal popups (font-based) | ✓ |
 | Custom UI art — dialogue box, result panel, command buttons | ✓ |
 
 ---
@@ -105,7 +105,6 @@ src/
     shared/             Cross-module utilities (movement, player constants)
 
 public/assets/
-  images/               Sprite sheets (damage-digits, heal-digits)
   ui/                   Panel and button art (dialogue-box, result-panel, btn-*)
 ```
 

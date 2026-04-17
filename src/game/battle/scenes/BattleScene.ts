@@ -108,6 +108,8 @@ export class BattleScene extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keyEnter!: Phaser.Input.Keyboard.Key;
   private keyEsc!:   Phaser.Input.Keyboard.Key;
+  private keyW!:     Phaser.Input.Keyboard.Key;
+  private keyS!:     Phaser.Input.Keyboard.Key;
 
   // ── Init data ──────────────────────────────────────────────────────────────
   private initData!: BattleInitData;
@@ -128,7 +130,6 @@ export class BattleScene extends Phaser.Scene {
 
   // ── UI objects (rebuilt when refreshed) ───────────────────────────────────
   private unitGfxMap: Map<string, Phaser.GameObjects.Graphics> = new Map();
-  private hpTextMap:  Map<string, Phaser.GameObjects.Text>     = new Map();
   private cmdPanel!:  Phaser.GameObjects.Container;
   private skillPanel!: Phaser.GameObjects.Container;
   private itemPanel!:  Phaser.GameObjects.Container;
@@ -163,7 +164,6 @@ export class BattleScene extends Phaser.Scene {
     this.itemSelectedIdx    = 0;
     this.inputCooldown      = false;
     this.unitGfxMap.clear();
-    this.hpTextMap.clear();
   }
 
   create(): void {
@@ -310,14 +310,6 @@ export class BattleScene extends Phaser.Scene {
     gfx.setPosition(x, y).setDepth(10);
     this.renderUnitGfx(gfx, combatant);
     this.unitGfxMap.set(combatant.id, gfx);
-
-    // HP/MP label beneath unit
-    const hpText = this.add.text(
-      x + UNIT_W / 2, y + UNIT_H + 6,
-      this.hpMpLabel(combatant),
-      { fontFamily: FONTS.ui, fontSize: '13px', color: COLOR_HEX.parchment },
-    ).setOrigin(0.5, 0).setDepth(11);
-    this.hpTextMap.set(combatant.id, hpText);
   }
 
   private renderUnitGfx(gfx: Phaser.GameObjects.Graphics, c: Combatant): void {
@@ -366,12 +358,6 @@ export class BattleScene extends Phaser.Scene {
     const gfx = this.unitGfxMap.get(id);
     if (!c || !gfx) return;
     this.renderUnitGfx(gfx, c);
-    this.hpTextMap.get(id)?.setText(this.hpMpLabel(c));
-  }
-
-  private hpMpLabel(c: Combatant): string {
-    if (c.isDefeated) return '---';
-    return `HP ${c.currentHP}/${c.maxHP}  MP ${c.currentMP}/${c.maxMP}`;
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -563,8 +549,8 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private handleSkillSelectInput(): void {
-    const up      = Phaser.Input.Keyboard.JustDown(this.cursors.up);
-    const down    = Phaser.Input.Keyboard.JustDown(this.cursors.down);
+    const up      = Phaser.Input.Keyboard.JustDown(this.cursors.up)   || Phaser.Input.Keyboard.JustDown(this.keyW);
+    const down    = Phaser.Input.Keyboard.JustDown(this.cursors.down) || Phaser.Input.Keyboard.JustDown(this.keyS);
     const confirm = Phaser.Input.Keyboard.JustDown(this.keyEnter) ||
                     Phaser.Input.Keyboard.JustDown(this.cursors.space);
     const cancel  = Phaser.Input.Keyboard.JustDown(this.keyEsc);
@@ -699,8 +685,8 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private handleItemSelectInput(): void {
-    const up      = Phaser.Input.Keyboard.JustDown(this.cursors.up);
-    const down    = Phaser.Input.Keyboard.JustDown(this.cursors.down);
+    const up      = Phaser.Input.Keyboard.JustDown(this.cursors.up)   || Phaser.Input.Keyboard.JustDown(this.keyW);
+    const down    = Phaser.Input.Keyboard.JustDown(this.cursors.down) || Phaser.Input.Keyboard.JustDown(this.keyS);
     const confirm = Phaser.Input.Keyboard.JustDown(this.keyEnter) ||
                     Phaser.Input.Keyboard.JustDown(this.cursors.space);
     const cancel  = Phaser.Input.Keyboard.JustDown(this.keyEsc);
@@ -903,8 +889,8 @@ export class BattleScene extends Phaser.Scene {
   // ─────────────────────────────────────────────────────────────────────────
 
   private handleCommandInput(): void {
-    const up    = Phaser.Input.Keyboard.JustDown(this.cursors.up);
-    const down  = Phaser.Input.Keyboard.JustDown(this.cursors.down);
+    const up    = Phaser.Input.Keyboard.JustDown(this.cursors.up)   || Phaser.Input.Keyboard.JustDown(this.keyW);
+    const down  = Phaser.Input.Keyboard.JustDown(this.cursors.down) || Phaser.Input.Keyboard.JustDown(this.keyS);
     const confirm = Phaser.Input.Keyboard.JustDown(this.keyEnter) ||
                     Phaser.Input.Keyboard.JustDown(this.cursors.space);
 
@@ -989,8 +975,8 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private handleTargetInput(): void {
-    const up    = Phaser.Input.Keyboard.JustDown(this.cursors.up);
-    const down  = Phaser.Input.Keyboard.JustDown(this.cursors.down);
+    const up    = Phaser.Input.Keyboard.JustDown(this.cursors.up)   || Phaser.Input.Keyboard.JustDown(this.keyW);
+    const down  = Phaser.Input.Keyboard.JustDown(this.cursors.down) || Phaser.Input.Keyboard.JustDown(this.keyS);
     const confirm = Phaser.Input.Keyboard.JustDown(this.keyEnter) ||
                     Phaser.Input.Keyboard.JustDown(this.cursors.space);
     const cancel  = Phaser.Input.Keyboard.JustDown(this.keyEsc);
@@ -1070,16 +1056,22 @@ export class BattleScene extends Phaser.Scene {
     this.refreshStatusPanel();
 
     // Spawn floating numbers for each damage/heal event.
-    // xOffset staggers simultaneous numbers so they don't stack (e.g. multi-hit skills).
+    // Slot formula: ((floatIdx+1) % 3 - 1) * 40 → slot 0 = 0px (centred), 1 = +40, 2 = −40.
+    // Single-hit actions always land centred; multi-hit spreads cleanly without overlapping.
     let floatIdx = 0;
     for (const ev of events) {
       if (ev.kind === 'damage') {
-        const xOff = (floatIdx % 3 - 1) * 14;   // spreads: -14, 0, +14, then repeats
+        const xOff = ((floatIdx + 1) % 3 - 1) * 40;
         this.spawnFloatingDamage(ev.targetId, ev.amount, xOff);
         floatIdx++;
       } else if (ev.kind === 'heal') {
-        if (ev.hpRestored > 0) { this.spawnFloatingHeal(ev.targetId, ev.hpRestored); floatIdx++; }
-        if (ev.mpRestored > 0) { this.spawnFloatingLabel(ev.targetId, `+${ev.mpRestored} MP`, COLOR_HEX.iceBlue, 12); floatIdx++; }
+        const xOff = ((floatIdx + 1) % 3 - 1) * 40;
+        if (ev.hpRestored > 0) { this.spawnFloatingHeal(ev.targetId, ev.hpRestored, xOff); floatIdx++; }
+        if (ev.mpRestored > 0) {
+          const mpXOff = ((floatIdx + 1) % 3 - 1) * 40;
+          this.spawnFloatingLabel(ev.targetId, `+${ev.mpRestored} MP`, COLOR_HEX.iceBlue, mpXOff);
+          floatIdx++;
+        }
       } else if (ev.kind === 'defeated') {
         this.setFeedback(`${this.getCombatant(ev.targetId)?.name ?? ''} is defeated!`, COLOR_HEX.dangerCrimson);
       }
@@ -1126,96 +1118,14 @@ export class BattleScene extends Phaser.Scene {
   // Floating popups
   // ─────────────────────────────────────────────────────────────────────────
 
-  /**
-   * Core digit-sprite assembler used by both damage and heal popups.
-   * Builds a Container of one sprite per digit, preceded by a prefix character
-   * rendered as a small text node (there are no sprite frames for '-' or '+').
-   *
-   * All pieces share the container, which rises and fades as one unit.
-   *
-   * @param textureKey  'damage-digits' or 'heal-digits'
-   * @param prefix      '-' for damage, '+' for heals
-   * @param prefixColor CSS hex string for the prefix text
-   */
-  private spawnFloatingDigits(
-    unitId:      string,
-    amount:      number,
-    textureKey:  string,
-    prefix:      string,
-    prefixColor: string,
-    xOffset:     number,
-  ): void {
-    const pos = this.getUnitPosition(unitId);
-    if (!pos) return;
-
-    // Render height for each digit sprite. Scale = displayH / frameH (1024px source).
-    const DIGIT_H   = 56;
-    const SCALE     = DIGIT_H / 1024;
-    const DIGIT_W   = Math.round(154 * SCALE);   // ≈ 8px at this scale
-    const DIGIT_GAP = 1;
-    const PREFIX_W  = 6;                          // approximate width of '+'/'-' text
-
-    const digits = String(amount).split('');
-    const totalW  = PREFIX_W + digits.length * (DIGIT_W + DIGIT_GAP);
-
-    const startX = pos.x + UNIT_W / 2 + xOffset;
-    const startY = pos.y - 8;
-
-    const container = this.add.container(startX, startY).setDepth(80);
-
-    // Prefix character as styled text
-    const pfx = this.add.text(-totalW / 2, 0, prefix, {
-      fontFamily: FONTS.ui,
-      fontSize:   `${Math.round(DIGIT_H * 0.85)}px`,
-      fontStyle:  'bold',
-      color:      prefixColor,
-      stroke:     '#000000',
-      strokeThickness: 3,
-    }).setOrigin(0, 1);
-    container.add(pfx);
-
-    // One sprite per digit, laid out side by side
-    digits.forEach((ch, i) => {
-      const frame  = parseInt(ch, 10);
-      const x      = -totalW / 2 + PREFIX_W + i * (DIGIT_W + DIGIT_GAP);
-      const sprite = this.add.image(x, 0, textureKey, frame)
-        .setOrigin(0, 1)
-        .setScale(SCALE);
-      container.add(sprite);
-    });
-
-    // Rise + fade — same timing for both damage and heal so they feel consistent
-    this.tweens.add({
-      targets:  container,
-      y:        startY - 52,
-      alpha:    0,
-      duration: 950,
-      ease:     'Quad.easeOut',
-      onComplete: () => container.destroy(),
-    });
-  }
-
-  /**
-   * Spawns a fire-styled damage popup above `unitId`.
-   * Uses the 'damage-digits' spritesheet with a '-' prefix.
-   */
   private spawnFloatingDamage(unitId: string, amount: number, xOffset = 0): void {
-    this.spawnFloatingDigits(unitId, amount, 'damage-digits', '-', '#ff8040', xOffset);
+    this.spawnFloatingLabel(unitId, `-${amount}`, '#ff3333', xOffset);
   }
 
-  /**
-   * Spawns a green-glow healing popup above `unitId`.
-   * Uses the 'heal-digits' spritesheet with a '+' prefix.
-   */
   private spawnFloatingHeal(unitId: string, amount: number, xOffset = 0): void {
-    this.spawnFloatingDigits(unitId, amount, 'heal-digits', '+', '#80ff80', xOffset);
+    this.spawnFloatingLabel(unitId, `+${amount}`, '#33dd55', xOffset);
   }
 
-  /**
-   * Spawns a floating text label (MP restore, status) above `unitId`.
-   * Uses styled text rather than sprite digits — kept for labels that carry
-   * semantic color not covered by the digit sprite sheets (e.g. blue MP text).
-   */
   private spawnFloatingLabel(unitId: string, label: string, color: string, xOffset = 0): void {
     const pos = this.getUnitPosition(unitId);
     if (!pos) return;
@@ -1225,18 +1135,18 @@ export class BattleScene extends Phaser.Scene {
 
     const txt = this.add.text(startX, startY, label, {
       fontFamily: FONTS.ui,
-      fontSize:   '22px',
+      fontSize:   '30px',
       fontStyle:  'bold',
       color,
       stroke:          '#000000',
-      strokeThickness: 3,
+      strokeThickness: 4,
     }).setOrigin(0.5, 1).setDepth(80).setAlpha(1);
 
     this.tweens.add({
       targets:  txt,
-      y:        startY - 52,
+      y:        startY - 72,
       alpha:    0,
-      duration: 950,
+      duration: 1400,
       ease:     'Quad.easeOut',
       onComplete: () => txt.destroy(),
     });
@@ -1341,7 +1251,7 @@ export class BattleScene extends Phaser.Scene {
 
       // XP pool header — italic, subdued ink
       this.add.text(INNER_L, nextLineY + 2,
-        `XP earned: +${result.xpEarned}  (split)`, {
+        `XP earned: +${result.xpEarned}`, {
           fontFamily: FONTS.ui,
           fontSize:   '14px',
           fontStyle:  'italic',
@@ -1369,7 +1279,7 @@ export class BattleScene extends Phaser.Scene {
           : `+${r.xpGained} XP`;
         const levelColor = r.levelsGained > 0 ? '#7a4e00' : '#3a2a10';
 
-        this.add.text(INNER_R - 8, nextLineY,
+        this.add.text(INNER_R - 28, nextLineY,
           levelTag,
           { fontFamily: FONTS.ui, fontSize: '16px', color: levelColor },
         ).setOrigin(1, 0).setDepth(200);
@@ -1380,13 +1290,16 @@ export class BattleScene extends Phaser.Scene {
 
     // ── Continue prompt ───────────────────────────────────────────────────────
     // Placed in the lower parchment band (below the gold divider in the art).
-    this.add.text(INNER_CX, panelY + 447, 'Press Enter to continue', {
+    this.add.text(INNER_CX, panelY + 447, 'Space / Enter  —  continue', {
       fontFamily: FONTS.ui, fontSize: '15px',
       fontStyle: 'italic', color: '#4a3010',
     }).setOrigin(0.5).setDepth(200);
 
-    // Wait for Enter, then play outro dialogue (if any) before transitioning
-    this.input.keyboard!.once('keydown-ENTER', () => {
+    // Accept Space or Enter. The guard ensures only the first keypress fires.
+    let dismissed = false;
+    const dismiss = () => {
+      if (dismissed) return;
+      dismissed = true;
       const outroId = isVictory ? this.initData?.outroDialogueId : undefined;
       const outro   = outroId ? DIALOGUE[outroId] : null;
 
@@ -1411,7 +1324,9 @@ export class BattleScene extends Phaser.Scene {
       } else {
         doTransition();
       }
-    });
+    };
+    this.input.keyboard!.once('keydown-ENTER', dismiss);
+    this.input.keyboard!.once('keydown-SPACE',  dismiss);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -1422,6 +1337,8 @@ export class BattleScene extends Phaser.Scene {
     this.cursors  = this.input.keyboard!.createCursorKeys();
     this.keyEnter = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
     this.keyEsc   = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    this.keyW     = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    this.keyS     = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.S);
   }
 
   // ─────────────────────────────────────────────────────────────────────────

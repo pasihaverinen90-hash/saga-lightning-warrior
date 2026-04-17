@@ -52,8 +52,9 @@ export const ASHENVEIL_TOWN_CONFIG: TownMapConfig = {
 
   // ── Interactables ──────────────────────────────────────────────────────────────
   interactables: [
-    // ── Kael (join event on first talk; travel-ready dialogue after) ──────────
-    // Positioned near the inn entrance, north-west of the town plaza.
+    // ── Kael (join event on first talk; hidden after joining) ────────────────
+    // hideWhenFlag removes him from the map once kael_joined is set.
+    // 'kael_travel_ready' in dialogue-data.ts is kept for future scripted use.
     {
       id:               'kael_ashenveil',
       type:             'npc',
@@ -61,10 +62,7 @@ export const ASHENVEIL_TOWN_CONFIG: TownMapConfig = {
       activationRadius: 56,
       label:            'Talk to Kael',
       dialogueId:       'kael_join_event',
-      dialogueOverrides: [
-        // Once kael_joined is set, show the travel-ready dialogue instead.
-        { requiredFlag: STORY_FLAGS.KAEL_JOINED, dialogueId: 'kael_travel_ready' },
-      ],
+      hideWhenFlag:     STORY_FLAGS.KAEL_JOINED,
     },
 
     // ── Inn entrance ─────────────────────────────────────────────────────────

@@ -52,7 +52,6 @@ export class WorldMapScene extends Phaser.Scene {
 
   // ── Input ──────────────────────────────────────────────────────────────────
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-  private keyE!: Phaser.Input.Keyboard.Key;
   private keyWASD!: {
     W: Phaser.Input.Keyboard.Key;
     A: Phaser.Input.Keyboard.Key;
@@ -66,7 +65,6 @@ export class WorldMapScene extends Phaser.Scene {
   private hudDangerBadge!: Phaser.GameObjects.Container;
   private hudHintPanel!: Phaser.GameObjects.Graphics;
   private hudHintText!: Phaser.GameObjects.Text;
-  private hudDebugText!: Phaser.GameObjects.Text;
 
   // ── State ──────────────────────────────────────────────────────────────────
   private activeTrigger: WorldTrigger | null = null;
@@ -182,7 +180,7 @@ export class WorldMapScene extends Phaser.Scene {
     this.updateHUD();
 
     // 9. Handle trigger input
-    if (this.activeTrigger && Phaser.Input.Keyboard.JustDown(this.keyE)) {
+    if (this.activeTrigger && Phaser.Input.Keyboard.JustDown(this.cursors.space)) {
       this.activateTrigger(this.activeTrigger);
     }
   }
@@ -582,7 +580,6 @@ export class WorldMapScene extends Phaser.Scene {
     this.createZonePanel();
     this.createDangerBadge();
     this.createHintPanel();
-    this.createDebugText();
   }
 
   private createZonePanel(): void {
@@ -648,24 +645,12 @@ export class WorldMapScene extends Phaser.Scene {
       .setVisible(false);
   }
 
-  private createDebugText(): void {
-    this.hudDebugText = this.add.text(GAME_WIDTH - 12, GAME_HEIGHT - 12, '', {
-      fontFamily: FONTS.ui,
-      fontSize: `${FONT_SIZES.debug}px`,
-      color: '#888888',
-    })
-      .setOrigin(1, 1)
-      .setScrollFactor(0)
-      .setDepth(100);
-  }
-
   // ─────────────────────────────────────────────────────────────────────────
   // Input
   // ─────────────────────────────────────────────────────────────────────────
 
   private setupInput(): void {
     this.cursors = this.input.keyboard!.createCursorKeys();
-    this.keyE    = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.keyWASD = {
       W: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W),
       A: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.A),
@@ -702,15 +687,9 @@ export class WorldMapScene extends Phaser.Scene {
     this.hudHintPanel.setVisible(hasTrigger);
     this.hudHintText.setVisible(hasTrigger);
     if (hasTrigger) {
-      this.hudHintText.setText(`[ E ]  ${this.activeTrigger!.label}`);
+      this.hudHintText.setText(`[SPACE]  ${this.activeTrigger!.label}`);
     }
 
-    // Debug readout (bottom-right)
-    const cx = Math.round(this.px + PLAYER_W / 2);
-    const cy = Math.round(this.py + PLAYER_H / 2);
-    const zid = this.activeZone?.id ?? 'none';
-    const tid = this.activeTrigger?.id ?? '—';
-    this.hudDebugText.setText(`pos (${cx}, ${cy})  zone: ${zid}  trigger: ${tid}`);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
