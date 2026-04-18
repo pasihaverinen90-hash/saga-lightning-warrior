@@ -134,8 +134,9 @@ export class BattleScene extends Phaser.Scene {
   private skillPanel!: Phaser.GameObjects.Container;
   private itemPanel!:  Phaser.GameObjects.Container;
   private statusPanel!: Phaser.GameObjects.Container;
-  private feedbackText!: Phaser.GameObjects.Text;
-  private targetArrow!:  Phaser.GameObjects.Text;
+  private feedbackText!:  Phaser.GameObjects.Text;
+  private targetArrow!:   Phaser.GameObjects.Text;
+  private turnArrow!:     Phaser.GameObjects.Text;
   private turnIndicator!: Phaser.GameObjects.Text;
   private inputCooldown = false;
 
@@ -181,6 +182,7 @@ export class BattleScene extends Phaser.Scene {
     this.createItemPanel();
     this.createStatusPanel();
     this.createTargetArrow();
+    this.createTurnArrow();
     this.createTurnIndicator();
     this.setupInput();
 
@@ -824,6 +826,29 @@ export class BattleScene extends Phaser.Scene {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Active-turn arrow  (above the unit whose turn it is)
+  // Visually distinct from the target arrow: ▼ glyph, ice-blue color, sits
+  // higher above the unit so both arrows can be on-screen without overlapping.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  private createTurnArrow(): void {
+    this.turnArrow = this.add.text(0, 0, '▼', {
+      fontFamily: FONTS.ui, fontSize: '16px', color: COLOR_HEX.iceBlue,
+    }).setOrigin(0.5, 1).setDepth(60).setVisible(false);
+  }
+
+  private showTurnArrow(unitId: string): void {
+    const pos = this.getUnitPosition(unitId);
+    if (!pos) return;
+    // 22px above the unit top so it clears the target arrow (pos.y − 6) when both visible
+    this.turnArrow.setPosition(pos.x + UNIT_W / 2, pos.y - 22).setVisible(true);
+  }
+
+  private hideTurnArrow(): void {
+    this.turnArrow.setVisible(false);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Battle loop
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -850,6 +875,7 @@ export class BattleScene extends Phaser.Scene {
     }
 
     this.setTurnIndicator(c.name);
+    this.showTurnArrow(c.id);
 
     if (c.side === 'ally') {
       this.beginPlayerTurn(c);
@@ -1158,6 +1184,8 @@ export class BattleScene extends Phaser.Scene {
 
   private endBattle(outcome: 'victory' | 'defeat'): void {
     this.phase = 'end';
+    this.hideTurnArrow();
+    this.hideTargetArrow();
     const result = buildResult(this.combatants, outcome);
 
     // Apply rewards to global state before drawing the result panel

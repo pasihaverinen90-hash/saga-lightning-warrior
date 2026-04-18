@@ -86,6 +86,7 @@ export class TownScene extends Phaser.Scene {
   private cursors!:   Phaser.Types.Input.Keyboard.CursorKeys;
   private keyEnter!:  Phaser.Input.Keyboard.Key; // fix: registered once in setupInput, not per-frame
   private keyEsc!:    Phaser.Input.Keyboard.Key;
+  private keyMenu!:   Phaser.Input.Keyboard.Key;
   private keyWASD!: {
     W: Phaser.Input.Keyboard.Key;
     A: Phaser.Input.Keyboard.Key;
@@ -99,9 +100,16 @@ export class TownScene extends Phaser.Scene {
   private hudHintText!:      Phaser.GameObjects.Text;
 
   // ── State ──────────────────────────────────────────────────────────────────
-  private activeInteractable: Interactable | null = null;
-  private dialogueActive    = false;
-  private transitionPending = false;
+  private activeInteractable:  Interactable | null = null;
+  private dialogueActive      = false;
+  private transitionPending   = false;
+  // Prevents the Space press that closes a dialogue from immediately retriggering
+  // the same NPC. Cleared once Space is physically released.
+  private interactionCooldown = false;
+  private menuActive          = false;
+  // Prevents the M press that closed the menu from immediately reopening it.
+  // Cleared once M is physically released.
+  private menuCooldown        = false;
 
   // ── Modal ──────────────────────────────────────────────────────────────────
   private modalType:         ModalType  = 'none';
@@ -126,8 +134,11 @@ export class TownScene extends Phaser.Scene {
     // Entry position always uses the config default.
     this.px = this.cfg.playerEntryX;
     this.py = this.cfg.playerEntryY;
-    this.dialogueActive    = false;
-    this.transitionPending = false;
+    this.dialogueActive      = false;
+    this.transitionPending   = false;
+    this.interactionCooldown = false;
+    this.menuActive          = false;
+    this.menuCooldown        = false;
     // Reset all modal state — Phaser destroys game objects on scene restart,
     // so these references would be stale without an explicit null/clear here.
     this.modalType         = 'none';
@@ -164,6 +175,9 @@ export class TownScene extends Phaser.Scene {
     // Dialogue overlay is running — pause all town input
     if (this.dialogueActive) return;
 
+    // In-game menu is open — pause all town input
+    if (this.menuActive) return;
+
     // Modal is open — handle modal input only
     if (this.modalType !== 'none') {
       this.handleModalInput();
@@ -171,6 +185,17 @@ export class TownScene extends Phaser.Scene {
     }
 
     // ── Normal gameplay ──────────────────────────────────────────────────────
+
+    // Clear M-key cooldown once the key is physically released
+    if (this.menuCooldown && !this.keyMenu.isDown) {
+      this.menuCooldown = false;
+    }
+
+    // Open in-game menu
+    if (!this.menuCooldown && Phaser.Input.Keyboard.JustDown(this.keyMenu)) {
+      this.openMenu();
+      return;
+    }
 
     const input = this.readInput();
 
@@ -204,8 +229,13 @@ export class TownScene extends Phaser.Scene {
     // Update HUD
     this.updateHUD();
 
+    // Clear post-dialogue cooldown once Space is physically released
+    if (this.interactionCooldown && !this.cursors.space.isDown) {
+      this.interactionCooldown = false;
+    }
+
     // Handle interaction key
-    if (this.activeInteractable && Phaser.Input.Keyboard.JustDown(this.cursors.space)) {
+    if (this.activeInteractable && !this.interactionCooldown && Phaser.Input.Keyboard.JustDown(this.cursors.space)) {
       this.activateInteractable(this.activeInteractable);
     }
   }
@@ -710,12 +740,26 @@ export class TownScene extends Phaser.Scene {
     this.cursors  = this.input.keyboard!.createCursorKeys();
     this.keyEnter = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
     this.keyEsc   = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    this.keyMenu  = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.M);
     this.keyWASD  = {
       W: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W),
       A: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.A),
       S: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.S),
       D: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
+  }
+
+  private openMenu(): void {
+    this.menuActive = true;
+    if (this.scene.isActive(SCENE_KEYS.GAME_MENU)) {
+      this.scene.stop(SCENE_KEYS.GAME_MENU);
+    }
+    this.scene.get(SCENE_KEYS.GAME_MENU).events.once('close', () => {
+      this.menuActive   = false;
+      this.menuCooldown = true;   // require M release before menu can reopen
+    });
+    this.scene.launch(SCENE_KEYS.GAME_MENU);
+    this.scene.bringToTop(SCENE_KEYS.GAME_MENU);
   }
 
   private readInput(): MovementInput {
@@ -782,7 +826,10 @@ export class TownScene extends Phaser.Scene {
     this.scene.get(SCENE_KEYS.DIALOGUE_OVERLAY).events.once('complete', (seq: import('../../dialogue/dialogue-types').DialogueSequence) => {
       // Execute any declared side-effects (flag sets, party activations, etc.)
       runEffects(seq.onComplete);
-      this.dialogueActive = false;
+      this.dialogueActive      = false;
+      // Require Space to be physically released before another interaction can
+      // fire — prevents the closing keypress from immediately retriggering.
+      this.interactionCooldown = true;
       onComplete?.();
     });
 

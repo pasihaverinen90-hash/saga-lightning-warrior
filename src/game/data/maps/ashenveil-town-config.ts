@@ -58,7 +58,7 @@ export const ASHENVEIL_TOWN_CONFIG: TownMapConfig = {
     {
       id:               'kael_ashenveil',
       type:             'npc',
-      x: 200, y: 380,
+      x: 420, y: 450,
       activationRadius: 56,
       label:            'Talk to Kael',
       dialogueId:       'kael_join_event',

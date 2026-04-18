@@ -9,6 +9,7 @@ export const SCENE_KEYS = {
   TOWN:             'TownScene',
   BATTLE:           'BattleScene',
   DIALOGUE_OVERLAY: 'DialogueOverlay',
+  GAME_MENU:        'GameMenuOverlay',
   PAUSE_MENU:       'PauseMenuOverlay', // reserved for future implementation
 } as const;
 

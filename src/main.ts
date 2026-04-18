@@ -13,6 +13,7 @@ import { WorldMapScene }    from './game/world/scenes/WorldMapScene';
 import { TownScene }        from './game/town/scenes/TownScene';
 import { BattleScene }      from './game/battle/scenes/BattleScene';
 import { DialogueOverlay }  from './game/dialogue/DialogueOverlay';
+import { GameMenuOverlay }  from './game/menu/GameMenuOverlay';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -26,6 +27,7 @@ const config: Phaser.Types.Core.GameConfig = {
     TownScene,
     BattleScene,
     DialogueOverlay,
+    GameMenuOverlay,
     // PauseMenuOverlay — added when implemented
   ],
 };

@@ -58,6 +58,7 @@ export class WorldMapScene extends Phaser.Scene {
     S: Phaser.Input.Keyboard.Key;
     D: Phaser.Input.Keyboard.Key;
   };
+  private keyMenu!: Phaser.Input.Keyboard.Key;
 
   // ── HUD (fixed to camera via setScrollFactor(0)) ───────────────────────────
   private hudZonePanel!: Phaser.GameObjects.Graphics;
@@ -71,6 +72,10 @@ export class WorldMapScene extends Phaser.Scene {
   private activeZone: WorldZone | null = null;
   private previousZoneId: string | null = null;   // used to detect zone transitions
   private transitionPending = false;
+  private menuActive        = false;
+  // Prevents the M press that closed the menu from immediately reopening it.
+  // Cleared once M is physically released.
+  private menuCooldown      = false;
   private encounterTracker = new EncounterTracker(6); // 6 safe steps after battle
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -91,6 +96,8 @@ export class WorldMapScene extends Phaser.Scene {
       this.py = CFG.playerStartY;
     }
     this.transitionPending = false;
+    this.menuActive        = false;
+    this.menuCooldown      = false;
     // Clear stale query results so no trigger/zone carries over from a previous run.
     this.activeTrigger  = null;
     this.activeZone     = null;
@@ -121,6 +128,18 @@ export class WorldMapScene extends Phaser.Scene {
 
   update(_time: number, delta: number): void {
     if (this.transitionPending) return;
+    if (this.menuActive) return;
+
+    // Clear M-key cooldown once the key is physically released
+    if (this.menuCooldown && !this.keyMenu.isDown) {
+      this.menuCooldown = false;
+    }
+
+    // Open in-game menu
+    if (!this.menuCooldown && Phaser.Input.Keyboard.JustDown(this.keyMenu)) {
+      this.openMenu();
+      return;
+    }
 
     // 1. Read input
     const input = this.readInput();
@@ -657,6 +676,20 @@ export class WorldMapScene extends Phaser.Scene {
       S: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.S),
       D: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
+    this.keyMenu = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.M);
+  }
+
+  private openMenu(): void {
+    this.menuActive = true;
+    if (this.scene.isActive(SCENE_KEYS.GAME_MENU)) {
+      this.scene.stop(SCENE_KEYS.GAME_MENU);
+    }
+    this.scene.get(SCENE_KEYS.GAME_MENU).events.once('close', () => {
+      this.menuActive   = false;
+      this.menuCooldown = true;   // require M release before menu can reopen
+    });
+    this.scene.launch(SCENE_KEYS.GAME_MENU);
+    this.scene.bringToTop(SCENE_KEYS.GAME_MENU);
   }
 
   private readInput(): MovementInput {
