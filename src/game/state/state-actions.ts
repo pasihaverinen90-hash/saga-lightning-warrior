@@ -10,6 +10,7 @@ import { BORDER_FIELDS_CONFIG } from '../data/maps/world-map-config';
 import { PLAYER_W, PLAYER_H } from '../shared/constants/player';
 import { processMemberXp, splitXp } from '../battle/engine/xp-system';
 import type { MemberXpResult } from '../battle/engine/xp-system';
+import { resolveEffectiveStats } from '../data/equipment/equipment-system';
 
 // ─── New Game ─────────────────────────────────────────────────────────────────
 
@@ -63,17 +64,20 @@ export function activatePartyMember(memberId: string): void {
 
 /**
  * Updates HP/MP for a party member in-place.
+ * Clamped to the effective maximum (base stats + equipment bonuses) so that
+ * healing above the base maxHP (e.g. from armor bonuses) is preserved correctly.
  */
 export function updatePartyMemberHP(memberId: string, newHP: number, newMP?: number): void {
   const state = getState();
   const party = state.party.map(m => {
     if (m.id !== memberId) return m;
+    const eff = resolveEffectiveStats(m);
     return {
       ...m,
       stats: {
         ...m.stats,
-        currentHP: Math.max(0, Math.min(newHP, m.stats.maxHP)),
-        currentMP: newMP !== undefined ? Math.max(0, Math.min(newMP, m.stats.maxMP)) : m.stats.currentMP,
+        currentHP: Math.max(0, Math.min(newHP, eff.maxHP)),
+        currentMP: newMP !== undefined ? Math.max(0, Math.min(newMP, eff.maxMP)) : m.stats.currentMP,
       },
     };
   });
@@ -82,13 +86,14 @@ export function updatePartyMemberHP(memberId: string, newHP: number, newMP?: num
 
 /**
  * Fully restores HP and MP for all active party members.
+ * Uses effective maximums (base + equipment) so inn rest always fills the bar.
  */
 export function restorePartyFull(): void {
   const state = getState();
-  const party = state.party.map(m => ({
-    ...m,
-    stats: { ...m.stats, currentHP: m.stats.maxHP, currentMP: m.stats.maxMP },
-  }));
+  const party = state.party.map(m => {
+    const eff = resolveEffectiveStats(m);
+    return { ...m, stats: { ...m.stats, currentHP: eff.maxHP, currentMP: eff.maxMP } };
+  });
   patchState({ party });
 }
 
