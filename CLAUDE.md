@@ -179,7 +179,7 @@ Do not change these without explicit instruction.
 - Turn order rebuilt each round by `buildTurnOrder()` — sorted by speed, tiebroken ally-first then alphabetical id.
 - One action per unit per round. No queuing.
 - Commands: `attack`, `skill`, `item`, `defend`.
-- **Defend** sets `isDefending = true`. Doubles effective defense against all incoming hits until the start of the unit's next action.
+- **Defend** sets `isDefending = true`. Reduces post-mitigation incoming damage by ~35% (multiplied by `DEFEND_MULTIPLIER = 0.65`) until the start of the unit's next action.
 - **Attack damage:** `attacker.attack × variance(±10%) − target.defense × 0.5`, minimum 1.
 - **Skill damage:** `baseStat × skill.power × variance(±10%) − target.defense × 0.5`, minimum 1. `baseStat` resolved from `scalingStat` override, then element heuristic (elemental → magic, `'none'` → attack).
 - **Item heal:** `Math.min(restoreAmount, target.maxHP − target.currentHP)` — never overheals.

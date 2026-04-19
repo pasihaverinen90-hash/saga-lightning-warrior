@@ -763,16 +763,6 @@ export class BattleScene extends Phaser.Scene {
       });
       this.statusPanel.add(nameTxt);
 
-      // Level display — top-right of the row (omitted for defeated members)
-      if (!c.isDefeated) {
-        const lvTxt = this.add.text(STATUS_X + STATUS_W - 14, rowY, `Lv ${c.level}`, {
-          fontFamily: FONTS.ui,
-          fontSize: '13px',
-          color: COLOR_HEX.textSecondary,
-        }).setOrigin(1, 0);
-        this.statusPanel.add(lvTxt);
-      }
-
       if (c.isDefeated) {
         const dtxt = this.add.text(STATUS_X + 14, rowY + 22, 'Defeated', {
           fontFamily: FONTS.ui, fontSize: '16px', color: '#A84747',

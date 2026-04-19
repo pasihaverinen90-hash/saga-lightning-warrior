@@ -31,15 +31,15 @@ export const MAX_LEVEL = 99;
  */
 const EXPLICIT_THRESHOLDS: Record<number, number> = {
    1:     0,
-   2:   100,
-   3:   250,
-   4:   450,
-   5:   750,
-   6:  1200,
-   7:  1800,
-   8:  2600,
-   9:  3600,
-  10:  5000,
+   2:   130,   // was 100  — slows very early solo leveling
+   3:   320,   // was 250
+   4:   580,   // was 450
+   5:   950,   // was 750
+   6:  1500,   // was 1200
+   7:  2250,   // was 1800
+   8:  3250,   // was 2600
+   9:  4500,   // was 3600
+  10:  6200,   // was 5000  — roughly +25% increase at all levels
 };
 
 /**

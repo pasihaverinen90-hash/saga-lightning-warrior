@@ -7,8 +7,13 @@ import type { SkillDef } from '../../data/skills/skills';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-/** Defend reduces incoming damage to this fraction. */
-const DEFEND_MULTIPLIER = 0.5;
+/**
+ * Fraction of post-mitigation damage a defending target receives.
+ * Defending reduces final damage by ~35%, applied AFTER normal defense
+ * mitigation. This keeps defend meaningful ("safer this turn") without
+ * trivially flooring hits to 1 against well-armoured targets.
+ */
+const DEFEND_MULTIPLIER = 0.65;
 
 /** Mild random variance applied to all damage: ±10%. */
 const VARIANCE = 0.10;
@@ -36,11 +41,11 @@ function mitigateDefense(raw: number, defense: number): number {
  * Returns the final damage value (already floored, minimum 1).
  */
 export function calcAttackDamage(attacker: Combatant, target: Combatant): number {
-  const raw = attacker.attack * rollVariance();
-  const mitigated = mitigateDefense(raw, target.isDefending
-    ? target.defense * (1 / DEFEND_MULTIPLIER)   // defender's defense is amplified
-    : target.defense);
-  return mitigated;
+  const raw    = attacker.attack * rollVariance();
+  const damage = mitigateDefense(raw, target.defense);
+  return target.isDefending
+    ? Math.max(1, Math.round(damage * DEFEND_MULTIPLIER))
+    : damage;
 }
 
 /**
@@ -70,11 +75,11 @@ export function calcSkillDamage(
     baseStat = skill.element !== 'none' ? caster.magic : caster.attack;
   }
 
-  const raw = baseStat * skill.power * rollVariance();
-  const defense = target.isDefending
-    ? target.defense * (1 / DEFEND_MULTIPLIER)
-    : target.defense;
-  return mitigateDefense(raw, defense);
+  const raw    = baseStat * skill.power * rollVariance();
+  const damage = mitigateDefense(raw, target.defense);
+  return target.isDefending
+    ? Math.max(1, Math.round(damage * DEFEND_MULTIPLIER))
+    : damage;
 }
 
 /**
