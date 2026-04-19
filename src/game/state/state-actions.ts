@@ -176,22 +176,28 @@ export function loadStateFromSave(savedState: GameState): void {
 // ─── XP and leveling ─────────────────────────────────────────────────────────
 
 /**
- * Splits the total battle XP pool equally among active party members and
- * applies the result to each member, resolving any level-ups.
+ * Splits the total battle XP pool among eligible party members and applies
+ * the result to each member, resolving any level-ups.
+ *
+ * Eligibility: active AND alive (currentHP > 0) at the moment of award.
+ * BattleScene calls updatePartyMemberHP after every action, so currentHP is
+ * already 0 in state for any member who fainted before battle ended.
+ * Fainted members receive 0 XP. A member revived before battle ends
+ * has currentHP > 0 and receives XP normally.
  *
  * Distribution: integer division with the remainder given one extra point to
  * the first N members in party order (deterministic, no randomness).
- * Example: 100 XP, 3 active members → [34, 33, 33].
+ * Example: 100 XP, 2 eligible members → [50, 50].
  *
- * Inactive members receive 0 XP.
- * Returns a MemberXpResult for every active member (xpGained reflects the share).
+ * Inactive and fainted members receive 0 XP.
+ * Returns a MemberXpResult for every eligible member (xpGained reflects the share).
  */
 export function applyBattleXp(totalXp: number): MemberXpResult[] {
   if (totalXp <= 0) return [];
 
   const state        = getState();
   const activeIdxs   = state.party
-    .map((m, i) => (m.isActive ? i : -1))
+    .map((m, i) => (m.isActive && m.stats.currentHP > 0 ? i : -1))
     .filter(i => i >= 0);
 
   if (activeIdxs.length === 0) return [];
