@@ -34,19 +34,19 @@ const PANEL_Y = GAME_HEIGHT - PANEL_H - 8;          // 191
 
 // Portrait oval frame (panel-local centre of the oval in the art).
 // We render a placeholder ellipse + initial letter inside this area.
-const OVL_CX  = 228;   // oval centre x (panel-local)
-const OVL_CY  = 286;   // oval centre y (panel-local)
-const OVL_RX  =  80;   // portrait fill radius x
-const OVL_RY  = 102;   // portrait fill radius y
+const OVL_CX  = 214;   // oval centre x (panel-local)
+const OVL_CY  = 274;   // oval centre y (panel-local)
+const OVL_RX  =  76;   // portrait fill radius x
+const OVL_RY  =  98;   // portrait fill radius y
 
 // Text zone (panel-local) — inside the right rectangular parchment area.
-const TXT_L   = 372;   // left edge of text zone
-const TXT_R   = 1088;  // right edge — clear margin before the frame border
+const TXT_L   = 364;   // left edge of text zone
+const TXT_R   = 1082;  // right edge — clear margin before the frame border
 const TXT_W   = TXT_R - TXT_L - 20;  // word-wrap width (right margin preserved)
-const NAME_Y  = 154;   // speaker name baseline (panel-local)
-const BODY_Y  = 208;   // body text top (panel-local) — comfortable below name
+const NAME_Y  = 170;   // speaker name baseline (panel-local)
+const BODY_Y  = 222;   // body text top (panel-local) — comfortable below name
 const PROMPT_X = TXT_R - 8;   // continue prompt right-anchor (panel-local)
-const PROMPT_Y = 426;          // continue prompt baseline (panel-local)
+const PROMPT_Y = 430;          // continue prompt baseline (panel-local)
 
 // ─── Speaker appearance ───────────────────────────────────────────────────────
 //

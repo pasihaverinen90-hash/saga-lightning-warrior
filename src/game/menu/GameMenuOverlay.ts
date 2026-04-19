@@ -44,14 +44,15 @@ const P = 20;
 
 // ─── Tab definitions ──────────────────────────────────────────────────────────
 
-type TabId = 'party' | 'inventory' | 'quests' | 'save' | 'close';
+type TabId = 'party' | 'inventory' | 'quests' | 'save' | 'title' | 'close';
 
 const TABS: Array<{ id: TabId; label: string }> = [
   { id: 'party',     label: 'Party'     },
   { id: 'inventory', label: 'Inventory' },
   { id: 'quests',    label: 'Quests'    },
-  { id: 'save',      label: 'Save'      },
-  { id: 'close',     label: 'Close'     },
+  { id: 'save',      label: 'Save'          },
+  { id: 'title',     label: 'Exit to Title' },
+  { id: 'close',     label: 'Close'         },
 ];
 
 // ─── Objectives list ──────────────────────────────────────────────────────────
@@ -131,6 +132,8 @@ export class GameMenuOverlay extends Phaser.Scene {
         this.closeMenu();
       } else if (id === 'save') {
         this.performSave();
+      } else if (id === 'title') {
+        this.exitToTitle();
       }
     } else if (cancel) {
       this.closeMenu();
@@ -233,8 +236,9 @@ export class GameMenuOverlay extends Phaser.Scene {
       case 'party':     this.renderParty();     break;
       case 'inventory': this.renderInventory(); break;
       case 'quests':    this.renderQuests();    break;
-      case 'save':      this.renderSave();      break;
-      case 'close':     this.renderClose();     break;
+      case 'save':      this.renderSave();        break;
+      case 'title':     this.renderTitleExit();  break;
+      case 'close':     this.renderClose();       break;
     }
   }
 
@@ -468,6 +472,41 @@ export class GameMenuOverlay extends Phaser.Scene {
       this.ctxt(cx + P, btnY + 86, this.saveMsg,
         FONTS.ui, '18px', color, 'bold');
     }
+  }
+
+  // ─── Exit to Title tab ─────────────────────────────────────────────────────
+
+  private renderTitleExit(): void {
+    const cx = CONT_X;
+    const cy = MENU_Y;
+
+    this.ctxt(cx + P, cy + P, 'Exit to Title', FONTS.title, '22px', COLOR_HEX.goldAccent, 'bold');
+
+    this.ctxt(cx + CONT_W / 2, cy + MENU_H / 2 - 44,
+      'Return to the title screen.',
+      FONTS.ui, '20px', COLOR_HEX.textSecondary, 'italic', 0.5, 0.5);
+
+    this.ctxt(cx + CONT_W / 2, cy + MENU_H / 2 - 8,
+      'Unsaved progress will be lost.',
+      FONTS.ui, '17px', COLOR_HEX.dangerCrimson, 'italic', 0.5, 0.5);
+
+    this.ctxt(cx + CONT_W / 2, cy + MENU_H / 2 + 46,
+      'Press Enter or Space to confirm  ·  Esc to cancel.',
+      FONTS.ui, '14px', COLOR_HEX.textDisabled, 'italic', 0.5, 0.5);
+  }
+
+  private exitToTitle(): void {
+    // Stop all parallel gameplay scenes before starting title.
+    // Phaser silently ignores stop() calls on inactive scenes, so these are safe
+    // to call unconditionally regardless of which host scene opened the menu.
+    if (this.scene.isActive(SCENE_KEYS.DIALOGUE_OVERLAY)) {
+      this.scene.stop(SCENE_KEYS.DIALOGUE_OVERLAY);
+    }
+    this.scene.stop(SCENE_KEYS.TOWN);
+    this.scene.stop(SCENE_KEYS.WORLD_MAP);
+    this.scene.stop(SCENE_KEYS.BATTLE);
+    // scene.start stops this scene (GameMenuOverlay) and launches TitleScene.
+    this.scene.start(SCENE_KEYS.TITLE);
   }
 
   // ─── Close tab ─────────────────────────────────────────────────────────────
