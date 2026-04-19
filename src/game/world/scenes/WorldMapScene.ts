@@ -165,8 +165,28 @@ export class WorldMapScene extends Phaser.Scene {
     // 4. Sync Phaser player object to new position
     this.player.setPosition(this.px, this.py);
 
+    // 4b. Keep currentLocation in sync so saves (menu / save crystal later) resume
+    //     at the player's current world-map position. Only on actual movement so
+    //     we don't churn patchState every frame. Stored as CENTER per convention.
+    //     Trigger activation below overrides this with its own locationId; its
+    //     transitionPending flag stops further update() calls from clobbering it.
+    if (result.moving && (result.x !== prevX || result.y !== prevY)) {
+      setCurrentLocation({
+        locationId: 'border_fields',
+        x: Math.round(this.px + PLAYER_W / 2),
+        y: Math.round(this.py + PLAYER_H / 2),
+      });
+    }
+
     // 5. Query systems
-    this.activeTrigger = getActiveTrigger(this.px, this.py, PLAYER_W, PLAYER_H, CFG.triggers);
+    // Consumed triggers are filtered out here so the HUD hint never advertises
+    // a completed event. The activate path also silently no-ops on consumed
+    // triggers, but filtering up front is what prevents the stale "Investigate
+    // Clearing" / "Enter North Pass" text from appearing.
+    this.activeTrigger = getActiveTrigger(
+      this.px, this.py, PLAYER_W, PLAYER_H,
+      CFG.triggers.filter(t => !this.isTriggerConsumed(t)),
+    );
     this.activeZone    = getActiveZone(this.px, this.py, PLAYER_W, PLAYER_H, CFG.zones);
 
     // 6. Detect zone transitions and reset encounter tracker when zone changes.
@@ -509,11 +529,20 @@ export class WorldMapScene extends Phaser.Scene {
     }).setOrigin(0.5, 1);
   }
 
+  /**
+   * True if the trigger's scripted battle has already been won (its
+   * consumedByFlag is set in story flags). Used to hide both the marker and
+   * the HUD hint for completed events.
+   */
+  private isTriggerConsumed(trigger: WorldTrigger): boolean {
+    const sb = trigger.scriptedBattle;
+    return !!(sb?.consumedByFlag && getStoryFlag(sb.consumedByFlag));
+  }
+
   private drawTriggerMarkers(): void {
     for (const trigger of CFG.triggers) {
       // Skip consumed triggers — their event is over and the marker is misleading.
-      const sb = trigger.scriptedBattle;
-      if (sb?.consumedByFlag && getStoryFlag(sb.consumedByFlag)) continue;
+      if (this.isTriggerConsumed(trigger)) continue;
 
       const gfx = this.add.graphics();
 

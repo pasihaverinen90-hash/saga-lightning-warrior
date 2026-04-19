@@ -3,20 +3,23 @@
 // which scene to start and what init data to pass.
 //
 // Coordinate convention used throughout the save system:
-//   currentLocation.x / y  =  player CENTER in world-space pixels.
+//   currentLocation.x / y  =  player CENTER in the scene named by locationId.
 //
-// WorldMapScene.init() expects TOP-LEFT (this.px / this.py).
-// The router converts: topLeft = center - playerHalfSize.
+// WorldMapScene.init() and TownScene.init() both expect TOP-LEFT coordinates,
+// so the router converts: topLeft = center - playerHalfSize.
 //
-// Save points exist in Lumen Town and Ashenveil (inn + save crystal in each).
-// All saved locationIds resume at WorldMapScene at the stored world position.
-// Extend this function when save points inside dungeons or other scene types
-// need to resume in a scene other than WorldMapScene.
+// The locationId's sceneType (from LOCATIONS) decides where to resume:
+//   'town'  → TownScene at the saved in-town position
+//   'world' → WorldMapScene at the saved world-map position
+// Extend LOCATIONS (add new sceneType values and a matching branch here) when
+// save points inside dungeons or other scene types need to resume elsewhere.
 
 import { SCENE_KEYS } from './scene-keys';
 import type { GameState } from '../state/game-state-types';
 import type { WorldMapInitData } from '../world/types/world-types';
+import type { TownInitData } from '../town/types/town-types';
 import { PLAYER_W, PLAYER_H } from '../shared/constants/player';
+import { LOCATIONS } from '../data/maps/locations';
 
 export interface ResumeTarget {
   sceneKey: string;
@@ -27,21 +30,32 @@ export interface ResumeTarget {
 /**
  * Returns the scene and init data needed to resume play from a loaded save.
  *
- * All locations resume at WorldMapScene at the saved world position.
- * Saving inside any town (Lumen Town, Ashenveil) records coordinates on the
- * world map side; the player resumes just outside the town entrance.
- * Extend this function when save points inside dungeons or cutscene-locked
- * locations need to resume directly in a different scene.
+ * Town saves (locationId.sceneType === 'town') resume inside the saved town
+ * at the saved in-town position. World saves resume on the world map at the
+ * saved world-map position. Unknown locationIds fall back to the world map.
  */
 export function getResumeScene(state: GameState): ResumeTarget {
-  const { x, y } = state.currentLocation;
+  const { locationId, x, y } = state.currentLocation;
 
-  // Convert center → top-left for WorldMapScene.init()
-  const returnX = Math.max(0, Math.round(x - PLAYER_W / 2));
-  const returnY = Math.max(0, Math.round(y - PLAYER_H / 2));
+  // Convert center → top-left (scenes store positions as top-left internally).
+  const topLeftX = Math.max(0, Math.round(x - PLAYER_W / 2));
+  const topLeftY = Math.max(0, Math.round(y - PLAYER_H / 2));
+
+  const sceneType = LOCATIONS[locationId]?.sceneType ?? 'world';
+
+  if (sceneType === 'town') {
+    return {
+      sceneKey: SCENE_KEYS.TOWN,
+      initData: {
+        locationId,
+        startX: topLeftX,
+        startY: topLeftY,
+      } satisfies TownInitData,
+    };
+  }
 
   return {
     sceneKey: SCENE_KEYS.WORLD_MAP,
-    initData: { returnX, returnY } satisfies WorldMapInitData,
+    initData: { returnX: topLeftX, returnY: topLeftY } satisfies WorldMapInitData,
   };
 }

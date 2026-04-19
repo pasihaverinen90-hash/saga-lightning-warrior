@@ -138,13 +138,16 @@ export const ASHENVEIL_TOWN_CONFIG: TownMapConfig = {
 
   // ── Exit trigger ──────────────────────────────────────────────────────────────
   // Player walks into this rect and is returned to the world map (Ashenveil Road).
+  // targetLocationId is the MAP we land on (border_fields), not the town we left.
+  // worldReturnX/Y place the player just west of the Ashenveil entrance trigger
+  // on the world map (trigger: x=1600, y=620, 160×130), so they can walk east to
+  // re-enter without the rect immediately overlapping and re-firing.
   exit: {
     x: 640, y: 820,
     width:  320, height: 60,
-    targetLocationId: 'ashenveil_town',
-    // Return player to just east of the Ashenveil town entrance trigger
-    worldReturnX: 400,
-    worldReturnY: 506,
+    targetLocationId: 'border_fields',
+    worldReturnX: 1520,
+    worldReturnY: 680,
   },
 
   // ── Shop stock ────────────────────────────────────────────────────────────────

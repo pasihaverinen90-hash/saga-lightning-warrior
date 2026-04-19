@@ -15,7 +15,8 @@
 //
 // Stat growth:
 //   Flat gains per level-up, defined per character id.
-//   currentHP and currentMP are healed to new maximums on level-up.
+//   currentHP and currentMP gain exactly the same amount the maximum gained
+//   (capped at the new maximum). Level-up does NOT fully heal.
 
 import type { CharacterStats } from '../../state/game-state-types';
 
@@ -136,7 +137,11 @@ export function getGrowthProfile(memberId: string): StatGrowth {
 /**
  * Applies one level-up's worth of stat gains.
  * Returns a new stats object — does not mutate the input.
- * currentHP and currentMP are healed to new maximums on level-up.
+ *
+ * HP/MP policy: currentHP and currentMP rise by exactly the amount the maximum
+ * rose (i.e. +growth.maxHP / +growth.maxMP), capped at the new maximum.
+ * A wounded character at 30/100 HP levelling up with +8 maxHP ends at 38/108,
+ * not 108/108. Level-up is not a free full heal — the inn / save point is.
  */
 export function applyStatGrowth(
   stats: CharacterStats,
@@ -148,9 +153,9 @@ export function applyStatGrowth(
   return {
     ...stats,
     maxHP:     newMaxHP,
-    currentHP: newMaxHP,
+    currentHP: Math.min(stats.currentHP + growth.maxHP, newMaxHP),
     maxMP:     newMaxMP,
-    currentMP: newMaxMP,
+    currentMP: Math.min(stats.currentMP + growth.maxMP, newMaxMP),
     attack:    stats.attack  + growth.attack,
     magic:     stats.magic   + growth.magic,
     defense:   stats.defense + growth.defense,

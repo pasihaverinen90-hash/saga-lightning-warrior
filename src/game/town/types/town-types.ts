@@ -101,4 +101,11 @@ export interface TownInitData {
   /** Optional entry position for scripted town entries. Not yet used by TownScene. */
   fromWorldX?: number;
   fromWorldY?: number;
+  /**
+   * Optional in-town resume position (top-left of player rect).
+   * Set by scene-router.ts when loading a save whose currentLocation is a town.
+   * When omitted, TownScene falls back to the config's playerEntryX/Y.
+   */
+  startX?: number;
+  startY?: number;
 }

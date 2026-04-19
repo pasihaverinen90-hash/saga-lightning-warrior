@@ -12,5 +12,11 @@
 //   5 → PartyMember gained equipment: EquipmentSlots ({ weapon, armor }).
 //       Saves from v4 lack this field; loading would produce undefined equipment
 //       causing resolveEffectiveStats to produce NaN bonuses silently.
+//   6 → currentLocation.x/y semantics changed from "world-map coordinates
+//       (even when locationId is a town)" to "coordinates in the scene named
+//       by locationId". Saves in Lumen Town / Ashenveil now resume in the
+//       town they were saved in at the saved position; world-map saves resume
+//       on the world map at the saved position. v5 saves would place the
+//       player at world-map coordinates on a town map — intentionally invalidated.
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;

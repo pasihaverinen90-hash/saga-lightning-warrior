@@ -18,13 +18,25 @@ import { resolveEffectiveStats } from '../data/equipment/equipment-system';
  * Initializes a fresh game state. Called when the player starts a New Game.
  * Spawn position is derived from the world map config so there is a single
  * source of truth — changing playerStartX/Y in world-map-config.ts is enough.
+ *
+ * Starting HP/MP: each member spawns at their EFFECTIVE max (base stats +
+ * starting-equipment bonuses). Without this, Hugo's leather_vest (+10 maxHP)
+ * and Serelle's cloth_robe (+12 maxMP) would leave both members visibly
+ * below full on the very first HUD/menu read.
  */
 export function initNewGame(): void {
   resetState();
+  const freshParty = STARTING_PARTY.map(m => {
+    const member = { ...m, equipment: { ...m.equipment }, stats: { ...m.stats } };
+    const eff = resolveEffectiveStats(member);
+    member.stats.currentHP = eff.maxHP;
+    member.stats.currentMP = eff.maxMP;
+    return member;
+  });
   patchState({
     initialized: true,
     gold: 50,
-    party: STARTING_PARTY.map(m => ({ ...m })),
+    party: freshParty,
     inventory: [{ itemId: 'herb_tonic', quantity: 2 }],
     storyFlags: {},
     currentLocation: {

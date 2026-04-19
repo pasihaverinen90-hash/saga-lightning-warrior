@@ -27,7 +27,7 @@ import { DIALOGUE } from '../../data/dialogue/dialogue-data';
 import { LOCATIONS } from '../../data/maps/locations';
 import type { TownMapConfig } from '../types/town-types';
 import { setCurrentLocation, restorePartyFull } from '../../state/state-actions';
-import { getStoryFlags, getGold } from '../../state/state-selectors';
+import { getStoryFlags, getGold, getPartyMember } from '../../state/state-selectors';
 import { saveGame } from '../../save/save-service';
 import { runEffects } from '../../dialogue/event-handler';
 import { shopItemLabel, shopItemPreview, purchaseItem, purchaseEquipment, isEquipmentId, getInnRestCost } from '../systems/shop-service';
@@ -76,6 +76,9 @@ interface ModalOption {
 export class TownScene extends Phaser.Scene {
   // ── Active config — set in init() based on incoming locationId ─────────────
   private cfg: TownMapConfig = LUMEN_TOWN_CONFIG;
+  // ── locationId this scene was entered with — used when writing currentLocation
+  // so a save inside this town records the right location id for resume.
+  private currentLocationId: string = 'lumen_town';
 
   // ── Player ─────────────────────────────────────────────────────────────────
   private player!: Phaser.GameObjects.Graphics;
@@ -98,6 +101,12 @@ export class TownScene extends Phaser.Scene {
   private hudLocationPanel!: Phaser.GameObjects.Graphics;
   private hudHintPanel!:     Phaser.GameObjects.Graphics;
   private hudHintText!:      Phaser.GameObjects.Text;
+
+  // ── NPC / sign visuals ────────────────────────────────────────────────────
+  // Tracked so drawNPCPlaceholders() can tear them down and redraw when a
+  // dialogue effect toggles an item's hideWhenFlag (e.g. a recruitable joins
+  // and must disappear immediately, without re-entering the scene).
+  private interactableVisuals: Phaser.GameObjects.GameObject[] = [];
 
   // ── State ──────────────────────────────────────────────────────────────────
   private activeInteractable:  Interactable | null = null;
@@ -130,10 +139,14 @@ export class TownScene extends Phaser.Scene {
   init(data: TownInitData): void {
     // Select the correct town config based on which location triggered the transition.
     this.cfg = resolveTownConfig(data.locationId);
+    // Record the canonical locationId for this town so state writes below tag
+    // saves with the right id. Falls back to 'lumen_town' to match the config default.
+    this.currentLocationId = data.locationId ?? 'lumen_town';
 
-    // Entry position always uses the config default.
-    this.px = this.cfg.playerEntryX;
-    this.py = this.cfg.playerEntryY;
+    // Entry position: resume coords from scene-router win if present (load path);
+    // otherwise the config's default entry (normal trigger-entry path).
+    this.px = data.startX ?? this.cfg.playerEntryX;
+    this.py = data.startY ?? this.cfg.playerEntryY;
     this.dialogueActive      = false;
     this.transitionPending   = false;
     this.interactionCooldown = false;
@@ -165,6 +178,12 @@ export class TownScene extends Phaser.Scene {
 
     this.cameras.main.startFollow(this.player, true, 0.09, 0.09);
     this.cameras.main.setFollowOffset(-PLAYER_W / 2, -PLAYER_H / 2);
+
+    // Tag currentLocation with this town's id and the player's in-town spawn
+    // position so a save taken before the player moves (e.g. immediately
+    // opening the menu on entry) resumes in this town, not at the world-map
+    // coords the entry trigger wrote. Stored as CENTER per save convention.
+    this.writeCurrentLocation();
   }
 
   // ─── update ───────────────────────────────────────────────────────────────
@@ -199,6 +218,9 @@ export class TownScene extends Phaser.Scene {
 
     const input = this.readInput();
 
+    const prevX = this.px;
+    const prevY = this.py;
+
     const result = computeMovement(
       this.px, this.py,
       input,
@@ -212,6 +234,14 @@ export class TownScene extends Phaser.Scene {
     this.px = result.x;
     this.py = result.y;
     this.player.setPosition(this.px, this.py);
+
+    // Keep state.currentLocation in sync with the player's in-town position so
+    // saving inside the town resumes at the exact tile the player stood on.
+    // Only write when the player actually moved — avoids per-frame churn when
+    // idle. Writes use CENTER coords (scene-router converts to top-left on load).
+    if (result.x !== prevX || result.y !== prevY) {
+      this.writeCurrentLocation();
+    }
 
     // Check nearby interactable
     this.activeInteractable = getNearbyInteractable(
@@ -548,6 +578,12 @@ export class TownScene extends Phaser.Scene {
       [0x708060, 0x506040],  // muted green
       [0xc07050, 0x8a4028],  // terracotta
     ];
+
+    // Destroy any previously drawn NPC/sign visuals so a redraw (after a
+    // hideWhenFlag-gated recruit joins) does not leave stale sprites behind.
+    for (const obj of this.interactableVisuals) obj.destroy();
+    this.interactableVisuals = [];
+
     let npcIndex = 0;
 
     for (const item of this.getVisibleInteractables()) {
@@ -576,11 +612,13 @@ export class TownScene extends Phaser.Scene {
     gfx.fillRect(cx - 14, cy - 20, 28, 2);
     gfx.fillRect(cx - 12, cy - 15, 22, 2);
     gfx.fillRect(cx - 14, cy - 10, 16, 2);
+    this.interactableVisuals.push(gfx);
 
-    this.add.text(cx, cy - 36, '!', {
+    const label = this.add.text(cx, cy - 36, '!', {
       fontFamily: FONTS.ui, fontSize: '13px', fontStyle: 'bold',
       color: COLOR_HEX.goldAccent, stroke: '#0a0f1a', strokeThickness: 2,
     }).setOrigin(0.5, 1);
+    this.interactableVisuals.push(label);
   }
 
   private drawNPCShape(
@@ -605,9 +643,10 @@ export class TownScene extends Phaser.Scene {
     gfx.fillStyle(0x1a1a1a, 1);
     gfx.fillRect(cx - 5, cy - 25, 3, 3);
     gfx.fillRect(cx + 2, cy - 25, 3, 3);
+    this.interactableVisuals.push(gfx);
 
     // Name initial label
-    this.add.text(cx, cy - 42, initial, {
+    const label = this.add.text(cx, cy - 42, initial, {
       fontFamily: FONTS.ui,
       fontSize:   '14px',
       fontStyle:  'bold',
@@ -615,6 +654,7 @@ export class TownScene extends Phaser.Scene {
       stroke:     '#0a0f1a',
       strokeThickness: 2,
     }).setOrigin(0.5, 1);
+    this.interactableVisuals.push(label);
   }
 
   private drawExitMarker(): void {
@@ -826,6 +866,9 @@ export class TownScene extends Phaser.Scene {
     this.scene.get(SCENE_KEYS.DIALOGUE_OVERLAY).events.once('complete', (seq: import('../../dialogue/dialogue-types').DialogueSequence) => {
       // Execute any declared side-effects (flag sets, party activations, etc.)
       runEffects(seq.onComplete);
+      // Translate those effects into scene-level consequences: refresh NPC
+      // visuals for any hideWhenFlag change, show a join banner on recruit.
+      this.handlePostDialogueEffects(seq);
       this.dialogueActive      = false;
       // Require Space to be physically released before another interaction can
       // fire — prevents the closing keypress from immediately retriggering.
@@ -835,6 +878,70 @@ export class TownScene extends Phaser.Scene {
 
     this.scene.launch(SCENE_KEYS.DIALOGUE_OVERLAY, { sequence });
     this.scene.bringToTop(SCENE_KEYS.DIALOGUE_OVERLAY);
+  }
+
+  /**
+   * Data-driven post-dialogue scene reactions.
+   * Runs AFTER runEffects() has applied state mutations — so story flags and
+   * party activations are already in effect.
+   *
+   * • any `set_flag` effect     → redraw NPC/sign placeholders so newly-hidden
+   *                               recruitables disappear immediately.
+   * • each `activate_party_member` effect → show a short "X joined the party."
+   *                               banner. Works for Serelle, Kael, or any
+   *                               future recruitable — the memberId is looked
+   *                               up in state-selectors, no hardcoded names.
+   */
+  private handlePostDialogueEffects(
+    seq: import('../../dialogue/dialogue-types').DialogueSequence,
+  ): void {
+    const effects = seq.onComplete;
+    if (!effects || effects.length === 0) return;
+
+    let refreshedVisuals = false;
+    for (const effect of effects) {
+      if (effect.type === 'set_flag' && !refreshedVisuals) {
+        this.drawNPCPlaceholders();
+        refreshedVisuals = true;
+      }
+      if (effect.type === 'activate_party_member') {
+        const name = getPartyMember(effect.memberId)?.name ?? 'A new companion';
+        this.showJoinBanner(`${name} joined the party.`);
+      }
+    }
+  }
+
+  /**
+   * Short gold-accent confirmation banner shown at the top of the viewport.
+   * Fades out on its own and destroys all its game objects — safe to fire
+   * multiple times in sequence (each call owns its own graphics + text).
+   */
+  private showJoinBanner(message: string): void {
+    const BW = 460;
+    const BH = 62;
+    const BX = (GAME_WIDTH - BW) / 2;
+    const BY = 96;
+
+    const bg = drawPanel(this, { x: BX, y: BY, width: BW, height: BH });
+    bg.setScrollFactor(0).setDepth(180);
+
+    const txt = this.add.text(GAME_WIDTH / 2, BY + BH / 2, message, {
+      fontFamily: FONTS.title,
+      fontSize:   '22px',
+      fontStyle:  'bold',
+      color:      COLOR_HEX.goldAccent,
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(181);
+
+    this.tweens.add({
+      targets:  [bg, txt],
+      alpha:    { from: 1, to: 0 },
+      delay:    1700,
+      duration: 500,
+      onComplete: () => {
+        bg.destroy();
+        txt.destroy();
+      },
+    });
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -1128,6 +1235,21 @@ export class TownScene extends Phaser.Scene {
     this.modalOptionBgs   = [];
     this.modalOptionTexts = [];
     this.modalResultText  = null;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // State sync — records the player's in-town position in GameState so a save
+  // taken here resumes inside this town at this spot (not at the world-map
+  // coords the entry trigger wrote). Stored as CENTER to match the global
+  // convention documented in scene-router.ts.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  private writeCurrentLocation(): void {
+    setCurrentLocation({
+      locationId: this.currentLocationId,
+      x: Math.round(this.px + PLAYER_W / 2),
+      y: Math.round(this.py + PLAYER_H / 2),
+    });
   }
 
   // ─────────────────────────────────────────────────────────────────────────
