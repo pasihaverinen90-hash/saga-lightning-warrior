@@ -79,7 +79,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
     magic: 28,
     defense: 14,
     speed: 11,
-    skillIds: ['dark_bolt', 'shadow_wave'],
+    skillIds: ['dark_bolt', 'void_cascade'],
     goldReward: 0,
     xpReward: 300,
     baseLevel: 8,

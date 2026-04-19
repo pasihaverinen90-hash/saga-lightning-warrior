@@ -79,4 +79,13 @@ export const SKILLS: Record<string, SkillDef> = {
     power: 1.2,
     description: 'A wave of dark energy that strikes all targets.',
   },
+  void_cascade: {
+    id: 'void_cascade',
+    name: 'Void Cascade',
+    mpCost: 22,
+    targetType: 'all_enemies',
+    element: 'dark',
+    power: 1.8,
+    description: "A torrent of void energy that crashes over the entire party. Veyr's signature spell.",
+  },
 };
