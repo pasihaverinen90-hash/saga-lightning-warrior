@@ -70,13 +70,11 @@ export class WorldMapScene extends Phaser.Scene {
   // ── State ──────────────────────────────────────────────────────────────────
   private activeTrigger: WorldTrigger | null = null;
   private activeZone: WorldZone | null = null;
-  private previousZoneId: string | null = null;   // used to detect zone transitions
+  private previousZoneId: string | null = null;
   private transitionPending = false;
   private menuActive        = false;
-  // Prevents the M press that closed the menu from immediately reopening it.
-  // Cleared once M is physically released.
   private menuCooldown      = false;
-  private encounterTracker = new EncounterTracker(6); // 6 safe steps after battle
+  private encounterTracker = new EncounterTracker(6);
 
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -85,7 +83,6 @@ export class WorldMapScene extends Phaser.Scene {
   }
 
   // ─── init ─────────────────────────────────────────────────────────────────
-  // Receives optional return position when transitioning back from another scene.
 
   init(data: WorldMapInitData): void {
     if (data && data.returnX !== undefined && data.returnY !== undefined) {
@@ -98,11 +95,9 @@ export class WorldMapScene extends Phaser.Scene {
     this.transitionPending = false;
     this.menuActive        = false;
     this.menuCooldown      = false;
-    // Clear stale query results so no trigger/zone carries over from a previous run.
     this.activeTrigger  = null;
     this.activeZone     = null;
     this.previousZoneId = null;
-    // Grant safe steps when returning from a battle so we don't immediately re-trigger.
     this.encounterTracker.onBattleFired();
   }
 
@@ -110,6 +105,7 @@ export class WorldMapScene extends Phaser.Scene {
 
   create(): void {
     this.cameras.main.setBackgroundColor('#1e3a20');
+    // Bounds read from config — automatically correct for any map size.
     this.cameras.main.setBounds(0, 0, MAP_W, MAP_H);
     this.cameras.main.fadeIn(350, 0, 0, 0);
 
@@ -118,9 +114,7 @@ export class WorldMapScene extends Phaser.Scene {
     this.createHUD();
     this.setupInput();
 
-    // Smooth camera follow — lerp factor keeps movement comfortable
     this.cameras.main.startFollow(this.player, true, 0.09, 0.09);
-    // Adjust follow offset so camera centres on the player rect body
     this.cameras.main.setFollowOffset(-PLAYER_W / 2, -PLAYER_H / 2);
   }
 
@@ -130,25 +124,20 @@ export class WorldMapScene extends Phaser.Scene {
     if (this.transitionPending) return;
     if (this.menuActive) return;
 
-    // Clear M-key cooldown once the key is physically released
     if (this.menuCooldown && !this.keyMenu.isDown) {
       this.menuCooldown = false;
     }
 
-    // Open in-game menu
     if (!this.menuCooldown && Phaser.Input.Keyboard.JustDown(this.keyMenu)) {
       this.openMenu();
       return;
     }
 
-    // 1. Read input
     const input = this.readInput();
 
-    // 2. Capture position before movement so we can compute distance traveled
     const prevX = this.px;
     const prevY = this.py;
 
-    // 3. Compute movement (pure system — no Phaser inside)
     const result = computeMovement(
       this.px, this.py,
       input,
@@ -162,14 +151,8 @@ export class WorldMapScene extends Phaser.Scene {
     this.px = result.x;
     this.py = result.y;
 
-    // 4. Sync Phaser player object to new position
     this.player.setPosition(this.px, this.py);
 
-    // 4b. Keep currentLocation in sync so saves (menu / save crystal later) resume
-    //     at the player's current world-map position. Only on actual movement so
-    //     we don't churn patchState every frame. Stored as CENTER per convention.
-    //     Trigger activation below overrides this with its own locationId; its
-    //     transitionPending flag stops further update() calls from clobbering it.
     if (result.moving && (result.x !== prevX || result.y !== prevY)) {
       setCurrentLocation({
         locationId: 'border_fields',
@@ -178,32 +161,21 @@ export class WorldMapScene extends Phaser.Scene {
       });
     }
 
-    // 5. Query systems
-    // Consumed triggers are filtered out here so the HUD hint never advertises
-    // a completed event. The activate path also silently no-ops on consumed
-    // triggers, but filtering up front is what prevents the stale "Investigate
-    // Clearing" / "Enter North Pass" text from appearing.
     this.activeTrigger = getActiveTrigger(
       this.px, this.py, PLAYER_W, PLAYER_H,
       CFG.triggers.filter(t => !this.isTriggerConsumed(t)),
     );
     this.activeZone    = getActiveZone(this.px, this.py, PLAYER_W, PLAYER_H, CFG.zones);
 
-    // 6. Detect zone transitions and reset encounter tracker when zone changes.
-    //    Resetting on zone-id change (not just encounter→safe) guarantees the
-    //    step counter always starts clean in every zone, even when two encounter
-    //    zones are adjacent with no safe zone between them.
     const currentZoneId = this.activeZone?.id ?? null;
     if (currentZoneId !== this.previousZoneId) {
       this.encounterTracker.resetSteps();
       this.previousZoneId = currentZoneId;
     }
 
-    // 7. Random encounter check — only when player actually moved in an encounter zone
     if (result.moving && this.activeZone?.type === 'encounter') {
       const table = ENCOUNTER_TABLES[this.activeZone.id];
       if (table) {
-        // Compute actual pixels traveled this frame for distance-based step tracking
         const dx = result.x - prevX;
         const dy = result.y - prevY;
         const distanceTraveled = Math.sqrt(dx * dx + dy * dy);
@@ -215,10 +187,8 @@ export class WorldMapScene extends Phaser.Scene {
       }
     }
 
-    // 8. Update HUD
     this.updateHUD();
 
-    // 9. Handle trigger input
     if (this.activeTrigger && Phaser.Input.Keyboard.JustDown(this.cursors.space)) {
       this.activateTrigger(this.activeTrigger);
     }
@@ -236,6 +206,7 @@ export class WorldMapScene extends Phaser.Scene {
     this.drawForestEdges();
     this.drawMountainRange();
     this.drawTownArea();
+    this.drawAshenveilArea();
     this.drawNorthPassArea();
     this.drawThornwoodArea();
     this.drawTriggerMarkers();
@@ -245,21 +216,25 @@ export class WorldMapScene extends Phaser.Scene {
     const gfx = this.add.graphics();
 
     // Sky gradient — layered horizontal bands
-    gfx.fillStyle(0x0d1f3c, 1); gfx.fillRect(0,   0,   MAP_W, 260);
-    gfx.fillStyle(0x163354, 1); gfx.fillRect(0,   120, MAP_W, 180);
-    gfx.fillStyle(0x1e4a30, 1); gfx.fillRect(0,   260, MAP_W, 80);
+    gfx.fillStyle(0x0d1f3c, 1); gfx.fillRect(0,   0,   MAP_W, 500);
+    gfx.fillStyle(0x163354, 1); gfx.fillRect(0,   240, MAP_W, 340);
+    gfx.fillStyle(0x1e4a30, 1); gfx.fillRect(0,   500, MAP_W, 120);
     // Ground grass
-    gfx.fillStyle(0x2d6b35, 1); gfx.fillRect(0,   310, MAP_W, MAP_H - 310);
-    // Subtle lighter midground
-    gfx.fillStyle(0x366e3e, 0.3); gfx.fillRect(110, 380, 1700, 680);
+    gfx.fillStyle(0x2d6b35, 1); gfx.fillRect(0,   580, MAP_W, MAP_H - 580);
+    // Subtle lighter midground band
+    gfx.fillStyle(0x366e3e, 0.3); gfx.fillRect(180, 700, 3736, MAP_H - 700);
 
-    // Stars
+    // Stars — scattered across the wide sky
     gfx.fillStyle(0xffffff, 0.55);
     const stars = [
-      [80,40],[200,25],[360,55],[520,30],[700,65],
-      [880,38],[1060,70],[1240,28],[1400,55],[1580,42],
-      [1760,68],[1880,30],[140,110],[420,95],[660,130],
-      [820,88],[1020,115],[1300,100],[1500,80],[1700,120],
+      [120,45],[350,28],[620,58],[940,33],[1280,68],
+      [1600,40],[1920,72],[2240,30],[2560,58],[2880,44],
+      [3200,70],[3520,32],[3840,54],[180,115],[520,98],
+      [860,135],[1200,90],[1540,118],[1880,102],[2220,84],
+      [2560,125],[2900,108],[3240,88],[3580,122],[3880,95],
+      [160,180],[440,168],[720,195],[1000,176],[1300,192],
+      [1600,165],[1900,188],[2200,172],[2500,196],[2800,158],
+      [3100,182],[3400,168],[3700,194],
     ];
     for (const [sx, sy] of stars) gfx.fillRect(sx, sy, 2, 2);
   }
@@ -268,21 +243,17 @@ export class WorldMapScene extends Phaser.Scene {
     const gfx = this.add.graphics();
     for (const zone of CFG.zones) {
       if (zone.type !== 'encounter') continue;
-      // Each encounter zone gets a distinct atmospheric tint.
       if (zone.id === 'north_pass_zone') {
-        // Dark purple — cold mountain menace
         gfx.fillStyle(0x000000, 0.28);
         gfx.fillRect(zone.x, zone.y, zone.width, zone.height);
         gfx.fillStyle(0x1a0a2a, 0.22);
-        gfx.fillRect(zone.x, zone.y + zone.height - 70, zone.width, 70);
+        gfx.fillRect(zone.x, zone.y + zone.height - 90, zone.width, 90);
       } else if (zone.id === 'thornwood_zone') {
-        // Dark sickly green — corruption tint
         gfx.fillStyle(0x001a00, 0.32);
         gfx.fillRect(zone.x, zone.y, zone.width, zone.height);
         gfx.fillStyle(0x0a1a0a, 0.20);
-        gfx.fillRect(zone.x, zone.y, zone.width, 60);   // fade in at top
+        gfx.fillRect(zone.x, zone.y, zone.width, 80);
       } else if (zone.id === 'ashenveil_road_zone') {
-        // Slight dusty amber — contested road, less dramatic than the others
         gfx.fillStyle(0x1a0e00, 0.18);
         gfx.fillRect(zone.x, zone.y, zone.width, zone.height);
       }
@@ -292,58 +263,59 @@ export class WorldMapScene extends Phaser.Scene {
   private drawRoads(): void {
     const gfx = this.add.graphics();
 
-    // Main horizontal road
+    // Main horizontal road — runs from left forest edge to Ashenveil trigger
     gfx.fillStyle(0x8b7340, 1);
-    gfx.fillRect(110, 510, 1700, 72);
+    gfx.fillRect(180, 1060, 3280, 90);
     // Edge shadows
     gfx.fillStyle(0x6b5828, 0.6);
-    gfx.fillRect(110, 510, 1700, 6);
-    gfx.fillRect(110, 576, 1700, 6);
+    gfx.fillRect(180, 1060, 3280, 8);
+    gfx.fillRect(180, 1142, 3280, 8);
 
-    // North-bound path
+    // North-bound path to the pass — from mountain base down to main road
     gfx.fillStyle(0x7a6535, 1);
-    gfx.fillRect(920, 80, 60, 440);
-    // Path edge shadow
+    gfx.fillRect(1890, 380, 80, 680);
+    // Path edge shadows
     gfx.fillStyle(0x6b5828, 0.4);
-    gfx.fillRect(920, 80, 4, 440);
-    gfx.fillRect(976, 80, 4, 440);
+    gfx.fillRect(1890, 380, 5, 680);
+    gfx.fillRect(1965, 380, 5, 680);
 
-    // Tread marks
+    // Road tread marks
     gfx.fillStyle(0x6b5828, 0.4);
-    for (let rx = 200; rx < 1750; rx += 80) {
-      gfx.fillRect(rx, 530, 30, 4);
+    for (let rx = 300; rx < 3400; rx += 120) {
+      gfx.fillRect(rx, 1090, 40, 5);
     }
-    for (let ry = 130; ry < 510; ry += 60) {
-      gfx.fillRect(938, ry, 24, 4);
+    // Path tread marks
+    for (let ry = 430; ry < 1060; ry += 90) {
+      gfx.fillRect(1912, ry, 30, 5);
     }
   }
 
   private drawForestEdges(): void {
     const gfx = this.add.graphics();
 
-    // Left forest wall fill
+    // Left forest wall
     gfx.fillStyle(0x1a4a20, 1);
-    gfx.fillRect(0, 0, 110, MAP_H);
+    gfx.fillRect(0, 0, 180, MAP_H);
 
-    // Right forest wall fill
+    // Right forest wall
     gfx.fillStyle(0x1a4a20, 1);
-    gfx.fillRect(1810, 0, 110, MAP_H);
+    gfx.fillRect(3916, 0, 180, MAP_H);
 
     // Tree silhouettes along edges
     gfx.fillStyle(0x1e5c24, 1);
-    for (let ty = 60; ty < MAP_H - 60; ty += 52) {
+    for (let ty = 80; ty < MAP_H - 80; ty += 64) {
       // Left side trees
-      const lx = 8 + Math.abs(Math.sin(ty * 0.08)) * 20;
-      gfx.fillTriangle(lx, ty + 38, lx + 20, ty, lx + 40, ty + 38);
+      const lx = 14 + Math.abs(Math.sin(ty * 0.08)) * 28;
+      gfx.fillTriangle(lx, ty + 50, lx + 26, ty, lx + 52, ty + 50);
       gfx.fillStyle(0x164d1a, 1);
-      gfx.fillTriangle(lx + 4, ty + 30, lx + 20, ty - 10, lx + 36, ty + 30);
+      gfx.fillTriangle(lx + 6, ty + 38, lx + 26, ty - 14, lx + 46, ty + 38);
       gfx.fillStyle(0x1e5c24, 1);
 
       // Right side trees
-      const rx = 1820 + Math.abs(Math.sin(ty * 0.09)) * 16;
-      gfx.fillTriangle(rx, ty + 38, rx + 20, ty, rx + 40, ty + 38);
+      const rx = 3930 + Math.abs(Math.sin(ty * 0.09)) * 22;
+      gfx.fillTriangle(rx, ty + 50, rx + 26, ty, rx + 52, ty + 50);
       gfx.fillStyle(0x164d1a, 1);
-      gfx.fillTriangle(rx + 4, ty + 30, rx + 20, ty - 10, rx + 36, ty + 30);
+      gfx.fillTriangle(rx + 6, ty + 38, rx + 26, ty - 14, rx + 46, ty + 38);
       gfx.fillStyle(0x1e5c24, 1);
     }
   }
@@ -353,175 +325,246 @@ export class WorldMapScene extends Phaser.Scene {
 
     // Mountain blocks (match collision rects)
     gfx.fillStyle(0x142a18, 1);
-    gfx.fillRect(0,    0, 780, 200);
-    gfx.fillRect(1140, 0, 780, 200);
+    gfx.fillRect(0,    0, 1600, 380);
+    gfx.fillRect(2260, 0, 1836, 380);
 
-    // Peak silhouettes
+    // Peak silhouettes — spread across the wider range
     gfx.fillStyle(0x0f2010, 1);
-    const peaks = [
-      [60,200, 200,60, 340,200],
-      [280,200, 440,40, 600,200],
-      [520,200, 680,80, 840,200],
-      [1080,200, 1240,50, 1400,200],
-      [1320,200, 1480,70, 1640,200],
-      [1560,200, 1720,40, 1880,200],
+    const peaks: [number,number,number,number,number,number][] = [
+      // Left range
+      [80,380,  300,90,  520,380],
+      [380,380, 620,50,  860,380],
+      [700,380, 960,80,  1220,380],
+      [1020,380,1280,55, 1540,380],
+      // Right range
+      [2160,380,2400,60, 2640,380],
+      [2500,380,2760,80, 3020,380],
+      [2860,380,3120,50, 3380,380],
+      [3220,380,3500,70, 3780,380],
+      [3560,380,3800,45, 4096,380],
     ];
     for (const [x1,y1,x2,y2,x3,y3] of peaks) {
       gfx.fillTriangle(x1, y1, x2, y2, x3, y3);
     }
 
-    // Snow caps
+    // Snow caps on tallest peaks
     gfx.fillStyle(0xc8d8c0, 0.6);
-    gfx.fillTriangle(200,60, 240,90, 160,90);
-    gfx.fillTriangle(440,40, 490,76, 390,76);
-    gfx.fillTriangle(1240,50, 1296,82, 1185,82);
-    gfx.fillTriangle(1480,70, 1532,100, 1428,100);
+    gfx.fillTriangle(300,90,  358,138, 242,138);
+    gfx.fillTriangle(620,50,  694,105, 546,105);
+    gfx.fillTriangle(1280,55, 1360,108,1200,108);
+    gfx.fillTriangle(2400,60, 2478,112,2322,112);
+    gfx.fillTriangle(3120,50, 3202,104,3038,104);
 
     // Foot trees (decorative)
     gfx.fillStyle(0x1a4820, 1);
-    for (const [tx, ty] of [[130,195],[200,205],[330,198],[460,202],[590,196],
-                             [1200,200],[1345,204],[1480,197],[1625,201],[1762,198]]) {
-      gfx.fillTriangle(tx, ty + 28, tx + 16, ty, tx + 32, ty + 28);
+    for (const [tx, ty] of [
+      [160,374],[340,378],[540,374],[760,380],[980,376],[1200,378],[1420,374],
+      [2280,378],[2480,374],[2700,380],[2940,376],[3180,380],[3420,374],[3680,378],[3880,374],
+    ]) {
+      gfx.fillTriangle(tx, ty + 36, tx + 20, ty, tx + 40, ty + 36);
     }
   }
 
   private drawTownArea(): void {
     const gfx = this.add.graphics();
+    const cx = 2830; // Lumen Town centre x (trigger x:2720, width:220 → centre:2830)
 
     // Town ground
     gfx.fillStyle(0x7a6040, 0.5);
-    gfx.fillRect(1340, 340, 420, 320);
+    gfx.fillRect(cx - 260, 580, 520, 480);  // x:2570–3090, y:580–1060
 
     // Stone plaza
     gfx.fillStyle(0x9a8c76, 1);
-    gfx.fillRect(1380, 490, 340, 50);
+    gfx.fillRect(cx - 210, 840, 420, 60);
 
-    // Inn (ochre)
+    // Inn (ochre) — west
     gfx.fillStyle(0xb8722a, 1);
-    gfx.fillRect(1360, 370, 100, 90);
+    gfx.fillRect(cx - 250, 620, 120, 120);
     gfx.fillStyle(0x7a3a14, 1);
-    gfx.fillTriangle(1345,370, 1410,320, 1475,370);
+    gfx.fillTriangle(cx - 264, 620, cx - 190, 560, cx - 116, 620);
 
-    // Shop (blue-grey)
+    // Shop (blue-grey) — east
     gfx.fillStyle(0x5a7490, 1);
-    gfx.fillRect(1490, 385, 88, 80);
+    gfx.fillRect(cx + 120, 635, 110, 110);
     gfx.fillStyle(0x3a5070, 1);
-    gfx.fillTriangle(1480,385, 1534,340, 1588,385);
+    gfx.fillTriangle(cx + 108, 635, cx + 175, 578, cx + 242, 635);
 
-    // Guard house
+    // Guard house — centre
     gfx.fillStyle(0x6a6a5a, 1);
-    gfx.fillRect(1420, 445, 70, 55);
+    gfx.fillRect(cx - 46, 745, 90, 78);
     gfx.fillStyle(0x4a4a3a, 1);
-    gfx.fillTriangle(1412,445, 1455,415, 1498,445);
+    gfx.fillTriangle(cx - 60, 745, cx, 698, cx + 60, 745);
 
     // Gate posts
     gfx.fillStyle(0x8a7860, 1);
-    gfx.fillRect(1442, 510, 18, 32);
-    gfx.fillRect(1498, 510, 18, 32);
-    gfx.fillRect(1440, 506, 80, 10);
+    gfx.fillRect(cx - 34, 836, 22, 46);
+    gfx.fillRect(cx + 12,  836, 22, 46);
+    gfx.fillRect(cx - 38, 830, 90, 12);
 
     // Windows
     gfx.fillStyle(0xffe0a0, 0.8);
-    gfx.fillRect(1375, 390, 16, 14);
-    gfx.fillRect(1420, 390, 16, 14);
-    gfx.fillRect(1505, 400, 14, 12);
+    gfx.fillRect(cx - 240, 640, 18, 16);
+    gfx.fillRect(cx - 200, 640, 18, 16);
+    gfx.fillRect(cx + 132, 654, 16, 14);
 
     // Town name label
-    this.add.text(1535, 312, 'Lumen Town', {
+    this.add.text(cx, 552, 'Lumen Town', {
       fontFamily: FONTS.ui,
-      fontSize: '18px',
+      fontSize: '22px',
       color: COLOR_HEX.goldAccent,
       fontStyle: 'bold',
       stroke: '#0a0f1a',
-      strokeThickness: 3,
+      strokeThickness: 4,
+    }).setOrigin(0.5, 1);
+  }
+
+  private drawAshenveilArea(): void {
+    const gfx = this.add.graphics();
+    const cx = 3570; // Ashenveil centre x (trigger x:3460, width:220 → centre:3570)
+
+    // Town ground
+    gfx.fillStyle(0x7a6040, 0.4);
+    gfx.fillRect(cx - 210, 850, 420, 360);  // x:3360–3780, y:850–1210
+
+    // Stone plaza
+    gfx.fillStyle(0x8a7c68, 1);
+    gfx.fillRect(cx - 170, 1040, 340, 56);
+
+    // Inn (ochre) — west
+    gfx.fillStyle(0xb8722a, 1);
+    gfx.fillRect(cx - 200, 878, 110, 110);
+    gfx.fillStyle(0x7a3a14, 1);
+    gfx.fillTriangle(cx - 214, 878, cx - 145, 822, cx - 76, 878);
+
+    // Elder's hall (blue-grey, larger) — east
+    gfx.fillStyle(0x5a7490, 1);
+    gfx.fillRect(cx + 20, 868, 160, 130);
+    gfx.fillStyle(0x3a5070, 1);
+    gfx.fillTriangle(cx + 4, 868, cx + 100, 808, cx + 196, 868);
+
+    // Windows
+    gfx.fillStyle(0xffe0a0, 0.8);
+    gfx.fillRect(cx - 190, 898, 16, 14);
+    gfx.fillRect(cx - 155, 898, 16, 14);
+    gfx.fillRect(cx + 34,  888, 14, 12);
+    gfx.fillRect(cx + 88,  888, 14, 12);
+
+    // Town name label
+    this.add.text(cx, 800, 'Ashenveil', {
+      fontFamily: FONTS.ui,
+      fontSize: '20px',
+      color: COLOR_HEX.goldAccent,
+      fontStyle: 'bold',
+      stroke: '#0a0f1a',
+      strokeThickness: 4,
     }).setOrigin(0.5, 1);
   }
 
   private drawNorthPassArea(): void {
     const gfx = this.add.graphics();
-    const cx = 960;
+    const cx   = 1930; // centre of the pass gap (x:1600–2260)
     const topY = 60;
 
     // Stone pillars
     gfx.fillStyle(0x5a5a60, 1);
-    gfx.fillRect(cx - 80, topY + 20, 28, 120);
-    gfx.fillRect(cx + 52, topY + 20, 28, 120);
+    gfx.fillRect(cx - 104, topY + 30, 36, 170);
+    gfx.fillRect(cx + 68,  topY + 30, 36, 170);
 
     // Lintel
     gfx.fillStyle(0x484850, 1);
-    gfx.fillRect(cx - 90, topY + 12, 180, 22);
+    gfx.fillRect(cx - 118, topY + 18, 236, 28);
 
     // Cracks
     gfx.lineStyle(1, 0x2a2a30, 0.8);
     gfx.beginPath();
-    gfx.moveTo(cx - 72, topY + 30); gfx.lineTo(cx - 60, topY + 70);
-    gfx.moveTo(cx + 60, topY + 40); gfx.lineTo(cx + 72, topY + 80);
+    gfx.moveTo(cx - 94, topY + 45); gfx.lineTo(cx - 78, topY + 100);
+    gfx.moveTo(cx + 80, topY + 58); gfx.lineTo(cx + 96, topY + 118);
     gfx.strokePath();
 
     // Danger marks
     gfx.fillStyle(0x8a2020, 0.7);
-    gfx.fillRect(cx - 10, topY + 20, 20, 4);
-    gfx.fillRect(cx - 10, topY + 30, 20, 4);
+    gfx.fillRect(cx - 16, topY + 26, 32, 6);
+    gfx.fillRect(cx - 16, topY + 42, 32, 6);
 
     // Fog wisps
     gfx.fillStyle(0x1a0a2a, 0.30);
-    gfx.fillEllipse(cx, topY + 50, 140, 40);
+    gfx.fillEllipse(cx, topY + 72, 200, 60);
     gfx.fillStyle(0x1a0a2a, 0.15);
-    gfx.fillEllipse(cx + 30, topY + 80, 100, 30);
+    gfx.fillEllipse(cx + 44, topY + 118, 150, 46);
 
     // Label
-    this.add.text(cx, topY - 6, 'North Pass', {
+    this.add.text(cx, topY - 8, 'North Pass', {
       fontFamily: FONTS.ui,
-      fontSize: '17px',
+      fontSize: '20px',
       color: '#D97A7A',
       fontStyle: 'bold',
       stroke: '#0a0f1a',
-      strokeThickness: 3,
+      strokeThickness: 4,
     }).setOrigin(0.5, 1);
   }
 
   private drawThornwoodArea(): void {
     const gfx = this.add.graphics();
-    // The Thornwood zone (x:110–590, y:680–1010) sits below the main road.
-    // Corrupted ground: darker, sickly colour vs the healthy midground.
+    // Zone: x:180–1100, y:1460–2224
     gfx.fillStyle(0x1a3014, 1);
-    gfx.fillRect(110, 680, 480, 330);
-    // Undergrowth texture — layered dark patches
-    gfx.fillStyle(0x142810, 1);
-    gfx.fillRect(110, 700, 480, 80);
-    gfx.fillStyle(0x0e1e0c, 0.6);
-    gfx.fillRect(140, 820, 400, 60);
+    gfx.fillRect(180, 1460, 920, 764);
 
-    // Corrupted tree silhouettes — irregular, hunched shapes
+    // Undergrowth texture
+    gfx.fillStyle(0x142810, 1);
+    gfx.fillRect(180, 1480, 920, 140);
+    gfx.fillStyle(0x0e1e0c, 0.6);
+    gfx.fillRect(220, 1680, 840, 80);
+
+    // Corrupted tree silhouettes
     gfx.fillStyle(0x0a1c08, 1);
     const thornTrees: [number, number, number][] = [
-      [120, 760, 22],  [180, 730, 26], [250, 750, 20], [320, 720, 28],
-      [390, 745, 24],  [455, 710, 30], [520, 755, 22], [150, 840, 20],
-      [240, 860, 26],  [350, 830, 22], [450, 850, 28], [540, 820, 20],
-      [130, 920, 24],  [220, 940, 20], [310, 910, 26], [410, 930, 22],
+      [190,1568,28], [278,1532,32], [386,1552,26], [494,1518,34],
+      [602,1548,28], [710,1522,30], [818,1552,26], [926,1526,32],
+      [1010,1568,24],
+      [204,1668,26], [322,1688,30], [440,1658,24], [558,1678,28],
+      [676,1652,32], [794,1672,26], [912,1660,30],
+      [218,1778,28], [344,1808,26], [510,1778,32], [686,1793,28],
+      [808,1762,30], [950,1788,24],
+      [198,1888,26], [304,1876,30], [588,1906,28], [724,1870,32],
+      [858,1896,26], [980,1880,30],
+      [214,1998,24], [394,1988,28], [524,2018,26], [664,2002,30],
+      [820,1988,24], [958,2016,28],
+      [228,2108,26], [418,2098,30], [578,2118,24], [748,2103,28],
+      [920,2088,32],
+      [240,2188,24], [460,2198,28], [640,2182,30], [830,2202,26],
     ];
     for (const [tx, ty, tw] of thornTrees) {
-      // Hunched irregular canopy (not clean triangles like the healthy forest)
       gfx.fillTriangle(tx, ty + tw, tx + tw * 0.6, ty - tw * 0.3, tx + tw * 1.3, ty + tw * 0.6);
       gfx.fillStyle(0x081408, 1);
       gfx.fillTriangle(tx + 4, ty + tw * 0.8, tx + tw * 0.65, ty - tw * 0.5, tx + tw * 1.1, ty + tw * 0.8);
       gfx.fillStyle(0x0a1c08, 1);
     }
 
-    // Wisp glow dots — corruption markers
+    // Wisp glow dots
     gfx.fillStyle(0x3a7878, 0.30);
-    for (const [wx, wy] of [[200, 790], [360, 810], [480, 770], [160, 900], [440, 890]]) {
-      gfx.fillCircle(wx, wy, 8);
+    for (const [wx, wy] of [
+      [310,1620],[520,1640],[730,1615],[940,1635],
+      [252,1730],[468,1750],[668,1720],[868,1745],
+      [334,1858],[568,1878],[802,1848],[1020,1870],
+      [296,1978],[500,1998],[714,1972],[938,1994],
+      [272,2098],[490,2118],[720,2088],[950,2110],
+    ]) {
+      gfx.fillCircle(wx, wy, 12);
     }
     gfx.fillStyle(0x5ababa, 0.15);
-    for (const [wx, wy] of [[200, 790], [360, 810], [480, 770]]) {
-      gfx.fillCircle(wx, wy, 18);
+    for (const [wx, wy] of [
+      [310,1620],[520,1640],[730,1615],
+      [252,1730],[468,1750],
+      [334,1858],[568,1878],
+      [296,1978],[500,1998],
+    ]) {
+      gfx.fillCircle(wx, wy, 28);
     }
 
     // Zone label
-    this.add.text(310, 674, 'Thornwood', {
+    this.add.text(640, 1454, 'Thornwood', {
       fontFamily: FONTS.ui,
-      fontSize: '15px',
+      fontSize: '18px',
       color: '#6ab87a',
       fontStyle: 'bold',
       stroke: '#0a1408',
@@ -529,11 +572,6 @@ export class WorldMapScene extends Phaser.Scene {
     }).setOrigin(0.5, 1);
   }
 
-  /**
-   * True if the trigger's scripted battle has already been won (its
-   * consumedByFlag is set in story flags). Used to hide both the marker and
-   * the HUD hint for completed events.
-   */
   private isTriggerConsumed(trigger: WorldTrigger): boolean {
     const sb = trigger.scriptedBattle;
     return !!(sb?.consumedByFlag && getStoryFlag(sb.consumedByFlag));
@@ -541,25 +579,19 @@ export class WorldMapScene extends Phaser.Scene {
 
   private drawTriggerMarkers(): void {
     for (const trigger of CFG.triggers) {
-      // Skip consumed triggers — their event is over and the marker is misleading.
       if (this.isTriggerConsumed(trigger)) continue;
 
       const gfx = this.add.graphics();
 
-      // Derive color from what the trigger does, not from its specific ID.
-      // Town entrances → gold. Battle/boss triggers → danger crimson.
       const isTownEntry = trigger.targetSceneKey === SCENE_KEYS.TOWN;
       const color       = isTownEntry ? COLORS.goldAccent : COLORS.dangerCrimson;
       const labelColor  = isTownEntry ? COLOR_HEX.goldAccent : '#D97A7A';
 
-      // Fill
       gfx.fillStyle(color, 0.18);
       gfx.fillRoundedRect(trigger.x, trigger.y, trigger.width, trigger.height, 4);
-      // Border
       gfx.lineStyle(2, color, 0.55);
       gfx.strokeRoundedRect(trigger.x, trigger.y, trigger.width, trigger.height, 4);
 
-      // Label above trigger (world-space, always visible)
       this.add.text(
         trigger.x + trigger.width / 2,
         trigger.y - 8,
@@ -589,32 +621,25 @@ export class WorldMapScene extends Phaser.Scene {
     const g = this.player;
     g.clear();
 
-    // Cape shadow
     g.fillStyle(0x8a6a10, 0.5);
     g.fillEllipse(PLAYER_W / 2 + 2, PLAYER_H - 4, PLAYER_W - 4, 10);
 
-    // Body
     g.fillStyle(0xe8d25f, 1);
     g.fillRect(4, 8, PLAYER_W - 8, PLAYER_H - 12);
 
-    // Cape wings
     g.fillStyle(0xb87820, 1);
     g.fillRect(0, 10, 6, PLAYER_H - 18);
     g.fillRect(PLAYER_W - 6, 10, 6, PLAYER_H - 18);
 
-    // Head
     g.fillStyle(0xf0d080, 1);
     g.fillRect(6, 0, PLAYER_W - 12, 12);
 
-    // Eye
     g.fillStyle(0x1a1a1a, 1);
     g.fillRect(PLAYER_W - 10, 3, 3, 3);
 
-    // Sword
     g.fillStyle(0xc0c8e0, 1);
     g.fillRect(PLAYER_W - 2, 6, 3, PLAYER_H - 12);
 
-    // Lightning sparkle
     g.fillStyle(0xe8d25f, 0.9);
     g.fillRect(PLAYER_W, 6, 2, 4);
     g.fillRect(PLAYER_W - 1, 10, 4, 2);
@@ -715,9 +740,10 @@ export class WorldMapScene extends Phaser.Scene {
     }
     this.scene.get(SCENE_KEYS.GAME_MENU).events.once('close', () => {
       this.menuActive   = false;
-      this.menuCooldown = true;   // require M release before menu can reopen
+      this.menuCooldown = true;
     });
-    this.scene.launch(SCENE_KEYS.GAME_MENU);
+    // The world map is never a valid save location.
+    this.scene.launch(SCENE_KEYS.GAME_MENU, { canSave: false });
     this.scene.bringToTop(SCENE_KEYS.GAME_MENU);
   }
 
@@ -735,23 +761,19 @@ export class WorldMapScene extends Phaser.Scene {
   // ─────────────────────────────────────────────────────────────────────────
 
   private updateHUD(): void {
-    // Zone label
     const zoneName    = this.activeZone?.displayName ?? 'Border Fields';
     const isEncounter = this.activeZone?.type === 'encounter';
     this.hudZoneText.setText(zoneName);
     this.hudZoneText.setColor(isEncounter ? COLOR_HEX.villainName : COLOR_HEX.parchment);
 
-    // Danger badge
     this.hudDangerBadge.setVisible(isEncounter);
 
-    // Interaction hint
     const hasTrigger = this.activeTrigger !== null;
     this.hudHintPanel.setVisible(hasTrigger);
     this.hudHintText.setVisible(hasTrigger);
     if (hasTrigger) {
       this.hudHintText.setText(`[SPACE]  ${this.activeTrigger!.label}`);
     }
-
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -769,7 +791,6 @@ export class WorldMapScene extends Phaser.Scene {
       returnY:            Math.round(this.py),
     };
 
-    // Brief white flash before fade — classic encounter feel
     this.cameras.main.flash(180, 255, 255, 255, true);
     this.time.delayedCall(180, () => {
       this.cameras.main.fadeOut(300, 0, 0, 0);
@@ -784,20 +805,12 @@ export class WorldMapScene extends Phaser.Scene {
   // ─────────────────────────────────────────────────────────────────────────
 
   private activateTrigger(trigger: WorldTrigger): void {
-    // ── Scripted battle trigger ────────────────────────────────────────────
-    // All data comes from trigger.scriptedBattle — WorldMapScene owns no
-    // boss-specific knowledge. Guard checks happen BEFORE transitionPending
-    // so a blocked trigger does nothing and leaves the scene fully intact.
     if (trigger.scriptedBattle) {
       const sb = trigger.scriptedBattle;
 
-      // requiresFlag: silently do nothing until the flag is set
       if (sb.requiresFlag && !getStoryFlag(sb.requiresFlag)) return;
-
-      // consumedByFlag: silently do nothing once the battle has been won
       if (sb.consumedByFlag && getStoryFlag(sb.consumedByFlag)) return;
 
-      // Guards passed — lock the scene and launch the battle
       this.transitionPending = true;
       setCurrentLocation({
         locationId: trigger.targetLocationId,
@@ -823,7 +836,6 @@ export class WorldMapScene extends Phaser.Scene {
       return;
     }
 
-    // ── Standard scene transition trigger (town entrance, etc.) ───────────
     this.transitionPending = true;
     setCurrentLocation({
       locationId: trigger.targetLocationId,

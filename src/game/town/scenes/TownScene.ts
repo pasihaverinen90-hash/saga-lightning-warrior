@@ -798,7 +798,11 @@ export class TownScene extends Phaser.Scene {
       this.menuActive   = false;
       this.menuCooldown = true;   // require M release before menu can reopen
     });
-    this.scene.launch(SCENE_KEYS.GAME_MENU);
+    // Save is only allowed from the menu when the player is standing near a valid
+    // save point. The same activeInteractable that shows the HUD hint drives this.
+    const canSave = this.activeInteractable?.type === 'save_crystal'
+                 || this.activeInteractable?.type === 'building_inn';
+    this.scene.launch(SCENE_KEYS.GAME_MENU, { canSave });
     this.scene.bringToTop(SCENE_KEYS.GAME_MENU);
   }
 

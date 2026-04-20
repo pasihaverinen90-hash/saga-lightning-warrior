@@ -143,9 +143,10 @@ export const LUMEN_TOWN_CONFIG: TownMapConfig = {
     x: 680, y: 820,
     width:  240, height: 60,
     targetLocationId: 'border_fields',
-    // Place returned player just left of the Lumen Town entrance trigger
-    worldReturnX: 1378,
-    worldReturnY: 506,
+    // Place returned player on the road, just west of the Lumen Town entrance trigger
+    // (trigger: x=2720, y=800, 220×340). Top-left coords assigned directly to player rect.
+    worldReturnX: 2660,
+    worldReturnY: 1065,
   },
 
   // ── Shop stock ────────────────────────────────────────────────────────────────

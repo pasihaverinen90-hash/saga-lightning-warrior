@@ -146,8 +146,10 @@ export const ASHENVEIL_TOWN_CONFIG: TownMapConfig = {
     x: 640, y: 820,
     width:  320, height: 60,
     targetLocationId: 'border_fields',
-    worldReturnX: 1520,
-    worldReturnY: 680,
+    // Place returned player on the road, just west of the Ashenveil entrance trigger
+    // (trigger: x=3460, y=1000, 220×200). Top-left coords assigned directly to player rect.
+    worldReturnX: 3400,
+    worldReturnY: 1065,
   },
 
   // ── Shop stock ────────────────────────────────────────────────────────────────

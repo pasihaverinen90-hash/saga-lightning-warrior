@@ -68,10 +68,18 @@ const OBJECTIVES: Array<{ text: string; flag: string }> = [
 
 // ─── Scene ────────────────────────────────────────────────────────────────────
 
+// Data passed from the host scene when launching this overlay.
+interface GameMenuInitData {
+  /** True only when the player is standing at a valid save point (inn / save crystal). */
+  canSave?: boolean;
+}
+
 export class GameMenuOverlay extends Phaser.Scene {
   private selectedTab   = 0;
   private saveMsg       = '';
   private inputCooldown = false;
+  /** Set by the host scene at launch time. False by default — safe over permissive. */
+  private canSave = false;
 
   // Containers cleared and rebuilt on every tab change
   private navContainer!:     Phaser.GameObjects.Container;
@@ -92,10 +100,11 @@ export class GameMenuOverlay extends Phaser.Scene {
 
   // ─── Lifecycle ─────────────────────────────────────────────────────────────
 
-  init(): void {
+  init(data: GameMenuInitData): void {
     this.selectedTab   = 0;
     this.saveMsg       = '';
     this.inputCooldown = false;
+    this.canSave       = data?.canSave ?? false;
   }
 
   create(): void {
@@ -148,6 +157,11 @@ export class GameMenuOverlay extends Phaser.Scene {
   }
 
   private performSave(): void {
+    if (!this.canSave) {
+      this.saveMsg = 'Visit an inn or save crystal to record your journey.';
+      this.render();
+      return;
+    }
     this.inputCooldown = true;
     const ok = saveGame();
     this.saveMsg = ok ? 'Progress saved!' : 'Save failed.';
@@ -426,8 +440,9 @@ export class GameMenuOverlay extends Phaser.Scene {
 
   // ─── Save panel ────────────────────────────────────────────────────────────
   //
-  // Save goes through save-service.ts (the sole persistence point) so calling
-  // saveGame() here is architecturally correct — same path as inn / save crystal.
+  // When canSave is false (world map or non-save-point location) the button is
+  // replaced with a clear notice. When canSave is true the normal save flow runs.
+  // The canSave flag is set by the host scene at launch time.
 
   private renderSave(): void {
     const cy = MENU_Y;
@@ -435,7 +450,7 @@ export class GameMenuOverlay extends Phaser.Scene {
 
     this.ctxt(cx + P, cy + P, 'Save', FONTS.title, '22px', COLOR_HEX.goldAccent, 'bold');
 
-    // Last save metadata
+    // Last save metadata — shown regardless of save permission
     const meta = getSaveMeta();
     if (meta) {
       this.ctxt(cx + P, cy + 62, 'Last save:', FONTS.ui, '14px', COLOR_HEX.textSecondary);
@@ -450,7 +465,21 @@ export class GameMenuOverlay extends Phaser.Scene {
         FONTS.ui, '14px', COLOR_HEX.textDisabled);
     }
 
-    // Save button
+    if (!this.canSave) {
+      // ── Save unavailable — clear notice, no button ────────────────────────
+      this.ctxt(cx + P, cy + 148, 'Cannot save here.',
+        FONTS.ui, '20px', '#D97A7A', 'bold');
+      this.ctxt(cx + P, cy + 182,
+        'Stand near an inn or save crystal\nto record your journey.',
+        FONTS.ui, '16px', COLOR_HEX.textSecondary, 'italic');
+      if (this.saveMsg) {
+        this.ctxt(cx + P, cy + 268, this.saveMsg,
+          FONTS.ui, '15px', '#D97A7A', 'italic');
+      }
+      return;
+    }
+
+    // ── Save available — normal save button ────────────────────────────────
     const btnY = cy + 148;
     const btnBg = this.add.graphics().setDepth(212);
     btnBg.fillStyle(COLORS.selectionFill, 0.95);
@@ -465,7 +494,6 @@ export class GameMenuOverlay extends Phaser.Scene {
       'Press Enter / Space to confirm',
       FONTS.ui, '13px', COLOR_HEX.textDisabled, 'italic');
 
-    // Result message from last save attempt
     if (this.saveMsg) {
       const color = this.saveMsg.startsWith('Progress')
         ? COLOR_HEX.successGreen : '#A84747';
