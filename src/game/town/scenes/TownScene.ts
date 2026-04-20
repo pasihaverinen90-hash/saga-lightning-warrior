@@ -515,9 +515,10 @@ export class TownScene extends Phaser.Scene {
     }
 
     // ── Optional large-scale features ────────────────────────────────────────
-    const { mansion, cityGate } = this.cfg.layout;
+    const { mansion, cityGate, extraBuildings } = this.cfg.layout;
     if (mansion)  this.drawMansion(gfx, mansion);
     if (cityGate) this.drawCityGate(gfx, cityGate);
+    if (extraBuildings) for (const b of extraBuildings) this.drawExtraBuilding(gfx, b);
   }
 
   private drawRoadsAndPaths(): void {
@@ -759,6 +760,57 @@ export class TownScene extends Phaser.Scene {
     gfx.fillTriangle(sx + 4,  sy - 12, sx + 12, sy - 36, sx + 20, sy - 12);
     gfx.lineStyle(1, 0x3a2808, 0.5);
     gfx.strokeTriangle(sx - 36, sy - 12, sx, sy - 52, sx + 36, sy - 12);
+  }
+
+  private drawExtraBuilding(
+    gfx: Phaser.GameObjects.Graphics,
+    b: { x: number; y: number; width: number; height: number; colorBody: number; colorRoof: number; label?: string },
+  ): void {
+    // Foundation shadow
+    gfx.fillStyle(0x3a2a10, 0.4);
+    gfx.fillRect(b.x - 2, b.y + b.height, b.width + 4, 10);
+    // Body
+    gfx.fillStyle(b.colorBody, 1);
+    gfx.fillRect(b.x, b.y, b.width, b.height);
+    // Peaked roof
+    const roofPeak = Math.min(56, Math.round(b.height * 0.34));
+    gfx.fillStyle(b.colorRoof, 1);
+    gfx.fillTriangle(b.x - 10, b.y, b.x + b.width / 2, b.y - roofPeak, b.x + b.width + 10, b.y);
+    // Roof ridge
+    gfx.fillStyle(0x3a2810, 1);
+    gfx.fillRect(b.x - 10, b.y - 3, b.width + 20, 6);
+    // Door
+    const doorCX = b.x + b.width / 2;
+    const doorW  = Math.min(26, Math.round(b.width * 0.22));
+    const doorH  = Math.min(56, b.height - 20);
+    gfx.fillStyle(0x5a3818, 1);
+    gfx.fillRect(doorCX - doorW, b.y + b.height - doorH, doorW * 2, doorH);
+    gfx.fillStyle(0x3a2008, 1);
+    gfx.fillCircle(doorCX, b.y + b.height - doorH, doorW);
+    // Windows (only if building is wide enough)
+    if (b.width >= 100) {
+      const winY = b.y + 20;
+      const winH = Math.min(20, Math.round(b.height / 4));
+      gfx.fillStyle(0xffd090, 0.75);
+      gfx.fillRect(b.x + 10,             winY, 26, winH);
+      gfx.fillRect(b.x + b.width - 36,  winY, 26, winH);
+      gfx.lineStyle(1, b.colorBody, 0.9);
+      gfx.beginPath();
+      gfx.moveTo(b.x + 23, winY);            gfx.lineTo(b.x + 23,            winY + winH);
+      gfx.moveTo(b.x + 10, winY + winH / 2); gfx.lineTo(b.x + 36,            winY + winH / 2);
+      gfx.moveTo(b.x + b.width - 23, winY);  gfx.lineTo(b.x + b.width - 23,  winY + winH);
+      gfx.moveTo(b.x + b.width - 36, winY + winH / 2); gfx.lineTo(b.x + b.width - 10, winY + winH / 2);
+      gfx.strokePath();
+    }
+    if (b.label) {
+      this.add.text(b.x + b.width / 2, b.y - 8, b.label, {
+        fontFamily: FONTS.ui,
+        fontSize:   '11px',
+        color:      COLOR_HEX.goldAccent,
+        stroke:     '#0a0f1a',
+        strokeThickness: 2,
+      }).setOrigin(0.5, 1);
+    }
   }
 
   private drawSaveCrystal(): void {
