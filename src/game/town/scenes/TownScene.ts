@@ -285,31 +285,32 @@ export class TownScene extends Phaser.Scene {
   }
 
   private drawGround(): void {
+    const { plaza, road, exitPath } = this.cfg.layout;
     const gfx = this.add.graphics();
     // Base ground — warm stone/earth
     gfx.fillStyle(0x6a5a40, 1);
     gfx.fillRect(0, 0, this.cfg.mapWidth, this.cfg.mapHeight);
     // Lighter central area (the open plaza/road zone)
     gfx.fillStyle(0x7a6a50, 0.5);
-    gfx.fillRect(100, 200, 1400, 680);
+    gfx.fillRect(plaza.x, plaza.y, plaza.width, plaza.height);
     // Stone path surface (main road)
     gfx.fillStyle(0x8a7c6a, 1);
-    gfx.fillRect(100, 560, 1400, 80);
+    gfx.fillRect(road.x, road.y, road.width, road.height);
     // Stone tiles (horizontal lines for texture)
     gfx.lineStyle(1, 0x7a6e5e, 0.4);
-    for (let tx = 120; tx < 1500; tx += 48) {
+    for (let tx = road.x + 20; tx < road.x + road.width; tx += 48) {
       gfx.beginPath();
-      gfx.moveTo(tx, 560);
-      gfx.lineTo(tx, 640);
+      gfx.moveTo(tx, road.y);
+      gfx.lineTo(tx, road.y + road.height);
       gfx.strokePath();
     }
     // Vertical center path (to exit)
     gfx.fillStyle(0x8a7c6a, 1);
-    gfx.fillRect(740, 640, 120, 260);
+    gfx.fillRect(exitPath.x, exitPath.y, exitPath.width, exitPath.height);
     // Grass patches beside roads
     gfx.fillStyle(0x4a6a30, 0.6);
-    for (let gx = 120; gx < 1500; gx += 120) {
-      const gy = 540 - (Math.sin(gx * 0.04) * 8 | 0);
+    for (let gx = road.x + 20; gx < road.x + road.width; gx += 120) {
+      const gy = road.y - 20 - (Math.sin(gx * 0.04) * 8 | 0);
       gfx.fillRect(gx, gy - 6, 30, 12);
     }
     // Top boundary wall (stone blocks)
@@ -329,45 +330,50 @@ export class TownScene extends Phaser.Scene {
   }
 
   private drawBuildings(): void {
+    const { inn, shop, hall, hallLabel, fencePosts } = this.cfg.layout;
     const gfx = this.add.graphics();
 
     // ── Inn (left side) ─────────────────────────────────────────────────────
     // Foundation / shadow
     gfx.fillStyle(0x3a2a10, 0.5);
-    gfx.fillRect(118, 524, 244, 12);
+    gfx.fillRect(inn.x - 2, inn.y + inn.height, inn.width + 4, 12);
     // Body
     gfx.fillStyle(0xb8722a, 1);
-    gfx.fillRect(120, 300, 240, 224);
+    gfx.fillRect(inn.x, inn.y, inn.width, inn.height);
     // Roof
     gfx.fillStyle(0x7a3a14, 1);
-    gfx.fillTriangle(104, 300, 240, 210, 376, 300);
+    gfx.fillTriangle(inn.x - 16, inn.y, inn.x + inn.width / 2, inn.y - 90, inn.x + inn.width + 16, inn.y);
     // Roof ridge tiles
     gfx.fillStyle(0x5a2a0a, 1);
-    gfx.fillRect(104, 296, 272, 8);
+    gfx.fillRect(inn.x - 16, inn.y - 4, inn.width + 32, 8);
     // Door (darker arch in building face)
+    const innDoorCX = inn.x + inn.width / 2;
+    const innDoorY  = inn.y + inn.height - 76;
     gfx.fillStyle(0x5a3010, 1);
-    gfx.fillRect(216, 448, 48, 76);
+    gfx.fillRect(innDoorCX - 24, innDoorY, 48, 76);
     gfx.fillStyle(0x3a1e08, 1);
-    gfx.fillCircle(240, 448, 24);
-    // Windows (two, warm glow)
+    gfx.fillCircle(innDoorCX, innDoorY, 24);
+    // Windows (warm glow)
+    const innWinXs = [inn.x + 18, inn.x + 82, inn.x + 182];
+    const innWinY  = inn.y + 54;
     gfx.fillStyle(0xffe0a0, 0.85);
-    gfx.fillRect(138, 354, 40, 36);
-    gfx.fillRect(202, 354, 40, 36);
-    gfx.fillRect(302, 354, 40, 36);
+    for (const wx of innWinXs) gfx.fillRect(wx, innWinY, 40, 36);
     // Window cross bars
     gfx.lineStyle(2, 0x7a3a14, 1);
-    for (const wx of [138, 202, 302]) {
+    for (const wx of innWinXs) {
       gfx.beginPath();
-      gfx.moveTo(wx + 20, 354); gfx.lineTo(wx + 20, 390);
-      gfx.moveTo(wx, 372);     gfx.lineTo(wx + 40, 372);
+      gfx.moveTo(wx + 20, innWinY);      gfx.lineTo(wx + 20, innWinY + 36);
+      gfx.moveTo(wx,      innWinY + 18); gfx.lineTo(wx + 40, innWinY + 18);
       gfx.strokePath();
     }
     // Inn sign
+    const innSignX = inn.x + inn.width / 2 - 46;
+    const innSignY = inn.y + inn.height - 88;
     gfx.fillStyle(0xc89040, 1);
-    gfx.fillRect(194, 436, 92, 24);
+    gfx.fillRect(innSignX, innSignY, 92, 24);
     gfx.lineStyle(2, 0x8a5010, 1);
-    gfx.strokeRect(194, 436, 92, 24);
-    this.add.text(240, 448, 'INN', {
+    gfx.strokeRect(innSignX, innSignY, 92, 24);
+    this.add.text(inn.x + inn.width / 2, innSignY + 12, 'INN', {
       fontFamily: FONTS.ui,
       fontSize:   '13px',
       fontStyle:  'bold',
@@ -377,86 +383,101 @@ export class TownScene extends Phaser.Scene {
     // ── Shop (right side) ────────────────────────────────────────────────────
     // Foundation
     gfx.fillStyle(0x3a2a10, 0.5);
-    gfx.fillRect(1238, 524, 244, 12);
+    gfx.fillRect(shop.x - 2, shop.y + shop.height, shop.width + 4, 12);
     // Body (blue-grey)
     gfx.fillStyle(0x5a7490, 1);
-    gfx.fillRect(1240, 300, 240, 224);
+    gfx.fillRect(shop.x, shop.y, shop.width, shop.height);
     // Roof
     gfx.fillStyle(0x3a5070, 1);
-    gfx.fillTriangle(1224, 300, 1360, 210, 1496, 300);
+    gfx.fillTriangle(shop.x - 16, shop.y, shop.x + shop.width / 2, shop.y - 90, shop.x + shop.width + 16, shop.y);
     gfx.fillStyle(0x2a3a54, 1);
-    gfx.fillRect(1224, 296, 272, 8);
+    gfx.fillRect(shop.x - 16, shop.y - 4, shop.width + 32, 8);
     // Door
+    const shopDoorCX = shop.x + shop.width / 2;
+    const shopDoorY  = shop.y + shop.height - 76;
     gfx.fillStyle(0x3a4a5a, 1);
-    gfx.fillRect(1336, 448, 48, 76);
+    gfx.fillRect(shopDoorCX - 24, shopDoorY, 48, 76);
     gfx.fillStyle(0x2a3444, 1);
-    gfx.fillCircle(1360, 448, 24);
+    gfx.fillCircle(shopDoorCX, shopDoorY, 24);
     // Windows
+    const shopWinXs = [shop.x + 18, shop.x + 82, shop.x + 182];
+    const shopWinY  = shop.y + 54;
     gfx.fillStyle(0xc0e0ff, 0.7);
-    gfx.fillRect(1258, 354, 40, 36);
-    gfx.fillRect(1322, 354, 40, 36);
-    gfx.fillRect(1422, 354, 40, 36);
+    for (const wx of shopWinXs) gfx.fillRect(wx, shopWinY, 40, 36);
     gfx.lineStyle(2, 0x3a5070, 1);
-    for (const wx of [1258, 1322, 1422]) {
+    for (const wx of shopWinXs) {
       gfx.beginPath();
-      gfx.moveTo(wx + 20, 354); gfx.lineTo(wx + 20, 390);
-      gfx.moveTo(wx, 372);     gfx.lineTo(wx + 40, 372);
+      gfx.moveTo(wx + 20, shopWinY);      gfx.lineTo(wx + 20, shopWinY + 36);
+      gfx.moveTo(wx,      shopWinY + 18); gfx.lineTo(wx + 40, shopWinY + 18);
       gfx.strokePath();
     }
     // Shop sign
+    const shopSignX = shop.x + shop.width / 2 - 46;
+    const shopSignY = shop.y + shop.height - 88;
     gfx.fillStyle(0x4a8aaa, 1);
-    gfx.fillRect(1314, 436, 92, 24);
+    gfx.fillRect(shopSignX, shopSignY, 92, 24);
     gfx.lineStyle(2, 0x2a5a7a, 1);
-    gfx.strokeRect(1314, 436, 92, 24);
-    this.add.text(1360, 448, 'SHOP', {
+    gfx.strokeRect(shopSignX, shopSignY, 92, 24);
+    this.add.text(shop.x + shop.width / 2, shopSignY + 12, 'SHOP', {
       fontFamily: FONTS.ui,
       fontSize:   '13px',
       fontStyle:  'bold',
       color:      '#ddeeff',
     }).setOrigin(0.5);
 
-    // ── Town Hall (upper center) ──────────────────────────────────────────────
+    // ── Hall (upper center) ───────────────────────────────────────────────────
     // Foundation
     gfx.fillStyle(0x3a2a10, 0.5);
-    gfx.fillRect(618, 304, 364, 14);
+    gfx.fillRect(hall.x - 2, hall.y + hall.height, hall.width + 4, 14);
     // Body
     gfx.fillStyle(0x9a8060, 1);
-    gfx.fillRect(620, 80, 360, 224);
+    gfx.fillRect(hall.x, hall.y, hall.width, hall.height);
     // Roof
     gfx.fillStyle(0x6a5040, 1);
-    gfx.fillTriangle(604, 80, 800, -10, 996, 80);
+    gfx.fillTriangle(hall.x - 16, hall.y, hall.x + hall.width / 2, hall.y - 90, hall.x + hall.width + 16, hall.y);
     gfx.fillStyle(0x5a4030, 1);
-    gfx.fillRect(604, 76, 392, 10);
+    gfx.fillRect(hall.x - 16, hall.y - 4, hall.width + 32, 10);
     // Pillars
     gfx.fillStyle(0xb0a080, 1);
-    for (const px of [638, 698, 882, 942]) {
-      gfx.fillRect(px, 170, 22, 134);
+    const pillarY = hall.y + 90;
+    const pillarH = hall.height - 90;
+    for (const px of [hall.x + 18, hall.x + 78, hall.x + hall.width - 98, hall.x + hall.width - 38]) {
+      gfx.fillRect(px, pillarY, 22, pillarH);
     }
     // Door (large)
+    const hallDoorCX = hall.x + hall.width / 2;
+    const hallDoorY  = hall.y + hall.height - 90;
     gfx.fillStyle(0x5a4030, 1);
-    gfx.fillRect(762, 214, 76, 90);
+    gfx.fillRect(hallDoorCX - 38, hallDoorY, 76, 90);
     gfx.fillStyle(0x3a2818, 1);
-    gfx.fillCircle(800, 214, 38);
+    gfx.fillCircle(hallDoorCX, hallDoorY, 38);
     // Windows
     gfx.fillStyle(0xffe8c0, 0.7);
-    gfx.fillRect(638, 110, 50, 44);
-    gfx.fillRect(912, 110, 50, 44);
+    gfx.fillRect(hall.x + 18,               hall.y + 30, 50, 44);
+    gfx.fillRect(hall.x + hall.width - 68,  hall.y + 30, 50, 44);
     // Banner poles
     gfx.fillStyle(0x3a2a10, 1);
-    gfx.fillRect(716, 80, 6, 60);
-    gfx.fillRect(878, 80, 6, 60);
+    gfx.fillRect(hall.x + 96,               hall.y, 6, 60);
+    gfx.fillRect(hall.x + hall.width - 102, hall.y, 6, 60);
     // Banners
     gfx.fillStyle(0xd9b35b, 1);
-    gfx.fillRect(718, 80, 36, 52);
+    gfx.fillRect(hall.x + 98, hall.y, 36, 52);
     gfx.fillStyle(0xb87820, 1);
-    gfx.fillTriangle(718, 132, 736, 116, 754, 132);
+    gfx.fillTriangle(
+      hall.x + 98,  hall.y + 52,
+      hall.x + 116, hall.y + 36,
+      hall.x + 134, hall.y + 52,
+    );
     gfx.fillStyle(0xd9b35b, 1);
-    gfx.fillRect(880, 80, 36, 52);
+    gfx.fillRect(hall.x + hall.width - 100, hall.y, 36, 52);
     gfx.fillStyle(0xb87820, 1);
-    gfx.fillTriangle(880, 132, 898, 116, 916, 132);
-
-    // Town Hall label
-    this.add.text(800, 64, 'Town Hall', {
+    gfx.fillTriangle(
+      hall.x + hall.width - 100, hall.y + 52,
+      hall.x + hall.width - 82,  hall.y + 36,
+      hall.x + hall.width - 64,  hall.y + 52,
+    );
+    // Hall label
+    this.add.text(hall.x + hall.width / 2, hall.y - 16, hallLabel, {
       fontFamily: FONTS.ui,
       fontSize:   '16px',
       fontStyle:  'bold',
@@ -487,38 +508,34 @@ export class TownScene extends Phaser.Scene {
 
     // ── Fence posts along road ────────────────────────────────────────────────
     gfx.fillStyle(0x8a6840, 1);
-    for (let fp = 380; fp < 1300; fp += 80) {
-      gfx.fillRect(fp, 556, 8, 30);
+    for (let x = fencePosts.startX; x < fencePosts.endX; x += fencePosts.step) {
+      gfx.fillRect(x, fencePosts.y, 8, 30);
     }
   }
 
   private drawRoadsAndPaths(): void {
+    const { road, lampPostsX, redFlowers, blueFlowers, barrels } = this.cfg.layout;
     const gfx = this.add.graphics();
     // Already drawn in drawGround — add some extra detail here
     // Flower patches between the road and inn/shop
     gfx.fillStyle(0xe87070, 1);
-    for (const [fx, fy] of [[400,538],[440,542],[480,536],[900,540],[960,538],[1020,542]]) {
-      gfx.fillCircle(fx, fy, 4);
-    }
+    for (const [fx, fy] of redFlowers)  gfx.fillCircle(fx, fy, 4);
     gfx.fillStyle(0x70a0e0, 1);
-    for (const [fx, fy] of [[420,530],[460,534],[860,532],[940,530]]) {
-      gfx.fillCircle(fx, fy, 4);
-    }
-    // Lamp posts
+    for (const [fx, fy] of blueFlowers) gfx.fillCircle(fx, fy, 4);
+    // Lamp posts — base Y is 60px above the road top edge
+    const lampY = road.y - 60;
     gfx.fillStyle(0x6a5a30, 1);
-    for (const lx of [320, 700, 900, 1280]) {
-      gfx.fillRect(lx, 500, 8, 68);
+    for (const lx of lampPostsX) {
+      gfx.fillRect(lx, lampY, 8, 68);
       gfx.fillStyle(0xffe090, 0.9);
-      gfx.fillCircle(lx + 4, 500, 14);
+      gfx.fillCircle(lx + 4, lampY, 14);
       gfx.fillStyle(0x6a5a30, 1);
     }
     // Barrels near inn
     gfx.fillStyle(0x7a5a30, 1);
-    gfx.fillCircle(396, 533, 14);
-    gfx.fillCircle(416, 533, 14);
+    for (const [bx, by] of barrels) gfx.fillCircle(bx, by, 14);
     gfx.lineStyle(2, 0x5a3a18, 1);
-    gfx.strokeCircle(396, 533, 14);
-    gfx.strokeCircle(416, 533, 14);
+    for (const [bx, by] of barrels) gfx.strokeCircle(bx, by, 14);
   }
 
   private drawSaveCrystal(): void {

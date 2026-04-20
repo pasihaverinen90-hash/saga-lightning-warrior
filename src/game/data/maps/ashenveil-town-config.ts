@@ -168,4 +168,25 @@ export const ASHENVEIL_TOWN_CONFIG: TownMapConfig = {
     'chain_mail',
     'mage_coat',
   ],
+
+  // ── Visual layout ─────────────────────────────────────────────────────────────
+  // Pixel positions read by TownScene draw methods. Values here reproduce the
+  // same hardcoded coordinates previously in TownScene, so Ashenveil continues
+  // to look identical to before. Future Ashenveil redesigns change only this block.
+  layout: {
+    plaza:    { x: 100, y: 200, width: 1400, height: 680 },
+    road:     { x: 100, y: 560, width: 1400, height:  80 },
+    exitPath: { x: 740, y: 640, width:  120, height: 260 },
+
+    inn:       { x:  120, y: 300, width: 240, height: 224 },
+    shop:      { x: 1240, y: 300, width: 240, height: 224 },
+    hall:      { x:  620, y:  80, width: 360, height: 224 },
+    hallLabel: 'Town Hall',
+
+    lampPostsX: [320, 700, 900, 1280],
+    fencePosts: { startX: 380, endX: 1300, y: 556, step: 80 },
+    redFlowers:  [[400,538],[440,542],[480,536],[900,540],[960,538],[1020,542]] as Array<[number,number]>,
+    blueFlowers: [[420,530],[460,534],[860,532],[940,530]] as Array<[number,number]>,
+    barrels:     [[396,533],[416,533]] as Array<[number,number]>,
+  },
 };

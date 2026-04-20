@@ -55,6 +55,47 @@ export interface Interactable {
   hideWhenFlag?: string;
 }
 
+// ─── Town visual layout ───────────────────────────────────────────────────────
+
+/**
+ * Per-town visual layout data consumed by TownScene's draw methods.
+ * All positions are world-space pixels. Moving values here (rather than
+ * hardcoding them in TownScene) lets each town define its own visual layout
+ * without modifying the shared scene.
+ *
+ * TownScene derives all building sub-elements (roofs, doors, windows, signs)
+ * from the four body rects below, so only the body rect needs to change when
+ * repositioning a building.
+ */
+export interface TownVisualLayout {
+  /** Lighter-coloured central area drawn behind the road and plaza. */
+  plaza:    Rect;
+  /** Main stone road running left-to-right. */
+  road:     Rect;
+  /** Vertical cobblestone path connecting the road to the south exit. */
+  exitPath: Rect;
+
+  /** Inn building body rect (top-left origin, full body w×h). */
+  inn:  Rect;
+  /** Shop building body rect. */
+  shop: Rect;
+  /** Central hall building body rect. */
+  hall: Rect;
+  /** Text label rendered above the hall entrance. */
+  hallLabel: string;
+
+  /** X centres of lamp posts. Y is derived as road.y − 60. */
+  lampPostsX: number[];
+  /** Fence post strip along the road's north edge. */
+  fencePosts: { startX: number; endX: number; y: number; step: number };
+  /** [x, y] centres of red flower decoration circles. */
+  redFlowers:  Array<[number, number]>;
+  /** [x, y] centres of blue flower decoration circles. */
+  blueFlowers: Array<[number, number]>;
+  /** [x, y] centres of barrel decoration circles near the inn. */
+  barrels: Array<[number, number]>;
+}
+
 // ─── Town map configuration ───────────────────────────────────────────────────
 
 /**
@@ -87,6 +128,8 @@ export interface TownMapConfig {
    * Keeping stock here means adding a new town requires no changes to shop-service.
    */
   shopStock: string[];
+  /** Per-town visual layout consumed by TownScene draw methods. */
+  layout: TownVisualLayout;
 }
 
 // ─── Scene init data ──────────────────────────────────────────────────────────
