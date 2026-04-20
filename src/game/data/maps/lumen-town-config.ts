@@ -1,89 +1,94 @@
 // src/game/data/maps/lumen-town-config.ts
-// Lumen Town layout: 1600 × 900 world-space.
+// Lumen City — large walled capital, 2800 × 2400 world-space.
 //
 // Visual reference (not to scale):
 //
-//   0                 800               1600
-//   ┌─────────────────────────────────────┐  0
-//   │  ██ left  ██  [TOWN HALL]  ██ right ██│
-//   │  ██ wall  ██               ██ wall  ██│
-//   │           │                          │  300
-//   │  [INN]    │    [save ✦]    [SHOP]    │
-//   │           │                          │
-//   │   ≡≡≡≡≡≡≡road≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡   │  570
-//   │                [Serelle]             │
-//   │          [villager]    [guard]       │
-//   │                                      │  820
-//   │          ██████ EXIT ██████          │
-//   └─────────────────────────────────────┘  900
+//   0                  1400                 2800
+//   ┌──────────────────────────────────────────┐  0
+//   │ ████ left wall ████           ████ right █│
+//   │ ██████████  [VAUN MANSION]  ██████████  ██│  80
+//   │             [Serelle ★]                  │  490
+//   │  [SHOP]    ══════════════    [CITY HALL] │  720
+//   │            ║  main avenue ║              │
+//   │  ≡ west road ≡ cross street ≡ east road ≡│  1360
+//   │  [market stalls]  [fountain]  [stalls]  │
+//   │  [villager]      [save ✦]               │  1500
+//   │  [INN]     ║              ║             │  1640
+//   │            ║              ║ [guard]     │
+//   │            ║              ║             │  2320
+//   │ ████ south wall ██ [GATE] ██ south wall █│
+//   └──────────────────────────────────────────┘  2400
 
 import type { TownMapConfig } from '../../town/types/town-types';
 import { STORY_FLAGS } from '../story/story-events';
 
 export const LUMEN_TOWN_CONFIG: TownMapConfig = {
-  displayName:  'Lumen Town',
-  mapWidth:  1600,
-  mapHeight: 900,
+  displayName:  'Lumen City',
+  mapWidth:  2800,
+  mapHeight: 2400,
 
-  // Player spawns just inside the south entrance when arriving from world map.
-  playerEntryX: 786,  // top-left; center is at 800
-  playerEntryY: 790,
+  // Player spawns just inside the south gate when arriving from the world map.
+  playerEntryX: 1372,  // top-left; centre on the main avenue (cx=1400)
+  playerEntryY: 2250,
 
   // ── Collision rectangles ─────────────────────────────────────────────────────
-  // Must match visually impassable areas drawn in TownScene.
   collisionRects: [
     // Perimeter walls
-    { x:    0, y:   0, width:  100, height: 900 },  // left boundary
-    { x: 1500, y:   0, width:  100, height: 900 },  // right boundary
-    { x:    0, y:   0, width: 1600, height:  80 },  // top boundary
+    { x:    0, y:    0, width: 2800, height:   80 },  // top wall
+    { x:    0, y:    0, width:  100, height: 2400 },  // left wall
+    { x: 2700, y:    0, width:  100, height: 2400 },  // right wall
 
-    // Buildings (solid — player cannot walk through them)
-    { x:  120, y: 300, width:  240, height: 230 },  // inn
-    { x: 1240, y: 300, width:  240, height: 230 },  // shop
-    { x:  620, y:  80, width:  360, height: 230 },  // town hall
+    // Vaun Mansion (large north landmark)
+    { x:  700, y:   80, width: 1400, height:  340 },
 
-    // Southern boundary with gap for the exit path (x 680–920)
-    { x:    0, y: 840, width:  680, height:  60 },  // south-left wall
-    { x:  920, y: 840, width:  680, height:  60 },  // south-right wall
+    // West district: Item Shop
+    { x:  160, y:  720, width:  240, height:  224 },
+
+    // East civic district: City Hall
+    { x: 2360, y:  720, width:  240, height:  224 },
+
+    // South-west: Inn
+    { x:  160, y: 1640, width:  240, height:  224 },
+
+    // South boundary with gate gap (x 1220–1580)
+    { x:    0, y: 2320, width: 1220, height:   80 },  // south-left wall
+    { x: 1580, y: 2320, width: 1220, height:   80 },  // south-right wall
   ],
 
   // ── Interactables ─────────────────────────────────────────────────────────────
-  // activationRadius: how close the player center must be (pixels) to trigger hint.
   interactables: [
-    // ── Inn entrance ──────────────────────────────────────────────────────────
+    // ── Inn entrance (south-west building) ──────────────────────────────────
     {
       id:               'inn_entrance',
       type:             'building_inn',
-      x: 240, y: 534,  // center of inn doorstep
+      x: 280, y: 1864,
       activationRadius: 52,
-      label:            'Enter Inn',
+      label:            'Enter the Hearthstone Inn',
     },
 
-    // ── Shop entrance ─────────────────────────────────────────────────────────
+    // ── Shop entrance (west district Item Shop) ──────────────────────────────
     {
       id:               'shop_entrance',
       type:             'building_shop',
-      x: 1360, y: 534,
+      x: 280, y: 944,
       activationRadius: 52,
-      label:            'Visit Shop',
+      label:            'Visit Item Shop',
     },
 
-    // ── Save crystal in the town plaza ─────────────────────────────────────────
+    // ── Save crystal (market square fountain) ────────────────────────────────
     {
       id:               'save_crystal',
       type:             'save_crystal',
-      x: 800, y: 502,
+      x: 1400, y: 1380,
       activationRadius: 48,
       label:            'Save Journey',
     },
 
-    // ── Warning sign — south road (Thornwood) ─────────────────────────────────
-    // Placed between the player entry point (y:790) and the exit rect (y:820)
-    // so it reads naturally as a warning before leaving town heading south.
+    // ── Thornwood warning sign (near south gate) ─────────────────────────────
     {
       id:               'thornwood_warning_sign',
       type:             'sign',
-      x: 400, y: 755,
+      x: 1400, y: 2160,
       activationRadius: 44,
       label:            'Danger Notice',
       dialogueId:       'thornwood_warning_sign',
@@ -92,85 +97,125 @@ export const LUMEN_TOWN_CONFIG: TownMapConfig = {
       ],
     },
 
-    // ── Villager NPC ──────────────────────────────────────────────────────────
+    // ── Villager NPC (market square west side) ───────────────────────────────
     {
       id:               'villager_1',
       type:             'npc',
-      x: 540, y: 610,
+      x: 900, y: 1500,
       activationRadius: 52,
       label:            'Talk',
       dialogueId:       'villager_rumor',
       dialogueOverrides: [
-        // Later events listed first — first matching flag wins.
         { requiredFlag: STORY_FLAGS.BOSS_VEYR_DEFEATED,  dialogueId: 'villager_rumor_boss_cleared' },
         { requiredFlag: STORY_FLAGS.THORNWOOD_CLEARED,   dialogueId: 'villager_rumor_cleared' },
       ],
     },
 
-    // ── Serelle (join event on first talk; hidden after joining) ─────────────
-    // hideWhenFlag removes her from the map once serelle_joined is set.
-    // 'serelle_travel_ready' in dialogue-data.ts is kept for future scripted use
-    // (e.g. a camp or cutscene scene) and is not wired here intentionally.
+    // ── Serelle (join event; stands in Vaun Mansion forecourt) ───────────────
     {
       id:               'serelle_town',
       type:             'npc',
-      x: 800, y: 370,
+      x: 1400, y: 490,
       activationRadius: 56,
       label:            'Talk to Serelle',
       dialogueId:       'serelle_join_event',
       hideWhenFlag:     STORY_FLAGS.SERELLE_JOINED,
     },
 
-    // ── Guard NPC near exit ────────────────────────────────────────────────────
+    // ── Guard NPC (near south gate) ──────────────────────────────────────────
     {
       id:               'guard_south',
       type:             'npc',
-      x: 960, y: 740,
+      x: 1660, y: 2200,
       activationRadius: 50,
       label:            'Talk',
       dialogueId:       'guard_patrol',
       dialogueOverrides: [
-        // Later events listed first — first matching flag wins.
         { requiredFlag: STORY_FLAGS.BOSS_VEYR_DEFEATED,  dialogueId: 'guard_patrol_boss_cleared' },
         { requiredFlag: STORY_FLAGS.THORNWOOD_CLEARED,   dialogueId: 'guard_patrol_cleared' },
       ],
     },
+
+    // ── City official (stands outside City Hall, east district) ─────────────
+    {
+      id:               'lumen_mayor',
+      type:             'npc',
+      x: 2480, y: 944,
+      activationRadius: 52,
+      label:            'Talk to Official',
+      dialogueId:       'lumen_mayor',
+    },
   ],
 
   // ── Exit trigger ─────────────────────────────────────────────────────────────
-  // Player walks into this rect (center point test) and is sent back to world map.
+  // Player walks through the south gate opening and is returned to the world map.
+  // worldReturnX/Y are world-map coordinates; independent of the town interior size.
   exit: {
-    x: 680, y: 820,
-    width:  240, height: 60,
+    x: 1220, y: 2320,
+    width:  360, height: 60,
     targetLocationId: 'border_fields',
-    // Place returned player on the road, just west of the Lumen Town entrance trigger
-    // (trigger: x=2720, y=800, 220×340). Top-left coords assigned directly to player rect.
     worldReturnX: 2660,
     worldReturnY: 1065,
   },
 
   // ── Shop stock ────────────────────────────────────────────────────────────────
-  // Item IDs sold in this town's shop, in display order.
   shopStock: ['herb_tonic', 'clearwater_drop'],
 
   // ── Visual layout ─────────────────────────────────────────────────────────────
-  // Pixel positions read by TownScene draw methods. All values here reproduce
-  // the coordinates that were previously hardcoded in TownScene, so the visual
-  // result is identical. Future Lumen redesigns change only this block.
   layout: {
-    plaza:    { x: 100, y: 200, width: 1400, height: 680 },
-    road:     { x: 100, y: 560, width: 1400, height:  80 },
-    exitPath: { x: 740, y: 640, width:  120, height: 260 },
+    // Ground / surface areas
+    plaza:    { x: 100, y:  420, width: 2600, height: 1900 },
+    road:     { x: 100, y: 1360, width: 2600, height:   80 },  // east–west cross street
+    exitPath: { x: 1220, y: 1440, width: 360, height:  880 },  // south section of main avenue
 
-    inn:       { x:  120, y: 300, width: 240, height: 224 },
-    shop:      { x: 1240, y: 300, width: 240, height: 224 },
-    hall:      { x:  620, y:  80, width: 360, height: 224 },
-    hallLabel: 'Town Hall',
+    // Standard building slots consumed by drawBuildings()
+    inn:       { x:  160, y: 1640, width: 240, height: 224 },
+    shop:      { x:  160, y:  720, width: 240, height: 224 },
+    hall:      { x: 2360, y:  720, width: 240, height: 224 },
+    hallLabel: 'City Hall',
 
-    lampPostsX: [320, 700, 900, 1280],
-    fencePosts: { startX: 380, endX: 1300, y: 556, step: 80 },
-    redFlowers:  [[400,538],[440,542],[480,536],[900,540],[960,538],[1020,542]] as Array<[number,number]>,
-    blueFlowers: [[420,530],[460,534],[860,532],[940,530]] as Array<[number,number]>,
-    barrels:     [[396,533],[416,533]] as Array<[number,number]>,
+    // Standard decorations — mostly unused; city relies on city-scale features
+    lampPostsX: [],
+    redFlowers:  [],
+    blueFlowers: [],
+    barrels:     [],
+    // fencePosts intentionally omitted — city uses lamp posts along the avenue
+
+    // ── City-scale features ────────────────────────────────────────────────────
+    mansion: { x: 700, y: 80, width: 1400, height: 340, label: 'Vaun Mansion' },
+
+    cityGate: { wallY: 2320, gateX: 1220, gateWidth: 360 },
+
+    fountain: { x: 1400, y: 1380 },
+
+    trees: [
+      [280,  580], [480,  620], [2320,  580], [2520,  620],
+      [200, 1150], [380, 1180], [2420, 1150], [2600, 1180],
+      [200, 1980], [380, 2020], [2420, 1980], [2600, 2020],
+    ] as Array<[number, number]>,
+
+    marketStalls: [
+      [ 540, 1220], [ 720, 1220], [ 900, 1220],
+      [1640, 1220], [1820, 1220], [2000, 1220],
+      [ 540, 1560], [ 720, 1560],
+      [1640, 1560], [1820, 1560],
+    ] as Array<[number, number]>,
+
+    // Lamp posts: [cx, topY] absolute positions
+    lampPosts: [
+      // Flanking Serelle / mansion forecourt
+      [1210,  540], [1590,  540],
+      // Cross street
+      [ 380, 1340], [ 680, 1340], [ 980, 1340],
+      [1820, 1340], [2120, 1340], [2420, 1340],
+      // South avenue
+      [1210, 1820], [1590, 1820],
+      [1210, 2180], [1590, 2180],
+    ] as Array<[number, number]>,
+
+    // North section of main avenue (mansion forecourt to cross street)
+    additionalRoads: [
+      { x: 1220, y: 420, width: 360, height: 940 },
+    ],
   },
 };

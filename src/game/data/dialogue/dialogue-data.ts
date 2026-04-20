@@ -348,6 +348,21 @@ export const DIALOGUE: Record<string, DialogueSequence> = {
     ],
   },
 
+  // ── Lumen City: City Hall official ───────────────────────────────────────
+  lumen_mayor: {
+    id: 'lumen_mayor',
+    lines: [
+      {
+        speaker: 'villager',
+        text: "The Council has been in emergency session since the north road closed. Braxtion's soldiers blocked the pass three weeks ago.",
+      },
+      {
+        speaker: 'villager',
+        text: "If you're heading that direction — be careful. We've sent two scouting parties. Neither returned.",
+      },
+    ],
+  },
+
   // ── Thornwood: Grove Warden encounter ─────────────────────────────────────
 
   thornwood_warden_intro: {

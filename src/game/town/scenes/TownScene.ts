@@ -506,11 +506,18 @@ export class TownScene extends Phaser.Scene {
       gfx.fillRect(r.x, r.y, r.width, r.height);
     }
 
-    // ── Fence posts along road ────────────────────────────────────────────────
-    gfx.fillStyle(0x8a6840, 1);
-    for (let x = fencePosts.startX; x < fencePosts.endX; x += fencePosts.step) {
-      gfx.fillRect(x, fencePosts.y, 8, 30);
+    // ── Fence posts along road (optional — omitted for large walled cities) ───
+    if (fencePosts) {
+      gfx.fillStyle(0x8a6840, 1);
+      for (let x = fencePosts.startX; x < fencePosts.endX; x += fencePosts.step) {
+        gfx.fillRect(x, fencePosts.y, 8, 30);
+      }
     }
+
+    // ── Optional large-scale features ────────────────────────────────────────
+    const { mansion, cityGate } = this.cfg.layout;
+    if (mansion)  this.drawMansion(gfx, mansion);
+    if (cityGate) this.drawCityGate(gfx, cityGate);
   }
 
   private drawRoadsAndPaths(): void {
@@ -536,6 +543,222 @@ export class TownScene extends Phaser.Scene {
     for (const [bx, by] of barrels) gfx.fillCircle(bx, by, 14);
     gfx.lineStyle(2, 0x5a3a18, 1);
     for (const [bx, by] of barrels) gfx.strokeCircle(bx, by, 14);
+
+    // ── Optional city features ─────────────────────────────────────────────
+    const { additionalRoads, lampPosts: absLamps, trees, marketStalls, fountain } = this.cfg.layout;
+    if (additionalRoads) {
+      for (const r of additionalRoads) {
+        gfx.fillStyle(0x8a7c6a, 1);
+        gfx.fillRect(r.x, r.y, r.width, r.height);
+        gfx.lineStyle(1, 0x7a6e5e, 0.4);
+        for (let tx = r.x + 20; tx < r.x + r.width; tx += 48) {
+          gfx.beginPath(); gfx.moveTo(tx, r.y); gfx.lineTo(tx, r.y + r.height); gfx.strokePath();
+        }
+      }
+    }
+    if (absLamps) {
+      gfx.fillStyle(0x6a5a30, 1);
+      for (const [lx, ly] of absLamps) {
+        gfx.fillRect(lx - 4, ly, 8, 68);
+        gfx.fillStyle(0xffe090, 0.9);
+        gfx.fillCircle(lx, ly, 14);
+        gfx.fillStyle(0x6a5a30, 1);
+      }
+    }
+    if (trees)       for (const [tx, ty] of trees) this.drawTree(gfx, tx, ty);
+    if (marketStalls) marketStalls.forEach(([sx, sy], i) => this.drawMarketStall(gfx, sx, sy, i));
+    if (fountain)    this.drawFountain(gfx, fountain.x, fountain.y);
+  }
+
+  private drawMansion(
+    gfx: Phaser.GameObjects.Graphics,
+    m: { x: number; y: number; width: number; height: number; label: string },
+  ): void {
+    // Foundation shadow
+    gfx.fillStyle(0x2a1a08, 0.5);
+    gfx.fillRect(m.x - 6, m.y + m.height, m.width + 12, 20);
+    // Main body — pale sandstone
+    gfx.fillStyle(0xd0c090, 1);
+    gfx.fillRect(m.x, m.y, m.width, m.height);
+    // Horizontal stone coursing
+    gfx.lineStyle(1, 0xb8a870, 0.5);
+    for (let ry = m.y + 40; ry < m.y + m.height; ry += 40) {
+      gfx.beginPath(); gfx.moveTo(m.x, ry); gfx.lineTo(m.x + m.width, ry); gfx.strokePath();
+    }
+    // Grand peaked central roof
+    gfx.fillStyle(0x8a6a40, 1);
+    gfx.fillTriangle(m.x - 24, m.y, m.x + m.width / 2, m.y - 100, m.x + m.width + 24, m.y);
+    gfx.fillStyle(0x6a4a20, 1);
+    gfx.fillRect(m.x - 24, m.y - 8, m.width + 48, 16);
+    // Corner turrets
+    for (const tx of [m.x - 28, m.x + m.width - 28]) {
+      gfx.fillStyle(0xc8b888, 1);
+      gfx.fillRect(tx, m.y - 70, 56, m.height + 70);
+      gfx.fillStyle(0x7a5a30, 1);
+      gfx.fillTriangle(tx, m.y - 70, tx + 28, m.y - 118, tx + 56, m.y - 70);
+      gfx.fillStyle(0xb0c8d8, 0.8);
+      gfx.fillRect(tx + 12, m.y - 38, 32, 28);
+      gfx.fillStyle(0xb0c8d8, 0.8);
+      gfx.fillCircle(tx + 28, m.y - 38, 16);
+    }
+    // Portico entablature and columns
+    const doorCX = m.x + m.width / 2;
+    const porticoW = 300;
+    gfx.fillStyle(0xe0d4a0, 1);
+    gfx.fillRect(doorCX - porticoW / 2 - 8, m.y + 60, porticoW + 16, 20);
+    gfx.fillStyle(0xe8dcc0, 1);
+    for (let i = 0; i <= 4; i++) {
+      gfx.fillRect(doorCX - porticoW / 2 + i * (porticoW / 4) - 10, m.y + 80, 20, m.height - 80);
+    }
+    // Grand double door
+    const doorY = m.y + m.height - 110;
+    gfx.fillStyle(0x5a3a18, 1);
+    gfx.fillRect(doorCX - 40, doorY, 80, 110);
+    gfx.fillStyle(0x3a2008, 1);
+    gfx.fillCircle(doorCX, doorY, 40);
+    gfx.lineStyle(2, 0x8a6030, 0.8);
+    gfx.strokeRect(doorCX - 36, doorY + 6, 32, 64);
+    gfx.strokeRect(doorCX + 4,  doorY + 6, 32, 64);
+    // Large arched windows (two pairs flanking portico)
+    gfx.fillStyle(0xb0c8e0, 0.8);
+    for (const wx of [m.x + 80, m.x + 200, m.x + m.width - 260, m.x + m.width - 140]) {
+      gfx.fillRect(wx, m.y + 50, 70, 90);
+      gfx.fillStyle(0xb0c8e0, 0.8);
+      gfx.fillCircle(wx + 35, m.y + 50, 35);
+      gfx.lineStyle(1, 0x8aaabb, 0.6);
+      gfx.strokeRect(wx, m.y + 50, 70, 90);
+      gfx.fillStyle(0xb0c8e0, 0.8);
+    }
+    // Gold crest above door arch
+    gfx.fillStyle(0xd9b35b, 1);
+    gfx.fillCircle(doorCX, m.y + 36, 18);
+    gfx.fillStyle(0xb87820, 1);
+    gfx.fillCircle(doorCX, m.y + 36, 11);
+    // Flanking banners
+    for (const bx of [doorCX - 170, doorCX + 130]) {
+      gfx.fillStyle(0xd9b35b, 1);
+      gfx.fillRect(bx, m.y, 40, 65);
+      gfx.fillStyle(0xb87820, 1);
+      gfx.fillTriangle(bx, m.y + 65, bx + 20, m.y + 47, bx + 40, m.y + 65);
+    }
+    // Label
+    this.add.text(m.x + m.width / 2, m.y - 18, m.label, {
+      fontFamily: FONTS.title,
+      fontSize:   '24px',
+      fontStyle:  'bold',
+      color:      COLOR_HEX.goldAccent,
+      stroke:     '#0a0f1a',
+      strokeThickness: 4,
+    }).setOrigin(0.5, 1);
+  }
+
+  private drawCityGate(
+    gfx: Phaser.GameObjects.Graphics,
+    gate: { wallY: number; gateX: number; gateWidth: number },
+  ): void {
+    const { wallY, gateX, gateWidth } = gate;
+    const cx = gateX + gateWidth / 2;
+    // Gate towers flanking the opening
+    gfx.fillStyle(0x5a4830, 1);
+    gfx.fillRect(gateX - 48, wallY - 100, 48, 180);
+    gfx.fillRect(gateX + gateWidth, wallY - 100, 48, 180);
+    // Tower crenellations
+    gfx.fillStyle(0x4a3820, 1);
+    for (let bx = gateX - 44; bx < gateX - 4; bx += 14) gfx.fillRect(bx, wallY - 112, 10, 16);
+    for (let bx = gateX + gateWidth + 4; bx < gateX + gateWidth + 46; bx += 14) gfx.fillRect(bx, wallY - 112, 10, 16);
+    // Archway lintel
+    gfx.fillStyle(0x6a5840, 1);
+    gfx.fillRect(gateX - 8, wallY - 60, gateWidth + 16, 60);
+    // Arch opening (simulate cut-out with road surface colour)
+    gfx.fillStyle(0x8a7c6a, 1);
+    gfx.fillRect(gateX + 12, wallY - 48, gateWidth - 24, 48);
+    gfx.fillCircle(cx, wallY - 48, gateWidth / 2 - 12);
+    // Keystone
+    gfx.fillStyle(0x8a7060, 1);
+    gfx.fillTriangle(cx - 14, wallY - 60, cx, wallY - 80, cx + 14, wallY - 60);
+    // Gate label
+    this.add.text(cx, wallY - 86, 'South Gate', {
+      fontFamily: FONTS.ui,
+      fontSize:   '14px',
+      fontStyle:  'bold',
+      color:      COLOR_HEX.goldAccent,
+      stroke:     '#0a0f1a',
+      strokeThickness: 2,
+    }).setOrigin(0.5, 1);
+  }
+
+  private drawFountain(
+    gfx: Phaser.GameObjects.Graphics,
+    fx: number,
+    fy: number,
+  ): void {
+    // Outer basin rim
+    gfx.fillStyle(0x8a9aaa, 1);
+    gfx.fillCircle(fx, fy, 62);
+    // Water surface
+    gfx.fillStyle(0x4880a8, 0.9);
+    gfx.fillCircle(fx, fy, 54);
+    // Inner raised basin
+    gfx.fillStyle(0x6090b8, 1);
+    gfx.fillCircle(fx, fy, 30);
+    gfx.fillStyle(0x78b0d8, 0.85);
+    gfx.fillCircle(fx, fy, 24);
+    // Centre pillar and bowl
+    gfx.fillStyle(0xa89870, 1);
+    gfx.fillRect(fx - 6, fy - 44, 12, 52);
+    gfx.fillCircle(fx, fy - 44, 12);
+    gfx.fillRect(fx - 10, fy - 22, 20, 8);
+    // Water ripple rings
+    gfx.lineStyle(1, 0x90c8e8, 0.5);
+    gfx.strokeCircle(fx, fy, 40);
+    gfx.strokeCircle(fx, fy, 48);
+    // Rim highlight
+    gfx.lineStyle(2, 0xaabbc8, 0.8);
+    gfx.strokeCircle(fx, fy, 62);
+  }
+
+  private drawTree(
+    gfx: Phaser.GameObjects.Graphics,
+    tx: number,
+    ty: number,
+  ): void {
+    gfx.fillStyle(0x6a4a20, 1);
+    gfx.fillRect(tx - 5, ty - 8, 10, 30);
+    gfx.fillStyle(0x2e6028, 0.9);
+    gfx.fillCircle(tx, ty - 30, 26);
+    gfx.fillStyle(0x3a7834, 0.85);
+    gfx.fillCircle(tx - 8, ty - 40, 18);
+    gfx.fillStyle(0x4a9040, 0.8);
+    gfx.fillCircle(tx + 6, ty - 42, 16);
+    gfx.fillStyle(0x5aa850, 0.5);
+    gfx.fillCircle(tx - 4, ty - 44, 10);
+  }
+
+  private drawMarketStall(
+    gfx: Phaser.GameObjects.Graphics,
+    sx: number,
+    sy: number,
+    colorIdx: number,
+  ): void {
+    const AWNING_COLORS = [0xe07040, 0x40a860, 0x4070c8, 0xc8a030, 0xa040a0, 0x4098a0];
+    const aColor = AWNING_COLORS[colorIdx % AWNING_COLORS.length];
+    // Legs
+    gfx.fillStyle(0x7a5a28, 1);
+    gfx.fillRect(sx - 26, sy, 6, 18);
+    gfx.fillRect(sx + 20, sy, 6, 18);
+    // Counter top
+    gfx.fillStyle(0xc8a060, 1);
+    gfx.fillRect(sx - 30, sy - 12, 60, 14);
+    gfx.lineStyle(1, 0x9a7040, 0.8);
+    gfx.strokeRect(sx - 30, sy - 12, 60, 14);
+    // Awning
+    gfx.fillStyle(aColor, 0.88);
+    gfx.fillTriangle(sx - 36, sy - 12, sx, sy - 52, sx + 36, sy - 12);
+    gfx.fillStyle(0xffffff, 0.18);
+    gfx.fillTriangle(sx - 20, sy - 12, sx - 4, sy - 44, sx + 4,  sy - 44);
+    gfx.fillTriangle(sx + 4,  sy - 12, sx + 12, sy - 36, sx + 20, sy - 12);
+    gfx.lineStyle(1, 0x3a2808, 0.5);
+    gfx.strokeTriangle(sx - 36, sy - 12, sx, sy - 52, sx + 36, sy - 12);
   }
 
   private drawSaveCrystal(): void {

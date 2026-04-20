@@ -86,14 +86,30 @@ export interface TownVisualLayout {
 
   /** X centres of lamp posts. Y is derived as road.y − 60. */
   lampPostsX: number[];
-  /** Fence post strip along the road's north edge. */
-  fencePosts: { startX: number; endX: number; y: number; step: number };
+  /** Fence post strip along the road's north edge. Omit for towns without roadside fencing. */
+  fencePosts?: { startX: number; endX: number; y: number; step: number };
   /** [x, y] centres of red flower decoration circles. */
   redFlowers:  Array<[number, number]>;
   /** [x, y] centres of blue flower decoration circles. */
   blueFlowers: Array<[number, number]>;
   /** [x, y] centres of barrel decoration circles near the inn. */
   barrels: Array<[number, number]>;
+
+  // ── Optional city-scale features ───────────────────────────────────────────
+  /** Large landmark building drawn north of the main plaza (e.g. mansion). */
+  mansion?: { x: number; y: number; width: number; height: number; label: string };
+  /** Decorative gate arch drawn over the south exit gap. */
+  cityGate?: { wallY: number; gateX: number; gateWidth: number };
+  /** Decorative fountain centre position. */
+  fountain?: { x: number; y: number };
+  /** [x, y] centres for tree decorations. */
+  trees?: Array<[number, number]>;
+  /** [x, y] centres for market stall decorations. */
+  marketStalls?: Array<[number, number]>;
+  /** Absolute [cx, topY] lamp post positions (bypasses road.y-60 offset). */
+  lampPosts?: Array<[number, number]>;
+  /** Extra road/avenue rectangles textured like the main road. */
+  additionalRoads?: Array<{ x: number; y: number; width: number; height: number }>;
 }
 
 // ─── Town map configuration ───────────────────────────────────────────────────
