@@ -764,7 +764,7 @@ export class TownScene extends Phaser.Scene {
 
   private drawExtraBuilding(
     gfx: Phaser.GameObjects.Graphics,
-    b: { x: number; y: number; width: number; height: number; colorBody: number; colorRoof: number; label?: string },
+    b: { x: number; y: number; width: number; height: number; colorBody: number; colorRoof: number; label?: string; style?: string },
   ): void {
     // Foundation shadow
     gfx.fillStyle(0x3a2a10, 0.4);
@@ -772,35 +772,63 @@ export class TownScene extends Phaser.Scene {
     // Body
     gfx.fillStyle(b.colorBody, 1);
     gfx.fillRect(b.x, b.y, b.width, b.height);
-    // Peaked roof
-    const roofPeak = Math.min(56, Math.round(b.height * 0.34));
-    gfx.fillStyle(b.colorRoof, 1);
-    gfx.fillTriangle(b.x - 10, b.y, b.x + b.width / 2, b.y - roofPeak, b.x + b.width + 10, b.y);
-    // Roof ridge
-    gfx.fillStyle(0x3a2810, 1);
-    gfx.fillRect(b.x - 10, b.y - 3, b.width + 20, 6);
-    // Door
-    const doorCX = b.x + b.width / 2;
-    const doorW  = Math.min(26, Math.round(b.width * 0.22));
-    const doorH  = Math.min(56, b.height - 20);
-    gfx.fillStyle(0x5a3818, 1);
-    gfx.fillRect(doorCX - doorW, b.y + b.height - doorH, doorW * 2, doorH);
-    gfx.fillStyle(0x3a2008, 1);
-    gfx.fillCircle(doorCX, b.y + b.height - doorH, doorW);
-    // Windows (only if building is wide enough)
-    if (b.width >= 100) {
-      const winY = b.y + 20;
-      const winH = Math.min(20, Math.round(b.height / 4));
+
+    if (b.style === 'wide') {
+      // Low-pitch roof — market halls and guild buildings
+      const roofPeak = Math.round(b.height * 0.22);
+      gfx.fillStyle(b.colorRoof, 1);
+      gfx.fillTriangle(b.x - 8, b.y, b.x + b.width / 2, b.y - roofPeak, b.x + b.width + 8, b.y);
+      gfx.fillStyle(0x3a2810, 1);
+      gfx.fillRect(b.x - 8, b.y - 3, b.width + 16, 5);
+      // Multiple evenly-spaced doorways
+      const numDoors = Math.max(1, Math.floor(b.width / 90));
+      const doorW    = Math.min(20, Math.round(b.width * 0.13));
+      const doorH    = Math.min(48, b.height - 16);
+      const spacing  = b.width / numDoors;
+      for (let i = 0; i < numDoors; i++) {
+        const doorCX = b.x + spacing * (i + 0.5);
+        gfx.fillStyle(0x5a3818, 1);
+        gfx.fillRect(doorCX - doorW, b.y + b.height - doorH, doorW * 2, doorH);
+        gfx.fillStyle(0x3a2008, 1);
+        gfx.fillCircle(doorCX, b.y + b.height - doorH, doorW);
+      }
+      // Flanking windows
+      const winY = b.y + 12;
+      const winH = Math.min(18, Math.round(b.height / 5));
       gfx.fillStyle(0xffd090, 0.75);
-      gfx.fillRect(b.x + 10,             winY, 26, winH);
-      gfx.fillRect(b.x + b.width - 36,  winY, 26, winH);
-      gfx.lineStyle(1, b.colorBody, 0.9);
-      gfx.beginPath();
-      gfx.moveTo(b.x + 23, winY);            gfx.lineTo(b.x + 23,            winY + winH);
-      gfx.moveTo(b.x + 10, winY + winH / 2); gfx.lineTo(b.x + 36,            winY + winH / 2);
-      gfx.moveTo(b.x + b.width - 23, winY);  gfx.lineTo(b.x + b.width - 23,  winY + winH);
-      gfx.moveTo(b.x + b.width - 36, winY + winH / 2); gfx.lineTo(b.x + b.width - 10, winY + winH / 2);
-      gfx.strokePath();
+      gfx.fillRect(b.x + 8, winY, 22, winH);
+      gfx.fillRect(b.x + b.width - 30, winY, 22, winH);
+    } else {
+      // Peaked roof — 'tall' uses a deeper peak, default/standard is shallower
+      const peakRatio = b.style === 'tall' ? 0.46 : 0.34;
+      const roofPeak  = Math.min(72, Math.round(b.height * peakRatio));
+      gfx.fillStyle(b.colorRoof, 1);
+      gfx.fillTriangle(b.x - 10, b.y, b.x + b.width / 2, b.y - roofPeak, b.x + b.width + 10, b.y);
+      gfx.fillStyle(0x3a2810, 1);
+      gfx.fillRect(b.x - 10, b.y - 3, b.width + 20, 6);
+      // Door
+      const doorCX = b.x + b.width / 2;
+      const doorW  = Math.min(26, Math.round(b.width * 0.22));
+      const doorH  = Math.min(56, b.height - 20);
+      gfx.fillStyle(0x5a3818, 1);
+      gfx.fillRect(doorCX - doorW, b.y + b.height - doorH, doorW * 2, doorH);
+      gfx.fillStyle(0x3a2008, 1);
+      gfx.fillCircle(doorCX, b.y + b.height - doorH, doorW);
+      // Windows
+      if (b.width >= 100) {
+        const winY = b.y + 20;
+        const winH = Math.min(20, Math.round(b.height / 4));
+        gfx.fillStyle(0xffd090, 0.75);
+        gfx.fillRect(b.x + 10,            winY, 26, winH);
+        gfx.fillRect(b.x + b.width - 36,  winY, 26, winH);
+        gfx.lineStyle(1, b.colorBody, 0.9);
+        gfx.beginPath();
+        gfx.moveTo(b.x + 23, winY);            gfx.lineTo(b.x + 23,            winY + winH);
+        gfx.moveTo(b.x + 10, winY + winH / 2); gfx.lineTo(b.x + 36,            winY + winH / 2);
+        gfx.moveTo(b.x + b.width - 23, winY);  gfx.lineTo(b.x + b.width - 23,  winY + winH);
+        gfx.moveTo(b.x + b.width - 36, winY + winH / 2); gfx.lineTo(b.x + b.width - 10, winY + winH / 2);
+        gfx.strokePath();
+      }
     }
     if (b.label) {
       this.add.text(b.x + b.width / 2, b.y - 8, b.label, {

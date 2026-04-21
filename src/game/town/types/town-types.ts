@@ -111,7 +111,7 @@ export interface TownVisualLayout {
   /** Extra road/avenue rectangles textured like the main road. */
   additionalRoads?: Array<{ x: number; y: number; width: number; height: number }>;
   /** Decorative building fronts forming city blocks (no interactable). */
-  extraBuildings?: Array<{ x: number; y: number; width: number; height: number; colorBody: number; colorRoof: number; label?: string }>;
+  extraBuildings?: Array<{ x: number; y: number; width: number; height: number; colorBody: number; colorRoof: number; label?: string; style?: 'standard' | 'tall' | 'wide' }>;
 }
 
 // ─── Town map configuration ───────────────────────────────────────────────────
