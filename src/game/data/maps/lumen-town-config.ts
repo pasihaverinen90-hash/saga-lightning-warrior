@@ -180,9 +180,9 @@ export const LUMEN_TOWN_CONFIG: TownMapConfig = {
     fountain: { x: 1400, y: 930 },
 
     trees: [
-      [1100, 490], [1700, 490],         // mansion forecourt
-      [ 260,  700], [ 260, 1060], [ 260, 1390],   // west outer strip (open beside inn/shop)
-      [2540,  700], [2540, 1060], [2540, 1390],   // east outer strip
+      [1100, 480], [1700, 480],         // mansion forecourt flanking avenue — shifted north to reduce alley-road overlap
+      [ 260,  860], [ 260, 1390],       // west outer strip: 860 is clear of Blacksmith door (720) and mid-cross (900)
+      [2540,  860], [2540, 1390],       // east outer strip: 860 is clear of Building 1 door (720) and Building 12 (970)
       [ 900, 1430], [1900, 1430],       // open strip above main road, flanking avenue
     ] as Array<[number, number]>,
 
@@ -203,11 +203,32 @@ export const LUMEN_TOWN_CONFIG: TownMapConfig = {
     ] as Array<[number, number]>,
 
     additionalRoads: [
+      // ── Primary road grid ────────────────────────────────────────────────────
       { x:  100, y:  440, width: 2600, height:  60 },  // upper cross-alley
       { x: 1220, y:  380, width:  360, height: 1120 }, // central avenue (mansion→main road)
       { x:  400, y:  500, width:   80, height: 1560 }, // west side road (serves shop + inn)
       { x: 2320, y:  500, width:   80, height: 1560 }, // east side road
       { x:  100, y:  900, width: 2600, height:  60  }, // mid cross (central square level)
+
+      // ── Upper-row south-face frontage strips (y 720–770 / 764–824) ──────────
+      // Each strip starts at the building's south face and connects that face
+      // to the nearest road edge, giving every upper building a paved approach.
+      { x:  100, y:  720, width:  300, height:  50 },  // Blacksmith forecourt → west side road
+      { x:  480, y:  720, width:  740, height:  50 },  // Buildings 2 & 3 south lane: west road→avenue
+      { x: 1580, y:  764, width:  740, height:  60 },  // City Hall civic approach: avenue→east road
+      { x: 2400, y:  720, width:  285, height:  50 },  // Building 1 forecourt → east side road
+
+      // ── Mid-block inter-building lanes (40 px gap between north/south tiers) ─
+      // Paves the existing gap, making it a readable market/service lane that
+      // connects the block interior to both flanking roads.
+      { x:  480, y: 1190, width:  740, height:  40 },  // west inner: Bldg 6 south → Bldg 7 north
+      { x: 1580, y: 1190, width:  740, height:  40 },  // east inner: Bldg 8 south → Bldg 9 north
+      { x: 2400, y: 1190, width:  285, height:  40 },  // Bldg 12 south approach → east side road
+
+      // ── Lower-block inter-building lanes (40 px gap between north/south tiers) ─
+      { x:  480, y: 1780, width:  740, height:  40 },  // west inner: Bldg 10 south → Bldg 13 north
+      { x: 1580, y: 1780, width:  740, height:  40 },  // east inner: Bldg 11 south → Bldg 14 north
+      { x: 2400, y: 1780, width:  285, height:  40 },  // Bldg 15 south approach → east side road
     ],
 
     extraBuildings: [

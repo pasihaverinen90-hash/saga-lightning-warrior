@@ -60,6 +60,9 @@ function resolveTownConfig(locationId?: string): TownMapConfig {
 // ─── Modal types ──────────────────────────────────────────────────────────────
 
 const PLAYER_SPEED = 180;
+// Town player is rendered at 2× the hitbox size so the character reads
+// clearly at town scale. Collision and interaction still use PLAYER_W/H.
+const TOWN_PLAYER_SCALE = 2;
 
 type ModalType  = 'none' | 'inn' | 'shop' | 'save';
 type ModalPhase = 'select' | 'result';
@@ -177,7 +180,11 @@ export class TownScene extends Phaser.Scene {
     this.setupInput();
 
     this.cameras.main.startFollow(this.player, true, 0.09, 0.09);
-    this.cameras.main.setFollowOffset(-PLAYER_W / 2, -PLAYER_H / 2);
+    // Center on the VISUAL mid-point of the scaled player, not the raw hitbox center.
+    this.cameras.main.setFollowOffset(
+      -PLAYER_W * TOWN_PLAYER_SCALE / 2,
+      -PLAYER_H * TOWN_PLAYER_SCALE / 2,
+    );
 
     // Tag currentLocation with this town's id and the player's in-town spawn
     // position so a save taken before the player moves (e.g. immediately
@@ -282,6 +289,7 @@ export class TownScene extends Phaser.Scene {
     this.drawNPCPlaceholders();
     this.drawExitMarker();
     this.drawTownLabel();
+    this.drawRoofOverlays();  // depth 20 — renders above player (depth 10)
   }
 
   private drawGround(): void {
@@ -476,7 +484,7 @@ export class TownScene extends Phaser.Scene {
       hall.x + hall.width - 82,  hall.y + 36,
       hall.x + hall.width - 64,  hall.y + 52,
     );
-    // Hall label
+    // Hall label — depth 22 keeps it above the roof overlay (depth 20)
     this.add.text(hall.x + hall.width / 2, hall.y - 16, hallLabel, {
       fontFamily: FONTS.ui,
       fontSize:   '16px',
@@ -484,7 +492,7 @@ export class TownScene extends Phaser.Scene {
       color:      COLOR_HEX.goldAccent,
       stroke:     '#0a0f1a',
       strokeThickness: 3,
-    }).setOrigin(0.5, 1);
+    }).setOrigin(0.5, 1).setDepth(22);
 
     // ── Side boundary walls ───────────────────────────────────────────────────
     // Left wall is always at x:0 width 100.
@@ -831,13 +839,68 @@ export class TownScene extends Phaser.Scene {
       }
     }
     if (b.label) {
+      // depth 22 keeps labels above the roof overlay (depth 20)
       this.add.text(b.x + b.width / 2, b.y - 8, b.label, {
         fontFamily: FONTS.ui,
         fontSize:   '11px',
         color:      COLOR_HEX.goldAccent,
         stroke:     '#0a0f1a',
         strokeThickness: 2,
-      }).setOrigin(0.5, 1);
+      }).setOrigin(0.5, 1).setDepth(22);
+    }
+  }
+
+  // ─── Roof overlay — depth 20, renders above player (depth 10) ───────────────
+  // Redraws only the roof triangles + ridges for all buildings so that the
+  // player sprite is correctly obscured when walking behind a roofline.
+  // Building bodies, doors, windows, and labels are NOT redrawn here.
+  private drawRoofOverlays(): void {
+    const { inn, shop, hall, extraBuildings } = this.cfg.layout;
+    const gfx = this.add.graphics().setDepth(20);
+
+    // ── Inn ─────────────────────────────────────────────────────────────────
+    gfx.fillStyle(0x7a3a14, 1);
+    gfx.fillTriangle(inn.x - 16, inn.y, inn.x + inn.width / 2, inn.y - 90, inn.x + inn.width + 16, inn.y);
+    gfx.fillStyle(0x5a2a0a, 1);
+    gfx.fillRect(inn.x - 16, inn.y - 4, inn.width + 32, 8);
+
+    // ── Shop ─────────────────────────────────────────────────────────────────
+    gfx.fillStyle(0x3a5070, 1);
+    gfx.fillTriangle(shop.x - 16, shop.y, shop.x + shop.width / 2, shop.y - 90, shop.x + shop.width + 16, shop.y);
+    gfx.fillStyle(0x2a3a54, 1);
+    gfx.fillRect(shop.x - 16, shop.y - 4, shop.width + 32, 8);
+
+    // ── Hall ─────────────────────────────────────────────────────────────────
+    gfx.fillStyle(0x6a5040, 1);
+    gfx.fillTriangle(hall.x - 16, hall.y, hall.x + hall.width / 2, hall.y - 90, hall.x + hall.width + 16, hall.y);
+    gfx.fillStyle(0x5a4030, 1);
+    gfx.fillRect(hall.x - 16, hall.y - 4, hall.width + 32, 10);
+
+    // ── Extra buildings ───────────────────────────────────────────────────────
+    if (extraBuildings) {
+      for (const b of extraBuildings) {
+        this.drawExtraBuildingRoof(gfx, b);
+      }
+    }
+  }
+
+  private drawExtraBuildingRoof(
+    gfx: Phaser.GameObjects.Graphics,
+    b: { x: number; y: number; width: number; height: number; colorRoof: number; style?: string },
+  ): void {
+    if (b.style === 'wide') {
+      const roofPeak = Math.round(b.height * 0.22);
+      gfx.fillStyle(b.colorRoof, 1);
+      gfx.fillTriangle(b.x - 8, b.y, b.x + b.width / 2, b.y - roofPeak, b.x + b.width + 8, b.y);
+      gfx.fillStyle(0x3a2810, 1);
+      gfx.fillRect(b.x - 8, b.y - 3, b.width + 16, 5);
+    } else {
+      const peakRatio = b.style === 'tall' ? 0.46 : 0.34;
+      const roofPeak  = Math.min(72, Math.round(b.height * peakRatio));
+      gfx.fillStyle(b.colorRoof, 1);
+      gfx.fillTriangle(b.x - 10, b.y, b.x + b.width / 2, b.y - roofPeak, b.x + b.width + 10, b.y);
+      gfx.fillStyle(0x3a2810, 1);
+      gfx.fillRect(b.x - 10, b.y - 3, b.width + 20, 6);
     }
   }
 
@@ -1021,7 +1084,7 @@ export class TownScene extends Phaser.Scene {
 
   private createPlayer(): void {
     this.player = this.add.graphics();
-    this.player.setPosition(this.px, this.py).setDepth(10);
+    this.player.setPosition(this.px, this.py).setDepth(10).setScale(TOWN_PLAYER_SCALE);
     this.drawPlayerGfx();
   }
 
