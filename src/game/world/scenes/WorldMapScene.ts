@@ -104,7 +104,7 @@ export class WorldMapScene extends Phaser.Scene {
   // ─── create ───────────────────────────────────────────────────────────────
 
   create(): void {
-    this.cameras.main.setBackgroundColor('#1e3a20');
+    this.cameras.main.setBackgroundColor('#3a8228');
     // Bounds read from config — automatically correct for any map size.
     this.cameras.main.setBounds(0, 0, MAP_W, MAP_H);
     this.cameras.main.fadeIn(350, 0, 0, 0);
@@ -195,370 +195,324 @@ export class WorldMapScene extends Phaser.Scene {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // World background drawing
-  // All coordinates are world-space so the camera scrolls correctly.
+  // World background drawing — top-down overhead, Suikoden 2 aesthetic.
+  // Draw order matters: each layer paints over the previous.
   // ─────────────────────────────────────────────────────────────────────────
 
   private drawWorld(): void {
-    this.drawSkyAndGround();
-    this.drawEncounterZoneOverlay();
-    this.drawRoads();
-    this.drawForestEdges();
-    this.drawMountainRange();
-    this.drawTownArea();
-    this.drawAshenveilArea();
-    this.drawNorthPassArea();
-    this.drawThornwoodArea();
+    this.drawSkyAndGround();         // base terrain grass
+    this.drawMountainRange();        // overhead rocky range (top border)
+    this.drawForestEdges();          // overhead canopy walls (side borders)
+    this.drawThornwoodArea();        // corrupted SW forest canopy
+    this.drawEncounterZoneOverlay(); // subtle encounter-zone tint
+    this.drawWaterFeatures();        // decorative river + pond
+    this.drawRoads();                // overhead dirt paths
+    this.drawTownArea();             // Lumen Town overhead footprints
+    this.drawAshenveilArea();        // Ashenveil overhead footprints
+    this.drawNorthPassArea();        // stone gate from above
     this.drawTriggerMarkers();
   }
+
+  // ── Base terrain ────────────────────────────────────────────────────────────
 
   private drawSkyAndGround(): void {
     const gfx = this.add.graphics();
 
-    // Sky gradient — layered horizontal bands
-    gfx.fillStyle(0x0d1f3c, 1); gfx.fillRect(0,   0,   MAP_W, 500);
-    gfx.fillStyle(0x163354, 1); gfx.fillRect(0,   240, MAP_W, 340);
-    gfx.fillStyle(0x1e4a30, 1); gfx.fillRect(0,   500, MAP_W, 120);
-    // Ground grass
-    gfx.fillStyle(0x2d6b35, 1); gfx.fillRect(0,   580, MAP_W, MAP_H - 580);
-    // Subtle lighter midground band
-    gfx.fillStyle(0x366e3e, 0.3); gfx.fillRect(180, 700, 3736, MAP_H - 700);
+    // Bright overhead daylight grass — the whole visible map
+    gfx.fillStyle(0x58a038, 1);
+    gfx.fillRect(0, 0, MAP_W, MAP_H);
 
-    // Stars — scattered across the wide sky
-    gfx.fillStyle(0xffffff, 0.55);
-    const stars = [
-      [120,45],[350,28],[620,58],[940,33],[1280,68],
-      [1600,40],[1920,72],[2240,30],[2560,58],[2880,44],
-      [3200,70],[3520,32],[3840,54],[180,115],[520,98],
-      [860,135],[1200,90],[1540,118],[1880,102],[2220,84],
-      [2560,125],[2900,108],[3240,88],[3580,122],[3880,95],
-      [160,180],[440,168],[720,195],[1000,176],[1300,192],
-      [1600,165],[1900,188],[2200,172],[2500,196],[2800,158],
-      [3100,182],[3400,168],[3700,194],
+    // Lighter meadow patches — gentle undulation across the plain
+    gfx.fillStyle(0x72be4e, 0.28);
+    const meadows: [number, number, number, number][] = [
+      [560,  650,  720, 370], [1460, 790,  880, 460], [2080, 570,  800, 420],
+      [2900, 1210, 980, 530], [620,  1590, 820, 430], [1580, 1300, 720, 370],
+      [3380, 690,  620, 310], [2200, 1690, 760, 400], [840,  1090, 540, 290],
+      [2640, 610,  640, 320], [1160, 1810, 600, 300], [3020, 910,  560, 270],
+      [1900, 450,  480, 240], [3600, 1400, 500, 260],
     ];
-    for (const [sx, sy] of stars) gfx.fillRect(sx, sy, 2, 2);
+    for (const [ex, ey, ew, eh] of meadows) gfx.fillEllipse(ex, ey, ew, eh);
+
+    // Darker hollows — shaded dips and marshy ground
+    gfx.fillStyle(0x3c7422, 0.22);
+    const hollows: [number, number, number, number][] = [
+      [920,  1190, 620, 320], [2400, 1010, 800, 420], [1820, 1720, 520, 280],
+      [3000, 590,  520, 260], [440,  910,  420, 210], [3260, 1420, 600, 300],
+      [1300, 630,  460, 230],
+    ];
+    for (const [ex, ey, ew, eh] of hollows) gfx.fillEllipse(ex, ey, ew, eh);
   }
+
+  // ── Encounter zone tint ─────────────────────────────────────────────────────
 
   private drawEncounterZoneOverlay(): void {
     const gfx = this.add.graphics();
     for (const zone of CFG.zones) {
       if (zone.type !== 'encounter') continue;
       if (zone.id === 'north_pass_zone') {
-        gfx.fillStyle(0x000000, 0.28);
+        // Pass gap between mountains — add purple-shadow mystery tint
+        gfx.fillStyle(0x200a30, 0.22);
         gfx.fillRect(zone.x, zone.y, zone.width, zone.height);
-        gfx.fillStyle(0x1a0a2a, 0.22);
-        gfx.fillRect(zone.x, zone.y + zone.height - 90, zone.width, 90);
-      } else if (zone.id === 'thornwood_zone') {
-        gfx.fillStyle(0x001a00, 0.32);
-        gfx.fillRect(zone.x, zone.y, zone.width, zone.height);
-        gfx.fillStyle(0x0a1a0a, 0.20);
-        gfx.fillRect(zone.x, zone.y, zone.width, 80);
       } else if (zone.id === 'ashenveil_road_zone') {
-        gfx.fillStyle(0x1a0e00, 0.18);
+        // Eastern corridor — slightly drier, dustier grass
+        gfx.fillStyle(0x3a2808, 0.13);
         gfx.fillRect(zone.x, zone.y, zone.width, zone.height);
       }
+      // thornwood_zone is handled entirely by drawThornwoodArea
     }
   }
+
+  // ── Paths and roads ─────────────────────────────────────────────────────────
 
   private drawRoads(): void {
     const gfx = this.add.graphics();
 
-    // Main horizontal road — runs from left forest edge to Ashenveil trigger
-    gfx.fillStyle(0x8b7340, 1);
-    gfx.fillRect(180, 1060, 3280, 90);
-    // Edge shadows
-    gfx.fillStyle(0x6b5828, 0.6);
-    gfx.fillRect(180, 1060, 3280, 8);
-    gfx.fillRect(180, 1142, 3280, 8);
+    // Grass fringe either side of the main road — worn verge
+    gfx.fillStyle(0x3e7828, 0.55);
+    gfx.fillRect(180, 1048, 3280, 14);
+    gfx.fillRect(180, 1148, 3280, 14);
 
-    // North-bound path to the pass — from mountain base down to main road
-    gfx.fillStyle(0x7a6535, 1);
-    gfx.fillRect(1890, 380, 80, 680);
-    // Path edge shadows
-    gfx.fillStyle(0x6b5828, 0.4);
-    gfx.fillRect(1890, 380, 5, 680);
-    gfx.fillRect(1965, 380, 5, 680);
+    // Main horizontal road — sandy packed earth
+    gfx.fillStyle(0xc4a866, 1);
+    gfx.fillRect(180, 1062, 3280, 86);
 
-    // Road tread marks
-    gfx.fillStyle(0x6b5828, 0.4);
-    for (let rx = 300; rx < 3400; rx += 120) {
-      gfx.fillRect(rx, 1090, 40, 5);
+    // Road texture — lighter central strip (high-traffic centre)
+    gfx.fillStyle(0xd4bc7e, 0.4);
+    gfx.fillRect(180, 1082, 3280, 44);
+
+    // Cart-wheel ruts — two parallel lines along the road
+    gfx.fillStyle(0xa08840, 0.45);
+    for (let rx = 200; rx < 3440; rx += 80) {
+      gfx.fillRect(rx, 1072, 30, 4);
+      gfx.fillRect(rx, 1128, 30, 4);
     }
-    // Path tread marks
-    for (let ry = 430; ry < 1060; ry += 90) {
-      gfx.fillRect(1912, ry, 30, 5);
+
+    // Road edge stones — small irregular pebble clusters
+    gfx.fillStyle(0x9a8860, 0.5);
+    for (let rx = 240; rx < 3380; rx += 160) {
+      gfx.fillRect(rx,      1058, 10, 5);
+      gfx.fillRect(rx + 50, 1148, 8,  5);
+    }
+
+    // North path grass fringe
+    gfx.fillStyle(0x3e7828, 0.5);
+    gfx.fillRect(1882, 380, 10, 682);
+    gfx.fillRect(1962, 380, 10, 682);
+
+    // North path — narrow packed dirt
+    gfx.fillStyle(0xb89c5a, 1);
+    gfx.fillRect(1892, 380, 70, 682);
+
+    // Path central lighter strip
+    gfx.fillStyle(0xcab470, 0.4);
+    gfx.fillRect(1907, 380, 40, 682);
+
+    // Path footstep marks
+    gfx.fillStyle(0x9a7c40, 0.45);
+    for (let ry = 410; ry < 1060; ry += 70) {
+      gfx.fillRect(1914, ry, 14, 4);
+      gfx.fillRect(1934, ry + 32, 14, 4);
     }
   }
+
+  // ── Forest canopy walls ──────────────────────────────────────────────────────
 
   private drawForestEdges(): void {
     const gfx = this.add.graphics();
 
-    // Left forest wall
-    gfx.fillStyle(0x1a4a20, 1);
+    // Forest floor base — dark ground under the canopy
+    gfx.fillStyle(0x1c4416, 1);
     gfx.fillRect(0, 0, 180, MAP_H);
-
-    // Right forest wall
-    gfx.fillStyle(0x1a4a20, 1);
     gfx.fillRect(3916, 0, 180, MAP_H);
 
-    // Tree silhouettes along edges
-    gfx.fillStyle(0x1e5c24, 1);
-    for (let ty = 80; ty < MAP_H - 80; ty += 64) {
-      // Left side trees
-      const lx = 14 + Math.abs(Math.sin(ty * 0.08)) * 28;
-      gfx.fillTriangle(lx, ty + 50, lx + 26, ty, lx + 52, ty + 50);
-      gfx.fillStyle(0x164d1a, 1);
-      gfx.fillTriangle(lx + 6, ty + 38, lx + 26, ty - 14, lx + 46, ty + 38);
-      gfx.fillStyle(0x1e5c24, 1);
+    // Leaf litter / undergrowth texture
+    gfx.fillStyle(0x254e1c, 0.6);
+    gfx.fillRect(0, 0, 180, MAP_H);
+    gfx.fillRect(3916, 0, 180, MAP_H);
 
-      // Right side trees
-      const rx = 3930 + Math.abs(Math.sin(ty * 0.09)) * 22;
-      gfx.fillTriangle(rx, ty + 50, rx + 26, ty, rx + 52, ty + 50);
-      gfx.fillStyle(0x164d1a, 1);
-      gfx.fillTriangle(rx + 6, ty + 38, rx + 26, ty - 14, rx + 46, ty + 38);
-      gfx.fillStyle(0x1e5c24, 1);
-    }
+    // Tree canopies — overlapping circles viewed from above
+    const drawCanopyStrip = (baseX: number, stripW: number): void => {
+      for (let cy = 30; cy < MAP_H - 30; cy += 46) {
+        const jitter = Math.abs(Math.sin(cy * 0.11)) * 20;
+        const count  = 3;
+        for (let ci = 0; ci < count; ci++) {
+          const cx = baseX + 12 + ci * (stripW / count) + jitter * (ci % 2 === 0 ? 1 : -1);
+          const r  = 22 + Math.abs(Math.sin(cy * 0.07 + ci * 1.7)) * 14;
+          // SE shadow
+          gfx.fillStyle(0x0c2208, 0.55);
+          gfx.fillCircle(cx + 5, cy + 6, r);
+          // Main canopy
+          gfx.fillStyle(0x2e7020, 1);
+          gfx.fillCircle(cx, cy, r);
+          // Mid tone ring
+          gfx.fillStyle(0x3a8c2a, 1);
+          gfx.fillCircle(cx - 2, cy - 2, r * 0.72);
+          // Sunlit NW highlight
+          gfx.fillStyle(0x52a83a, 0.45);
+          gfx.fillCircle(cx - 5, cy - 5, r * 0.44);
+        }
+      }
+    };
+
+    drawCanopyStrip(0, 180);
+    drawCanopyStrip(3916, 180);
   }
+
+  // ── Mountain range (top border) ─────────────────────────────────────────────
 
   private drawMountainRange(): void {
     const gfx = this.add.graphics();
 
-    // Mountain blocks (match collision rects)
-    gfx.fillStyle(0x142a18, 1);
+    // Rocky base — both mountain blocks, viewed from above
+    gfx.fillStyle(0x7a6c58, 1);
     gfx.fillRect(0,    0, 1600, 380);
     gfx.fillRect(2260, 0, 1836, 380);
 
-    // Peak silhouettes — spread across the wider range
-    gfx.fillStyle(0x0f2010, 1);
-    const peaks: [number,number,number,number,number,number][] = [
-      // Left range
-      [80,380,  300,90,  520,380],
-      [380,380, 620,50,  860,380],
-      [700,380, 960,80,  1220,380],
-      [1020,380,1280,55, 1540,380],
-      // Right range
-      [2160,380,2400,60, 2640,380],
-      [2500,380,2760,80, 3020,380],
-      [2860,380,3120,50, 3380,380],
-      [3220,380,3500,70, 3780,380],
-      [3560,380,3800,45, 4096,380],
+    // Deeper shadow at the foot of each range (south edge)
+    gfx.fillStyle(0x4e4030, 0.65);
+    gfx.fillRect(0,    300, 1600, 80);
+    gfx.fillRect(2260, 300, 1836, 80);
+
+    // Individual peak / boulder shapes — sunlit tops (NW-lit)
+    gfx.fillStyle(0x9a8c78, 1);
+    const leftPeaks: [number, number, number, number][] = [
+      [100,  50,  210, 130], [340,  30,  230, 140], [580,  60,  210, 125],
+      [820,  40,  220, 135], [1060, 55,  205, 130], [1300, 35,  215, 140],
+      [1480, 65,  185, 115],
+      [180,  210, 190, 105], [420,  200, 200, 110], [660,  215, 185, 100],
+      [900,  200, 200, 110], [1140, 210, 185, 100], [1360, 200, 195, 108],
     ];
-    for (const [x1,y1,x2,y2,x3,y3] of peaks) {
-      gfx.fillTriangle(x1, y1, x2, y2, x3, y3);
+    for (const [ex, ey, ew, eh] of leftPeaks) gfx.fillEllipse(ex, ey, ew, eh);
+
+    gfx.fillStyle(0x9a8c78, 1);
+    const rightPeaks: [number, number, number, number][] = [
+      [2380, 40,  215, 135], [2620, 55,  225, 140], [2870, 40,  210, 130],
+      [3110, 55,  220, 135], [3350, 40,  215, 140], [3590, 55,  210, 130],
+      [3820, 60,  200, 125], [4010, 50,  180, 115],
+      [2460, 205, 195, 108], [2700, 195, 205, 112], [2940, 205, 195, 106],
+      [3180, 200, 205, 110], [3420, 210, 195, 105], [3660, 195, 205, 110],
+      [3900, 205, 185, 100],
+    ];
+    for (const [ex, ey, ew, eh] of rightPeaks) gfx.fillEllipse(ex, ey, ew, eh);
+
+    // SE shadow on each peak — gives overhead depth
+    gfx.fillStyle(0x4e4030, 0.40);
+    for (const [ex, ey, ew, eh] of [...leftPeaks, ...rightPeaks]) {
+      gfx.fillEllipse(ex + ew * 0.18, ey + eh * 0.18, ew * 0.65, eh * 0.60);
+    }
+
+    // NW sunlit highlight on each peak
+    gfx.fillStyle(0xbcb09a, 0.50);
+    for (const [ex, ey, ew, eh] of [...leftPeaks, ...rightPeaks]) {
+      gfx.fillEllipse(ex - ew * 0.14, ey - eh * 0.14, ew * 0.48, eh * 0.44);
     }
 
     // Snow caps on tallest peaks
-    gfx.fillStyle(0xc8d8c0, 0.6);
-    gfx.fillTriangle(300,90,  358,138, 242,138);
-    gfx.fillTriangle(620,50,  694,105, 546,105);
-    gfx.fillTriangle(1280,55, 1360,108,1200,108);
-    gfx.fillTriangle(2400,60, 2478,112,2322,112);
-    gfx.fillTriangle(3120,50, 3202,104,3038,104);
-
-    // Foot trees (decorative)
-    gfx.fillStyle(0x1a4820, 1);
-    for (const [tx, ty] of [
-      [160,374],[340,378],[540,374],[760,380],[980,376],[1200,378],[1420,374],
-      [2280,378],[2480,374],[2700,380],[2940,376],[3180,380],[3420,374],[3680,378],[3880,374],
+    gfx.fillStyle(0xeeeef8, 0.88);
+    for (const [ex, ey, ew, eh] of [
+      [340,  30,  150,  80], [820,  40,  155,  82], [1300, 35,  150,  80],
+      [2620, 55,  155,  82], [3110, 55,  150,  80], [3590, 55,  152,  80],
     ]) {
-      gfx.fillTriangle(tx, ty + 36, tx + 20, ty, tx + 40, ty + 36);
+      gfx.fillEllipse(ex, ey, ew, eh);
+    }
+    // Snow shadow
+    gfx.fillStyle(0xc8cce0, 0.45);
+    for (const [ex, ey, ew, eh] of [
+      [340,  30,  150,  80], [820,  40,  155,  82], [1300, 35,  150,  80],
+      [2620, 55,  155,  82], [3110, 55,  150,  80], [3590, 55,  152,  80],
+    ]) {
+      gfx.fillEllipse(ex + ew * 0.15, ey + eh * 0.15, ew * 0.55, eh * 0.50);
+    }
+
+    // Treeline fringe at the mountain base — canopy crowns transitioning to grass
+    const treeBaseY = 368;
+    for (const tx of [
+      130, 220, 360, 500, 640, 780, 920, 1060, 1200, 1380, 1520,
+      2300, 2440, 2600, 2760, 2920, 3060, 3200, 3360, 3520, 3680, 3840, 3980,
+    ]) {
+      const r = 16 + Math.abs(Math.sin(tx * 0.09)) * 9;
+      gfx.fillStyle(0x0e2a0c, 0.45);
+      gfx.fillCircle(tx + 4, treeBaseY + 5, r);
+      gfx.fillStyle(0x2e6e1e, 1);
+      gfx.fillCircle(tx, treeBaseY, r);
+      gfx.fillStyle(0x3e8e2a, 0.5);
+      gfx.fillCircle(tx - 3, treeBaseY - 4, r * 0.52);
     }
   }
 
-  private drawTownArea(): void {
-    const gfx = this.add.graphics();
-    const cx = 2830; // Lumen Town centre x (trigger x:2720, width:220 → centre:2830)
-
-    // Town ground
-    gfx.fillStyle(0x7a6040, 0.5);
-    gfx.fillRect(cx - 260, 580, 520, 480);  // x:2570–3090, y:580–1060
-
-    // Stone plaza
-    gfx.fillStyle(0x9a8c76, 1);
-    gfx.fillRect(cx - 210, 840, 420, 60);
-
-    // Inn (ochre) — west
-    gfx.fillStyle(0xb8722a, 1);
-    gfx.fillRect(cx - 250, 620, 120, 120);
-    gfx.fillStyle(0x7a3a14, 1);
-    gfx.fillTriangle(cx - 264, 620, cx - 190, 560, cx - 116, 620);
-
-    // Shop (blue-grey) — east
-    gfx.fillStyle(0x5a7490, 1);
-    gfx.fillRect(cx + 120, 635, 110, 110);
-    gfx.fillStyle(0x3a5070, 1);
-    gfx.fillTriangle(cx + 108, 635, cx + 175, 578, cx + 242, 635);
-
-    // Guard house — centre
-    gfx.fillStyle(0x6a6a5a, 1);
-    gfx.fillRect(cx - 46, 745, 90, 78);
-    gfx.fillStyle(0x4a4a3a, 1);
-    gfx.fillTriangle(cx - 60, 745, cx, 698, cx + 60, 745);
-
-    // Gate posts
-    gfx.fillStyle(0x8a7860, 1);
-    gfx.fillRect(cx - 34, 836, 22, 46);
-    gfx.fillRect(cx + 12,  836, 22, 46);
-    gfx.fillRect(cx - 38, 830, 90, 12);
-
-    // Windows
-    gfx.fillStyle(0xffe0a0, 0.8);
-    gfx.fillRect(cx - 240, 640, 18, 16);
-    gfx.fillRect(cx - 200, 640, 18, 16);
-    gfx.fillRect(cx + 132, 654, 16, 14);
-
-    // Town name label
-    this.add.text(cx, 552, 'Lumen Town', {
-      fontFamily: FONTS.ui,
-      fontSize: '22px',
-      color: COLOR_HEX.goldAccent,
-      fontStyle: 'bold',
-      stroke: '#0a0f1a',
-      strokeThickness: 4,
-    }).setOrigin(0.5, 1);
-  }
-
-  private drawAshenveilArea(): void {
-    const gfx = this.add.graphics();
-    const cx = 3570; // Ashenveil centre x (trigger x:3460, width:220 → centre:3570)
-
-    // Town ground
-    gfx.fillStyle(0x7a6040, 0.4);
-    gfx.fillRect(cx - 210, 850, 420, 360);  // x:3360–3780, y:850–1210
-
-    // Stone plaza
-    gfx.fillStyle(0x8a7c68, 1);
-    gfx.fillRect(cx - 170, 1040, 340, 56);
-
-    // Inn (ochre) — west
-    gfx.fillStyle(0xb8722a, 1);
-    gfx.fillRect(cx - 200, 878, 110, 110);
-    gfx.fillStyle(0x7a3a14, 1);
-    gfx.fillTriangle(cx - 214, 878, cx - 145, 822, cx - 76, 878);
-
-    // Elder's hall (blue-grey, larger) — east
-    gfx.fillStyle(0x5a7490, 1);
-    gfx.fillRect(cx + 20, 868, 160, 130);
-    gfx.fillStyle(0x3a5070, 1);
-    gfx.fillTriangle(cx + 4, 868, cx + 100, 808, cx + 196, 868);
-
-    // Windows
-    gfx.fillStyle(0xffe0a0, 0.8);
-    gfx.fillRect(cx - 190, 898, 16, 14);
-    gfx.fillRect(cx - 155, 898, 16, 14);
-    gfx.fillRect(cx + 34,  888, 14, 12);
-    gfx.fillRect(cx + 88,  888, 14, 12);
-
-    // Town name label
-    this.add.text(cx, 800, 'Ashenveil', {
-      fontFamily: FONTS.ui,
-      fontSize: '20px',
-      color: COLOR_HEX.goldAccent,
-      fontStyle: 'bold',
-      stroke: '#0a0f1a',
-      strokeThickness: 4,
-    }).setOrigin(0.5, 1);
-  }
-
-  private drawNorthPassArea(): void {
-    const gfx = this.add.graphics();
-    const cx   = 1930; // centre of the pass gap (x:1600–2260)
-    const topY = 60;
-
-    // Stone pillars
-    gfx.fillStyle(0x5a5a60, 1);
-    gfx.fillRect(cx - 104, topY + 30, 36, 170);
-    gfx.fillRect(cx + 68,  topY + 30, 36, 170);
-
-    // Lintel
-    gfx.fillStyle(0x484850, 1);
-    gfx.fillRect(cx - 118, topY + 18, 236, 28);
-
-    // Cracks
-    gfx.lineStyle(1, 0x2a2a30, 0.8);
-    gfx.beginPath();
-    gfx.moveTo(cx - 94, topY + 45); gfx.lineTo(cx - 78, topY + 100);
-    gfx.moveTo(cx + 80, topY + 58); gfx.lineTo(cx + 96, topY + 118);
-    gfx.strokePath();
-
-    // Danger marks
-    gfx.fillStyle(0x8a2020, 0.7);
-    gfx.fillRect(cx - 16, topY + 26, 32, 6);
-    gfx.fillRect(cx - 16, topY + 42, 32, 6);
-
-    // Fog wisps
-    gfx.fillStyle(0x1a0a2a, 0.30);
-    gfx.fillEllipse(cx, topY + 72, 200, 60);
-    gfx.fillStyle(0x1a0a2a, 0.15);
-    gfx.fillEllipse(cx + 44, topY + 118, 150, 46);
-
-    // Label
-    this.add.text(cx, topY - 8, 'North Pass', {
-      fontFamily: FONTS.ui,
-      fontSize: '20px',
-      color: '#D97A7A',
-      fontStyle: 'bold',
-      stroke: '#0a0f1a',
-      strokeThickness: 4,
-    }).setOrigin(0.5, 1);
-  }
+  // ── Thornwood corrupted forest ───────────────────────────────────────────────
 
   private drawThornwoodArea(): void {
     const gfx = this.add.graphics();
     // Zone: x:180–1100, y:1460–2224
-    gfx.fillStyle(0x1a3014, 1);
+
+    // Forest floor — dark, corrupted earth
+    gfx.fillStyle(0x1a3010, 1);
     gfx.fillRect(180, 1460, 920, 764);
 
-    // Undergrowth texture
-    gfx.fillStyle(0x142810, 1);
-    gfx.fillRect(180, 1480, 920, 140);
-    gfx.fillStyle(0x0e1e0c, 0.6);
-    gfx.fillRect(220, 1680, 840, 80);
+    // Dead ground patches — bare soil and rot
+    gfx.fillStyle(0x2e2618, 0.55);
+    for (const [ex, ey, ew, eh] of [
+      [410, 1710, 310, 165], [730, 1860, 290, 145],
+      [560, 2060, 330, 165], [360, 2190, 270, 135],
+    ] as [number,number,number,number][]) {
+      gfx.fillEllipse(ex, ey, ew, eh);
+    }
 
-    // Corrupted tree silhouettes
-    gfx.fillStyle(0x0a1c08, 1);
-    const thornTrees: [number, number, number][] = [
-      [190,1568,28], [278,1532,32], [386,1552,26], [494,1518,34],
-      [602,1548,28], [710,1522,30], [818,1552,26], [926,1526,32],
-      [1010,1568,24],
-      [204,1668,26], [322,1688,30], [440,1658,24], [558,1678,28],
-      [676,1652,32], [794,1672,26], [912,1660,30],
-      [218,1778,28], [344,1808,26], [510,1778,32], [686,1793,28],
-      [808,1762,30], [950,1788,24],
-      [198,1888,26], [304,1876,30], [588,1906,28], [724,1870,32],
-      [858,1896,26], [980,1880,30],
-      [214,1998,24], [394,1988,28], [524,2018,26], [664,2002,30],
-      [820,1988,24], [958,2016,28],
-      [228,2108,26], [418,2098,30], [578,2118,24], [748,2103,28],
-      [920,2088,32],
-      [240,2188,24], [460,2198,28], [640,2182,30], [830,2202,26],
+    // Corrupted tree canopies viewed from above — muted brownish-green
+    const positions: [number, number, number][] = [
+      [210,1490,26],[290,1510,22],[372,1488,28],[458,1504,24],[548,1490,26],
+      [636,1506,22],[726,1492,28],[816,1510,24],[906,1494,26],[988,1512,22],[1066,1492,24],
+      [232,1582,24],[318,1564,26],[408,1578,22],[498,1562,28],[590,1580,24],
+      [680,1564,26],[770,1582,22],[860,1566,28],[948,1580,24],[1036,1562,26],
+      [208,1664,22],[308,1678,26],[408,1662,24],[518,1680,22],[618,1664,28],
+      [718,1680,24],[818,1664,26],[918,1682,22],[1008,1670,24],[1086,1662,26],
+      [228,1764,26],[338,1780,22],[448,1764,28],[558,1780,24],[668,1764,26],
+      [778,1782,22],[888,1766,28],[978,1780,24],
+      [208,1864,24],[318,1878,26],[438,1864,22],[558,1882,28],[678,1866,24],
+      [798,1884,26],[908,1868,22],[1018,1882,28],
+      [218,1964,22],[338,1978,26],[468,1964,24],[598,1982,22],[728,1966,28],
+      [848,1982,24],[958,1968,26],
+      [228,2064,26],[358,2078,22],[498,2064,28],[638,2082,24],[778,2066,26],
+      [908,2084,22],[1028,2072,28],
+      [218,2164,24],[368,2178,26],[518,2164,22],[668,2182,28],[828,2166,24],
+      [968,2184,26],
     ];
-    for (const [tx, ty, tw] of thornTrees) {
-      gfx.fillTriangle(tx, ty + tw, tx + tw * 0.6, ty - tw * 0.3, tx + tw * 1.3, ty + tw * 0.6);
-      gfx.fillStyle(0x081408, 1);
-      gfx.fillTriangle(tx + 4, ty + tw * 0.8, tx + tw * 0.65, ty - tw * 0.5, tx + tw * 1.1, ty + tw * 0.8);
-      gfx.fillStyle(0x0a1c08, 1);
+
+    for (const [tx, ty, tr] of positions) {
+      // SE shadow
+      gfx.fillStyle(0x0a1208, 0.60);
+      gfx.fillCircle(tx + 5, ty + 6, tr);
+      // Canopy — muted gnarled green
+      gfx.fillStyle(0x2a4418, 1);
+      gfx.fillCircle(tx, ty, tr);
+      // Dead-patch inner darker ring
+      gfx.fillStyle(0x1e2e10, 0.50);
+      gfx.fillCircle(tx, ty, tr * 0.55);
+      // Faint sickly highlight
+      gfx.fillStyle(0x3c5820, 0.30);
+      gfx.fillCircle(tx - 4, ty - 4, tr * 0.38);
     }
 
-    // Wisp glow dots
-    gfx.fillStyle(0x3a7878, 0.30);
+    // Teal wisp glow dots — will-o'-wisps
+    gfx.fillStyle(0x3a8888, 0.25);
     for (const [wx, wy] of [
-      [310,1620],[520,1640],[730,1615],[940,1635],
-      [252,1730],[468,1750],[668,1720],[868,1745],
-      [334,1858],[568,1878],[802,1848],[1020,1870],
-      [296,1978],[500,1998],[714,1972],[938,1994],
-      [272,2098],[490,2118],[720,2088],[950,2110],
+      [318,1628],[528,1648],[738,1622],[948,1642],
+      [260,1738],[476,1758],[678,1728],[878,1752],
+      [342,1868],[578,1888],[812,1858],[1028,1878],
+      [304,1988],[508,2008],[724,1982],[948,2004],
+      [280,2108],[498,2128],[730,2098],[958,2120],
     ]) {
-      gfx.fillCircle(wx, wy, 12);
+      gfx.fillCircle(wx, wy, 13);
     }
-    gfx.fillStyle(0x5ababa, 0.15);
+    gfx.fillStyle(0x5ababa, 0.14);
     for (const [wx, wy] of [
-      [310,1620],[520,1640],[730,1615],
-      [252,1730],[468,1750],
-      [334,1858],[568,1878],
-      [296,1978],[500,1998],
+      [318,1628],[528,1648],[738,1622],
+      [260,1738],[476,1758],
+      [342,1868],[578,1888],
+      [304,1988],[508,2008],
     ]) {
-      gfx.fillCircle(wx, wy, 28);
+      gfx.fillCircle(wx, wy, 30);
     }
 
     // Zone label
@@ -571,6 +525,278 @@ export class WorldMapScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5, 1);
   }
+
+  // ── Decorative water features ────────────────────────────────────────────────
+
+  private drawWaterFeatures(): void {
+    const gfx = this.add.graphics();
+
+    // Sandy riverbank / shoreline
+    gfx.fillStyle(0xc8b060, 1);
+    const shores: [number, number, number, number][] = [
+      [1840, 442, 38,  72], [1822, 504, 38,  72], [1806, 564, 38,  70],
+      [1786, 622, 38,  68], [1760, 676, 40,  64], [1730, 724, 42,  60],
+      [1692, 756, 44,  58], [1648, 774, 46,  54], [1596, 784, 48,  52],
+      [1540, 790, 48,  50], [1482, 794, 52,  48],
+    ];
+    for (const [ex, ey, ew, eh] of shores) gfx.fillEllipse(ex, ey, ew, eh);
+    // Pond shore
+    gfx.fillEllipse(1390, 806, 214, 144);
+
+    // River water body
+    gfx.fillStyle(0x4a82c8, 1);
+    const river: [number, number, number, number][] = [
+      [1840, 442, 26,  60], [1822, 504, 26,  60], [1806, 564, 26,  58],
+      [1786, 622, 26,  56], [1760, 674, 28,  52], [1730, 722, 30,  50],
+      [1692, 754, 32,  46], [1648, 772, 34,  42], [1596, 782, 36,  40],
+      [1540, 788, 36,  38], [1482, 792, 40,  36],
+    ];
+    for (const [ex, ey, ew, eh] of river) gfx.fillEllipse(ex, ey, ew, eh);
+    // Pond
+    gfx.fillEllipse(1390, 806, 172, 118);
+
+    // Water shimmer highlights
+    gfx.fillStyle(0x7aaee0, 0.50);
+    for (const [ex, ey, ew, eh] of [
+      [1840, 438, 13,  24], [1806, 562, 13,  22], [1760, 672, 14,  20],
+      [1692, 752, 14,  18], [1596, 780, 16,  16], [1380, 796, 64,  32],
+      [1418, 806, 32,  20],
+    ] as [number,number,number,number][]) {
+      gfx.fillEllipse(ex, ey, ew, eh);
+    }
+
+    // Lily pad dots on the pond
+    gfx.fillStyle(0x3a7a28, 0.70);
+    for (const [lx, ly] of [
+      [1358,808],[1395,798],[1420,812],[1372,820],[1408,820],
+    ]) {
+      gfx.fillCircle(lx, ly, 5);
+    }
+  }
+
+  // ── Lumen Town — overhead rooftop view ──────────────────────────────────────
+
+  private drawTownArea(): void {
+    const gfx = this.add.graphics();
+    const cx = 2830; // trigger x:2720 + width:220/2
+
+    // Packed earth ground inside town walls
+    gfx.fillStyle(0xc8ac72, 1);
+    gfx.fillRect(cx - 290, 578, 580, 506);
+
+    // Town wall — stone perimeter
+    gfx.fillStyle(0x9a8c6e, 1);
+    gfx.fillRect(cx - 290, 578, 580, 14);   // north wall
+    gfx.fillRect(cx - 290, 1070, 580, 14);  // south wall
+    gfx.fillRect(cx - 290, 578, 14, 506);   // west wall
+    gfx.fillRect(cx + 276, 578, 14, 506);   // east wall
+
+    // Wall crenellations — top of north wall
+    gfx.fillStyle(0x7a6c52, 1);
+    for (let wx = cx - 280; wx < cx + 270; wx += 28) {
+      gfx.fillRect(wx, 570, 14, 14);
+    }
+
+    // Gate opening — south wall centre (no wall tile here)
+    gfx.fillStyle(0xc8ac72, 1);
+    gfx.fillRect(cx - 32, 1070, 64, 14);
+
+    // Stone plaza — central market square
+    gfx.fillStyle(0xb09a7e, 1);
+    gfx.fillRect(cx - 220, 850, 440, 62);
+    // Plaza stone tile lines
+    gfx.lineStyle(1, 0x9a8468, 0.4);
+    for (let px = cx - 220; px < cx + 220; px += 44) {
+      gfx.beginPath(); gfx.moveTo(px, 850); gfx.lineTo(px, 912); gfx.strokePath();
+    }
+    gfx.beginPath(); gfx.moveTo(cx - 220, 880); gfx.lineTo(cx + 220, 880); gfx.strokePath();
+
+    // Inn (west, ochre roof)
+    this.drawRooftop(gfx, cx - 270, 618, 132, 132, 0xb8722a, 0x7a3a14);
+    // Shop (east, slate-blue roof)
+    this.drawRooftop(gfx, cx + 128, 630, 122, 122, 0x5a7490, 0x3a5070);
+    // Guardhouse (centre-north, stone)
+    this.drawRooftop(gfx, cx - 54, 750, 108, 82, 0x7a6a58, 0x504840);
+    // Manor (north corner, larger deep red roof)
+    this.drawRooftop(gfx, cx - 78, 590, 156, 80, 0x983c2e, 0x601e18);
+
+    // Well — stone circle in the plaza
+    gfx.fillStyle(0x807060, 1);
+    gfx.fillCircle(cx - 66, 924, 14);
+    gfx.fillStyle(0x3a2c20, 1);
+    gfx.fillCircle(cx - 66, 924, 8);
+    gfx.fillStyle(0x6a5c48, 1);
+    gfx.fillRect(cx - 70, 918, 8, 2);
+    gfx.fillRect(cx - 68, 912, 4, 8);
+
+    // Gate posts (south entrance)
+    gfx.fillStyle(0xa09070, 1);
+    gfx.fillRect(cx - 36, 1042, 24, 42);
+    gfx.fillRect(cx + 12,  1042, 24, 42);
+
+    // Town name label
+    this.add.text(cx, 563, 'Lumen Town', {
+      fontFamily: FONTS.ui,
+      fontSize: '22px',
+      color: COLOR_HEX.goldAccent,
+      fontStyle: 'bold',
+      stroke: '#0a0f1a',
+      strokeThickness: 4,
+    }).setOrigin(0.5, 1);
+  }
+
+  // ── Ashenveil — overhead rooftop view ───────────────────────────────────────
+
+  private drawAshenveilArea(): void {
+    const gfx = this.add.graphics();
+    const cx = 3570; // trigger x:3460 + width:220/2
+
+    // Packed earth ground
+    gfx.fillStyle(0xbe9e62, 1);
+    gfx.fillRect(cx - 220, 854, 440, 370);
+
+    // Town wall
+    gfx.fillStyle(0x8a7c5e, 1);
+    gfx.fillRect(cx - 220, 854, 440, 12);
+    gfx.fillRect(cx - 220, 1212, 440, 12);
+    gfx.fillRect(cx - 220, 854, 12, 370);
+    gfx.fillRect(cx + 208, 854, 12, 370);
+
+    // Crenellations on north wall
+    gfx.fillStyle(0x6a5c46, 1);
+    for (let wx = cx - 210; wx < cx + 205; wx += 26) {
+      gfx.fillRect(wx, 846, 12, 12);
+    }
+
+    // Gate opening
+    gfx.fillStyle(0xbe9e62, 1);
+    gfx.fillRect(cx - 28, 1212, 56, 12);
+
+    // Central plaza
+    gfx.fillStyle(0xa48e72, 1);
+    gfx.fillRect(cx - 180, 1050, 360, 58);
+    gfx.lineStyle(1, 0x8a7460, 0.4);
+    for (let px = cx - 180; px < cx + 180; px += 40) {
+      gfx.beginPath(); gfx.moveTo(px, 1050); gfx.lineTo(px, 1108); gfx.strokePath();
+    }
+    gfx.beginPath(); gfx.moveTo(cx - 180, 1078); gfx.lineTo(cx + 180, 1078); gfx.strokePath();
+
+    // Inn (west, ochre)
+    this.drawRooftop(gfx, cx - 208, 876, 116, 118, 0xb8722a, 0x7a3a14);
+    // Elder's hall (east, blue-grey, larger)
+    this.drawRooftop(gfx, cx + 30,  866, 168, 136, 0x5a7490, 0x3a5070);
+    // Barracks (north, military green)
+    this.drawRooftop(gfx, cx - 70,  862, 88,  68,  0x5a6e44, 0x384428);
+
+    // Well
+    gfx.fillStyle(0x706050, 1);
+    gfx.fillCircle(cx - 90, 1028, 12);
+    gfx.fillStyle(0x342820, 1);
+    gfx.fillCircle(cx - 90, 1028, 7);
+
+    // Gate posts
+    gfx.fillStyle(0x9a8a68, 1);
+    gfx.fillRect(cx - 30, 1184, 22, 38);
+    gfx.fillRect(cx +  8, 1184, 22, 38);
+
+    // Town name label
+    this.add.text(cx, 838, 'Ashenveil', {
+      fontFamily: FONTS.ui,
+      fontSize: '20px',
+      color: COLOR_HEX.goldAccent,
+      fontStyle: 'bold',
+      stroke: '#0a0f1a',
+      strokeThickness: 4,
+    }).setOrigin(0.5, 1);
+  }
+
+  // ── Rooftop helper ──────────────────────────────────────────────────────────
+
+  private drawRooftop(
+    gfx: Phaser.GameObjects.Graphics,
+    x: number, y: number, w: number, h: number,
+    roofColor: number, shadowColor: number,
+  ): void {
+    // Drop shadow (SE offset)
+    gfx.fillStyle(shadowColor, 0.55);
+    gfx.fillRect(x + 6, y + 6, w, h);
+    // Roof body
+    gfx.fillStyle(roofColor, 1);
+    gfx.fillRect(x, y, w, h);
+    // Ridge line highlight (NW face)
+    gfx.fillStyle(0xffffff, 0.14);
+    gfx.fillRect(x + 4, y + 4, w - 8, 7);
+    gfx.fillRect(x + 4, y + 4, 7, h - 8);
+    // Shadow edge (SE face)
+    gfx.fillStyle(shadowColor, 0.45);
+    gfx.fillRect(x, y + h - 8, w, 8);
+    gfx.fillRect(x + w - 8, y, 8, h);
+  }
+
+  // ── North Pass gate — viewed from above ─────────────────────────────────────
+
+  private drawNorthPassArea(): void {
+    const gfx = this.add.graphics();
+    const cx   = 1930;
+    const topY = 62;
+
+    // Stone foundation — two pillar rectangles from above
+    gfx.fillStyle(0x706462, 1);
+    gfx.fillRect(cx - 112, topY + 22, 48, 188);
+    gfx.fillRect(cx +  64, topY + 22, 48, 188);
+
+    // SE shadow on each pillar
+    gfx.fillStyle(0x3a3030, 0.50);
+    gfx.fillRect(cx - 64,  topY + 22, 10, 188);
+    gfx.fillRect(cx + 112, topY + 22, 10, 188);
+    gfx.fillRect(cx - 112, topY + 200, 48, 12);
+    gfx.fillRect(cx + 64,  topY + 200, 48, 12);
+
+    // NW highlight on each pillar
+    gfx.fillStyle(0xa09898, 0.40);
+    gfx.fillRect(cx - 112, topY + 22, 10, 188);
+    gfx.fillRect(cx + 64,  topY + 22, 10, 188);
+
+    // Lintel (arch top seen from above)
+    gfx.fillStyle(0x5e5252, 1);
+    gfx.fillRect(cx - 128, topY + 10, 256, 30);
+    gfx.fillStyle(0x3a3030, 0.4);
+    gfx.fillRect(cx - 128, topY + 32, 256, 10);
+
+    // Stone joint lines on pillars
+    gfx.lineStyle(1, 0x4a4040, 0.55);
+    for (let sy = topY + 42; sy < topY + 205; sy += 30) {
+      gfx.beginPath();
+      gfx.moveTo(cx - 112, sy); gfx.lineTo(cx - 64, sy);
+      gfx.moveTo(cx + 64,  sy); gfx.lineTo(cx + 112, sy);
+      gfx.strokePath();
+    }
+
+    // Danger rune marks on lintel
+    gfx.fillStyle(0x8a2020, 0.85);
+    gfx.fillRect(cx - 18, topY + 15, 36, 6);
+    gfx.fillRect(cx - 18, topY + 27, 36, 6);
+
+    // Purple fog wisps drifting through the gap
+    gfx.fillStyle(0x2a1040, 0.28);
+    gfx.fillEllipse(cx,      topY + 120, 250, 110);
+    gfx.fillStyle(0x1a0830, 0.18);
+    gfx.fillEllipse(cx + 50, topY + 170, 190,  80);
+    gfx.fillStyle(0x200840, 0.12);
+    gfx.fillEllipse(cx - 40, topY + 200, 160,  60);
+
+    // Label
+    this.add.text(cx, topY - 8, 'North Pass', {
+      fontFamily: FONTS.ui,
+      fontSize: '20px',
+      color: '#D97A7A',
+      fontStyle: 'bold',
+      stroke: '#0a0f1a',
+      strokeThickness: 4,
+    }).setOrigin(0.5, 1);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
 
   private isTriggerConsumed(trigger: WorldTrigger): boolean {
     const sb = trigger.scriptedBattle;
@@ -621,28 +847,38 @@ export class WorldMapScene extends Phaser.Scene {
     const g = this.player;
     g.clear();
 
-    g.fillStyle(0x8a6a10, 0.5);
-    g.fillEllipse(PLAYER_W / 2 + 2, PLAYER_H - 4, PLAYER_W - 4, 10);
+    // Ground shadow
+    g.fillStyle(0x2a5818, 0.38);
+    g.fillEllipse(PLAYER_W / 2 + 2, PLAYER_H - 3, PLAYER_W, 10);
 
-    g.fillStyle(0xe8d25f, 1);
-    g.fillRect(4, 8, PLAYER_W - 8, PLAYER_H - 12);
+    // Cloak / body mass — royal blue, overhead view
+    g.fillStyle(0x28388a, 1);
+    g.fillEllipse(PLAYER_W / 2, PLAYER_H / 2 + 5, PLAYER_W - 4, PLAYER_H - 8);
 
-    g.fillStyle(0xb87820, 1);
-    g.fillRect(0, 10, 6, PLAYER_H - 18);
-    g.fillRect(PLAYER_W - 6, 10, 6, PLAYER_H - 18);
+    // Cloak inner highlight
+    g.fillStyle(0x4058c0, 0.45);
+    g.fillEllipse(PLAYER_W / 2 - 2, PLAYER_H / 2 + 2, PLAYER_W / 2, PLAYER_H / 3);
 
-    g.fillStyle(0xf0d080, 1);
-    g.fillRect(6, 0, PLAYER_W - 12, 12);
+    // Shoulder pauldrons
+    g.fillStyle(0x9090a8, 1);
+    g.fillRect(2,            14, 6, 5);
+    g.fillRect(PLAYER_W - 8, 14, 6, 5);
 
-    g.fillStyle(0x1a1a1a, 1);
-    g.fillRect(PLAYER_W - 10, 3, 3, 3);
+    // Helmet
+    g.fillStyle(0x7a7890, 1);
+    g.fillCircle(PLAYER_W / 2, 8, 7);
 
-    g.fillStyle(0xc0c8e0, 1);
-    g.fillRect(PLAYER_W - 2, 6, 3, PLAYER_H - 12);
+    // Helmet plume — gold crest
+    g.fillStyle(0xe8c830, 1);
+    g.fillRect(PLAYER_W / 2 - 2, 0, 4, 9);
 
-    g.fillStyle(0xe8d25f, 0.9);
-    g.fillRect(PLAYER_W, 6, 2, 4);
-    g.fillRect(PLAYER_W - 1, 10, 4, 2);
+    // Sword blade (right side, pointing south)
+    g.fillStyle(0xc8ccd8, 1);
+    g.fillRect(PLAYER_W - 3, 10, 3, 18);
+
+    // Crossguard
+    g.fillStyle(0xa07820, 1);
+    g.fillRect(PLAYER_W - 6, 22, 8, 3);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
