@@ -42,6 +42,33 @@ const MAP_H = CFG.mapHeight;
 
 const PLAYER_SPEED = 200; // px/sec
 
+/**
+ * Caps the per-frame movement delta. Phaser supplies the raw frame delta in
+ * ms; a tab-switch or GC pause can produce a single 500 ms delta that would
+ * teleport the player across the map. 50 ms (≈ 20 fps floor) keeps movement
+ * predictable after any frame spike while still letting normal 60 fps frames
+ * (~16.7 ms) pass through untouched.
+ */
+const MAX_DELTA_MS = 50;
+
+/**
+ * Camera zoom for the overworld. 1.10 shrinks the visible world area by ~10%
+ * so the player feels less tiny and travel feels a little more meaningful,
+ * while still keeping enough of the world on screen to read terrain ahead.
+ */
+const WORLD_MAP_ZOOM = 1.10;
+
+/**
+ * How often (ms) to write the player's world position into game state while
+ * walking. Battle launches and trigger activations always write the precise
+ * position synchronously; this throttle only governs the "save resume"
+ * heartbeat, which can be coarse because world-map saves are disabled.
+ */
+const LOCATION_UPDATE_INTERVAL_MS = 250;
+
+/** Camera follow lerp — slightly snappier than 0.09 to reduce floaty drift. */
+const CAMERA_LERP = 0.12;
+
 // locationId recorded in game state while the player is walking the overworld.
 // Town entrances overwrite this with their own locationId on trigger activation.
 const WORLD_LOCATION_ID = 'world_map';
@@ -81,6 +108,10 @@ export class WorldMapScene extends Phaser.Scene {
   private menuCooldown      = false;
   private encounterTracker  = new EncounterTracker(6);
 
+  /** Accumulator (ms) for throttled position writes to game state. */
+  private locationUpdateAccum = 0;
+  private locationDirty       = false;
+
   // ─────────────────────────────────────────────────────────────────────────
 
   constructor() {
@@ -103,17 +134,28 @@ export class WorldMapScene extends Phaser.Scene {
     this.activeTrigger     = null;
     this.activeZone        = null;
     this.previousZoneId    = null;
+    this.locationUpdateAccum = 0;
+    this.locationDirty       = false;
     this.encounterTracker.onBattleFired();
   }
 
   // ─── create ───────────────────────────────────────────────────────────────
 
   create(): void {
-    // Outside the painted map the camera should show a dark void — but with
-    // setBounds the camera never leaves the map, so this is a safety default.
-    this.cameras.main.setBackgroundColor('#0a0f1a');
-    this.cameras.main.setBounds(0, 0, MAP_W, MAP_H);
-    this.cameras.main.fadeIn(350, 0, 0, 0);
+    const cam = this.cameras.main;
+
+    // If the camera ever shows pixels outside the painted map (it shouldn't,
+    // because setBounds clamps scroll), tint them sea-blue so they read as
+    // ocean rather than as broken void.
+    cam.setBackgroundColor('#2c5896');
+    cam.setBounds(0, 0, MAP_W, MAP_H);
+    cam.setZoom(WORLD_MAP_ZOOM);
+    cam.setRoundPixels(true);
+
+    // Centre the camera on the player BEFORE startFollow / fadeIn so the
+    // first frame already shows the player area, not the (0,0) corner.
+    cam.centerOn(this.px + PLAYER_W / 2, this.py + PLAYER_H / 2);
+    cam.fadeIn(350, 0, 0, 0);
 
     // Data-driven world paint — terrain, rivers, roads, landmarks.
     renderWorld(this, CFG);
@@ -125,8 +167,8 @@ export class WorldMapScene extends Phaser.Scene {
     this.createHUD();
     this.setupInput();
 
-    this.cameras.main.startFollow(this.player, true, 0.09, 0.09);
-    this.cameras.main.setFollowOffset(-PLAYER_W / 2, -PLAYER_H / 2);
+    cam.startFollow(this.player, true, CAMERA_LERP, CAMERA_LERP);
+    cam.setFollowOffset(-PLAYER_W / 2, -PLAYER_H / 2);
   }
 
   // ─── update ───────────────────────────────────────────────────────────────
@@ -144,6 +186,10 @@ export class WorldMapScene extends Phaser.Scene {
       return;
     }
 
+    // Clamp delta to prevent teleport-jumps after tab-switches, GC pauses,
+    // or any single-frame spike. Normal 16.7 ms frames pass through unchanged.
+    const movementDelta = Math.min(delta, MAX_DELTA_MS);
+
     const input = this.readInput();
 
     const prevX = this.px;
@@ -153,7 +199,7 @@ export class WorldMapScene extends Phaser.Scene {
       this.px, this.py,
       input,
       PLAYER_SPEED,
-      delta,
+      movementDelta,
       MAP_W, MAP_H,
       PLAYER_W, PLAYER_H,
       CFG.collisionRects,
@@ -164,12 +210,21 @@ export class WorldMapScene extends Phaser.Scene {
 
     this.player.setPosition(this.px, this.py);
 
+    // Throttled position write: every movement frame marks the location
+    // dirty, but we only patch state once per LOCATION_UPDATE_INTERVAL_MS.
+    // Synchronous writes still happen on trigger / encounter / battle launch.
     if (result.moving && (result.x !== prevX || result.y !== prevY)) {
+      this.locationDirty = true;
+    }
+    this.locationUpdateAccum += delta;
+    if (this.locationDirty && this.locationUpdateAccum >= LOCATION_UPDATE_INTERVAL_MS) {
       setCurrentLocation({
         locationId: WORLD_LOCATION_ID,
         x: Math.round(this.px + PLAYER_W / 2),
         y: Math.round(this.py + PLAYER_H / 2),
       });
+      this.locationDirty       = false;
+      this.locationUpdateAccum = 0;
     }
 
     this.activeTrigger = getActiveTrigger(

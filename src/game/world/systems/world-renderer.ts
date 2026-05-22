@@ -41,7 +41,7 @@ const TERRAIN: Record<TerrainKind, TerrainPalette> = {
   mountain:         { base: 0x7a6c58, accent: 0x9a8c78, shadow: 0x4e4030 },
   rocky:            { base: 0x8a7c66, accent: 0x9e9078, shadow: 0x5a4e3c },
   dust:             { base: 0xa48050, accent: 0xb89868, shadow: 0x6e4c28 },
-  sea:              { base: 0x254a82, accent: 0x3a6cac, shadow: 0x172e54 },
+  sea:              { base: 0x2c5896, accent: 0x4a7cb8, shadow: 0x1c3868 },
   sand:             { base: 0xd6b870, accent: 0xe8cc88, shadow: 0xa88e50 },
   snow:             { base: 0xeeeef8, accent: 0xffffff, shadow: 0xc8cce0 },
   blight:           { base: 0x381040, accent: 0x4c2058, shadow: 0x1a0820 },
@@ -67,6 +67,14 @@ const LANDMARK: Record<LandmarkKind, LandmarkPalette> = {
   island:   { fill: 0xd6b870, roof: 0x8898b0, accent: 0xe8d25f, label: COLOR_HEX.iceBlue },
   dungeon:  { fill: 0x6a6260, roof: 0x4a3e3c, accent: 0x2a1c1c, label: COLOR_HEX.villainName },
 };
+
+/**
+ * Visual size multiplier applied to landmark rectangles. The config carries
+ * a "footprint" size; the renderer paints the icon at this fraction of that
+ * footprint, centred on the original centre. Tune here to scale all
+ * landmarks at once without touching individual config entries.
+ */
+const LANDMARK_VISUAL_SCALE = 0.62;
 
 const ROAD_COLOR: Record<WorldRoad['style'], { edge: number; main: number; centre: number }> = {
   dirt:  { edge: 0x6a5028, main: 0xc4a866, centre: 0xd4bc7e },
@@ -273,40 +281,40 @@ function drawLandmarks(scene: Phaser.Scene, landmarks: WorldLandmark[]): void {
     const palette = LANDMARK[lm.kind];
     const g = scene.add.graphics();
 
+    // Scale around the original footprint centre so labels remain anchored.
+    const cx = lm.x + lm.width  / 2;
+    const cy = lm.y + lm.height / 2;
+    const w  = lm.width  * LANDMARK_VISUAL_SCALE;
+    const h  = lm.height * LANDMARK_VISUAL_SCALE;
+    const x  = cx - w / 2;
+    const y  = cy - h / 2;
+
     // Drop shadow
     g.fillStyle(0x000000, 0.40);
-    g.fillRoundedRect(lm.x + 5, lm.y + 5, lm.width, lm.height, 6);
+    g.fillRoundedRect(x + 4, y + 4, w, h, 5);
 
     // Footprint
     g.fillStyle(palette.fill, 1);
-    g.fillRoundedRect(lm.x, lm.y, lm.width, lm.height, 6);
+    g.fillRoundedRect(x, y, w, h, 5);
 
     // Roof / inner emblem block
-    const innerW = lm.width  * 0.7;
-    const innerH = lm.height * 0.55;
+    const innerW = w * 0.70;
+    const innerH = h * 0.55;
     g.fillStyle(palette.roof, 1);
-    g.fillRoundedRect(
-      lm.x + (lm.width  - innerW) / 2,
-      lm.y + (lm.height - innerH) / 2,
-      innerW, innerH, 4,
-    );
+    g.fillRoundedRect(cx - innerW / 2, cy - innerH / 2, innerW, innerH, 4);
 
     // Accent dot
     g.fillStyle(palette.accent, 1);
-    g.fillCircle(
-      lm.x + lm.width  / 2,
-      lm.y + lm.height / 2,
-      Math.min(lm.width, lm.height) * 0.13,
-    );
+    g.fillCircle(cx, cy, Math.min(w, h) * 0.13);
 
     // Border
     g.lineStyle(2, 0x0a0808, 0.85);
-    g.strokeRoundedRect(lm.x, lm.y, lm.width, lm.height, 6);
+    g.strokeRoundedRect(x, y, w, h, 5);
 
     if (lm.label) {
-      scene.add.text(lm.x + lm.width / 2, lm.y - 6, lm.label, {
+      scene.add.text(cx, y - 4, lm.label, {
         fontFamily: FONTS.ui,
-        fontSize:   '15px',
+        fontSize:   '14px',
         color:      palette.label,
         fontStyle:  'bold',
         stroke:     '#0a0f1a',

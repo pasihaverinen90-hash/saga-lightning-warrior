@@ -76,9 +76,12 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
   mapWidth:  MAP_W,
   mapHeight: MAP_H,
 
-  // Player spawns at Start Village in the southwest of the Western continent.
-  playerStartX: 250,
-  playerStartY: 1850,
+  // Player spawns just north of the Start Village, on the safe road OUT of
+  // Thornwood. The corrupted forest's encounter zone is y:1680–2240; spawning
+  // above that line means the HUD reads 'Elerion' (safe) at game start and
+  // there are no encounter rolls until the player chooses to walk south.
+  playerStartX: 380,
+  playerStartY: 1530,
 
   // ── Regions (visual base terrain — drawn in array order) ───────────────────
   regions: [
@@ -225,11 +228,12 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // Western main road: Start Village → Lumen → Mountain Pass → West Port
     {
       id: 'west_main_road',
-      width: 14,
+      width: 10,
       style: 'dirt',
       points: [
-        { x: 260, y: 1850 },  // Start Village
-        { x: 380, y: 1500 },  // Riverside lake village area
+        { x: 360, y: 1700 },  // northern edge of Thornwood
+        { x: 400, y: 1500 },  // Start Village / road north
+        { x: 460, y: 1300 },
         { x: 520, y: 1180 },  // Lumen south gate
         { x: 800, y: 1080 },  // approach mountain pass
         { x: 1020, y: 1075 }, // pass entry (boss)
@@ -241,7 +245,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // West shrine branch (optional)
     {
       id: 'west_shrine_branch',
-      width: 10,
+      width: 8,
       style: 'dirt',
       points: [
         { x: 380, y: 1100 },
@@ -252,7 +256,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // Eastern main road: East Port → Frontier → River City → War Fortress
     {
       id: 'east_main_road',
-      width: 14,
+      width: 10,
       style: 'dirt',
       points: [
         { x: 2620, y: 1230 }, // East Port (Ashenveil)
@@ -267,7 +271,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // East Ruins branch
     {
       id: 'east_ruins_branch',
-      width: 12,
+      width: 8,
       style: 'dirt',
       points: [
         { x: 3300, y: 1080 },
@@ -278,7 +282,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // Citadel approach — stone road through Black Reach
     {
       id: 'citadel_road',
-      width: 14,
+      width: 10,
       style: 'stone',
       points: [
         { x: 3520, y: 620 },
@@ -290,9 +294,10 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
 
   // ── Landmarks (visual labels only — actual triggers below) ─────────────────
   landmarks: [
-    // Western continent
+    // Western continent — Start Village relocated north of the Thornwood
+    // encounter zone so the player can spawn in a safe area next to it.
     { id: 'lm_start_village',  kind: 'village',  label: 'Start Village',
-      x: 200, y: 1810, width: 110, height: 90 },
+      x: 320, y: 1530, width: 110, height: 90 },
     { id: 'lm_lumen_capital',  kind: 'capital',  label: 'Lumen',
       x: 440, y: 1040, width: 160, height: 140 },
     { id: 'lm_riverside',      kind: 'village',  label: 'Riverside',

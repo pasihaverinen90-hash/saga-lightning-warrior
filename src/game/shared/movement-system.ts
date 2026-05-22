@@ -46,20 +46,36 @@ function overlapsRect(
     && ay + ah > b.y;
 }
 
+/** Returns true if the proposed top-left position overlaps any rect. */
+function blockedAt(
+  x: number, y: number, w: number, h: number,
+  rects: Rect[],
+): boolean {
+  for (const r of rects) {
+    if (overlapsRect(x, y, w, h, r)) return true;
+  }
+  return false;
+}
+
+const INV_SQRT2 = 0.70710678;
+
 // ─── Exported functions ───────────────────────────────────────────────────────
 
 /**
  * Computes the new position for an entity given movement input, speed, delta,
  * map bounds, and a list of solid collision rectangles.
  *
- * Uses axis-separated collision so entities can slide along walls rather
- * than stopping dead on diagonal contact.
+ * Uses axis-separated collision so entities can slide along walls. When one
+ * axis is blocked while moving diagonally, the unblocked axis is re-attempted
+ * at FULL (un-normalised) speed — without this, sliding along a wall feels
+ * about 30% slower than cardinal movement.
  *
  * @param px        Current top-left X
  * @param py        Current top-left Y
  * @param input     Which direction keys are held this frame
  * @param speed     Movement speed in pixels per second
- * @param delta     Frame delta in milliseconds (from Phaser update)
+ * @param delta     Frame delta in milliseconds (callers should clamp this to
+ *                  avoid teleport-jumps after frame drops or tab-switches)
  * @param mapWidth  Hard boundary: entity cannot exceed this width
  * @param mapHeight Hard boundary: entity cannot exceed this height
  * @param entityW   Entity width in pixels
@@ -88,39 +104,44 @@ export function computeMovement(
   if (input.up)    dy -= 1;
   if (input.down)  dy += 1;
 
-  const moving = dx !== 0 || dy !== 0;
+  const moving   = dx !== 0 || dy !== 0;
+  const diagonal = dx !== 0 && dy !== 0;
+  const moveStep = speed * dt;
+  // Normalised step for diagonal — equal speed in all directions when unblocked.
+  const normStep = diagonal ? moveStep * INV_SQRT2 : moveStep;
 
-  // Normalise diagonal so speed is equal in all directions
-  if (dx !== 0 && dy !== 0) {
-    const INV_SQRT2 = 0.70710678;
-    dx *= INV_SQRT2;
-    dy *= INV_SQRT2;
-  }
+  // ── First pass: try both axes at the normalised step ──────────────────────
+  const maxX = mapWidth  - entityW;
+  const maxY = mapHeight - entityH;
 
-  // ── X axis ──────────────────────────────────────────────────────────────────
-  let nextX = px + dx * speed * dt;
-  // Clamp to map boundary
-  nextX = Math.max(0, Math.min(mapWidth - entityW, nextX));
-
+  let nextX = Math.max(0, Math.min(maxX, px + dx * normStep));
   let blockedX = false;
-  for (const rect of collisionRects) {
-    if (overlapsRect(nextX, py, entityW, entityH, rect)) {
-      blockedX = true;
-      nextX = px; // reject X, keep original
-      break;
-    }
+  if (nextX !== px && blockedAt(nextX, py, entityW, entityH, collisionRects)) {
+    blockedX = true;
+    nextX = px;
   }
 
-  // ── Y axis (uses resolved nextX for corner-hugging) ──────────────────────
-  let nextY = py + dy * speed * dt;
-  nextY = Math.max(0, Math.min(mapHeight - entityH, nextY));
-
+  let nextY = Math.max(0, Math.min(maxY, py + dy * normStep));
   let blockedY = false;
-  for (const rect of collisionRects) {
-    if (overlapsRect(nextX, nextY, entityW, entityH, rect)) {
-      blockedY = true;
-      nextY = py;
-      break;
+  if (nextY !== py && blockedAt(nextX, nextY, entityW, entityH, collisionRects)) {
+    blockedY = true;
+    nextY = py;
+  }
+
+  // ── Wall-slide pass: if diagonal and exactly one axis is blocked, retry the
+  //    free axis at FULL (un-normalised) speed. This restores 100% sliding
+  //    speed along walls instead of the 70.7% the first pass produces.
+  if (diagonal && blockedX !== blockedY) {
+    if (blockedX) {
+      const fullY = Math.max(0, Math.min(maxY, py + dy * moveStep));
+      if (fullY !== py && !blockedAt(nextX, fullY, entityW, entityH, collisionRects)) {
+        nextY = fullY;
+      }
+    } else {
+      const fullX = Math.max(0, Math.min(maxX, px + dx * moveStep));
+      if (fullX !== px && !blockedAt(fullX, py, entityW, entityH, collisionRects)) {
+        nextX = fullX;
+      }
     }
   }
 
