@@ -87,7 +87,7 @@ These are enforced rules, not suggestions.
 ## Save-version rules
 
 File: `src/game/save/save-version.ts`  
-Current version: **5**
+Current version: **7**
 
 **Increment `SAVE_VERSION` when:**
 - Adding, removing, or renaming a field in `GameState`

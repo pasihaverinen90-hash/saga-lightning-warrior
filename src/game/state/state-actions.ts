@@ -6,7 +6,7 @@ import { getState, patchState, setState, resetState } from './game-state';
 import type { GameState, PartyMember, WorldPosition } from './game-state-types';
 import type { EquipmentSlot } from '../data/equipment/equipment';
 import { STARTING_PARTY } from '../data/characters/party-members';
-import { BORDER_FIELDS_CONFIG } from '../data/maps/world-map-config';
+import { ELERION_WORLD_CONFIG } from '../data/maps/elerion-world-config';
 import { PLAYER_W, PLAYER_H } from '../shared/constants/player';
 import { processMemberXp, splitXp } from '../battle/engine/xp-system';
 import type { MemberXpResult } from '../battle/engine/xp-system';
@@ -17,7 +17,7 @@ import { resolveEffectiveStats } from '../data/equipment/equipment-system';
 /**
  * Initializes a fresh game state. Called when the player starts a New Game.
  * Spawn position is derived from the world map config so there is a single
- * source of truth — changing playerStartX/Y in world-map-config.ts is enough.
+ * source of truth — changing playerStartX/Y in elerion-world-config.ts is enough.
  *
  * Starting HP/MP: each member spawns at their EFFECTIVE max (base stats +
  * starting-equipment bonuses). Without this, Hugo's leather_vest (+10 maxHP)
@@ -40,10 +40,10 @@ export function initNewGame(): void {
     inventory: [{ itemId: 'herb_tonic', quantity: 2 }],
     storyFlags: {},
     currentLocation: {
-      locationId: 'border_fields',
+      locationId: 'world_map',
       // Store CENTER coordinates — convention used throughout the save system.
-      x: BORDER_FIELDS_CONFIG.playerStartX + PLAYER_W / 2,
-      y: BORDER_FIELDS_CONFIG.playerStartY + PLAYER_H / 2,
+      x: ELERION_WORLD_CONFIG.playerStartX + PLAYER_W / 2,
+      y: ELERION_WORLD_CONFIG.playerStartY + PLAYER_H / 2,
     },
   });
 }

@@ -41,8 +41,6 @@ import type { WorldMapInitData } from '../../world/types/world-types';
 const TOWN_CONFIGS: Record<string, TownMapConfig> = {
   lumen_town:     LUMEN_TOWN_CONFIG,
   ashenveil_town: ASHENVEIL_TOWN_CONFIG,
-  // ashenveil_road was an alias used when the entrance trigger recorded 'ashenveil_road'
-  // as the locationId. The trigger now uses 'ashenveil_town' directly.
 };
 
 /**

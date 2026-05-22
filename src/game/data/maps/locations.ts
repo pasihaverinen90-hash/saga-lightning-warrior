@@ -1,5 +1,5 @@
 // src/game/data/maps/locations.ts
-// All named locations in Elarion.
+// All named locations in Elerion.
 
 /**
  * Which scene a location's saved coordinates belong to.
@@ -21,29 +21,20 @@ export interface LocationDef {
 }
 
 export const LOCATIONS: Record<string, LocationDef> = {
-  border_fields: {
-    id: 'border_fields',
-    displayName: 'Border Fields',
+  // The world map itself (default locationId while walking the overworld).
+  world_map: {
+    id: 'world_map',
+    displayName: 'Elerion',
     encounterEnabled: false,
     sceneType: 'world',
   },
+
+  // Towns with full TownScene implementations.
   lumen_town: {
     id: 'lumen_town',
-    displayName: 'Lumen Town',
+    displayName: 'Lumen',
     encounterEnabled: false,
     sceneType: 'town',
-  },
-  north_pass: {
-    id: 'north_pass',
-    displayName: 'North Pass',
-    encounterEnabled: true,
-    sceneType: 'world',
-  },
-  ashenveil_road: {
-    id: 'ashenveil_road',
-    displayName: 'Ashenveil Road',
-    encounterEnabled: true,
-    sceneType: 'world',
   },
   ashenveil_town: {
     id: 'ashenveil_town',
@@ -51,9 +42,17 @@ export const LOCATIONS: Record<string, LocationDef> = {
     encounterEnabled: false,
     sceneType: 'town',
   },
+
+  // Scripted-battle target ids (recorded briefly between trigger and battle).
   thornwood: {
     id: 'thornwood',
     displayName: 'Thornwood',
+    encounterEnabled: true,
+    sceneType: 'world',
+  },
+  mountain_pass: {
+    id: 'mountain_pass',
+    displayName: 'Mountain Pass',
     encounterEnabled: true,
     sceneType: 'world',
   },

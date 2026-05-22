@@ -2,8 +2,6 @@
 // Shared types for the world map layer.
 // Pure data shapes — no Phaser or game-logic imports here.
 
-// Rect is defined in shared/movement-system.ts (the module that uses it most).
-// Imported here for local use in interface declarations, and re-exported for consumers.
 import type { Rect } from '../../shared/movement-system';
 export type { Rect };
 
@@ -15,15 +13,101 @@ export type { Rect };
 export type MapSceneKey = 'TownScene' | 'BattleScene';
 
 /**
- * A named region on the world map that classifies whether encounters
- * can happen inside it. Multiple zones can be defined per map.
- * More specific zones should be listed before broader fallback zones
- * so getActiveZone returns the right result on overlap.
+ * High-level terrain types used by the world renderer to pick palette
+ * for each region rectangle. Data-only — the renderer maps terrain → colours.
+ */
+export type TerrainKind =
+  | 'plains'
+  | 'forest'
+  | 'corrupted_forest'
+  | 'mountain'
+  | 'rocky'
+  | 'dust'
+  | 'sea'
+  | 'sand'
+  | 'snow'
+  | 'blight';
+
+/**
+ * Named region on the world map. Used for encounter classification and HUD.
  */
 export interface WorldZone extends Rect {
   id: string;
   displayName: string;
   type: 'encounter' | 'safe';
+}
+
+/**
+ * A rectangular tract of terrain. The renderer paints regions in array order;
+ * later regions paint over earlier ones. Regions are visual only — they have
+ * no effect on collision (which is driven by `collisionRects`) or encounters
+ * (which use `zones`).
+ */
+export interface WorldRegion extends Rect {
+  id: string;
+  displayName?: string;
+  terrainKind: TerrainKind;
+}
+
+/**
+ * A road drawn as a polyline between waypoints. Width is in pixels.
+ */
+export interface WorldRoad {
+  id: string;
+  points: Array<{ x: number; y: number }>;
+  width: number;
+  style: 'dirt' | 'stone' | 'wood';
+}
+
+/**
+ * A river drawn as a polyline between waypoints. Decorative unless paired
+ * with collisionRects in the world config.
+ */
+export interface WorldRiver {
+  id: string;
+  points: Array<{ x: number; y: number }>;
+  width: number;
+}
+
+export type LandmarkKind =
+  | 'village' | 'town' | 'capital'
+  | 'port'    | 'gate' | 'shrine'
+  | 'ruin'    | 'fortress' | 'citadel'
+  | 'island'  | 'dungeon';
+
+/**
+ * Visual landmark on the world map: town, port, dungeon, island, etc.
+ * Provides a sprite-ish footprint and label only — interactions still go
+ * through `WorldTrigger`s. Landmarks are not collision; the player walks freely.
+ */
+export interface WorldLandmark {
+  id: string;
+  x: number; y: number;
+  width: number; height: number;
+  kind: LandmarkKind;
+  label?: string;
+}
+
+/**
+ * Placeholder data for a ferry / sea route. Not wired into gameplay yet —
+ * exists so a future ferry menu can be data-driven.
+ */
+export interface SeaRoute {
+  id: string;
+  fromTriggerId: string;
+  toX: number;
+  toY: number;
+  requiresFlag?: string;
+}
+
+/**
+ * Placeholder data for a fast-travel node. Not wired into gameplay yet.
+ */
+export interface FastTravelNode {
+  id: string;
+  x: number; y: number;
+  displayName: string;
+  requiresFlag?: string;
 }
 
 /**
@@ -49,8 +133,8 @@ export interface ScriptedBattle {
 
 /**
  * An invisible area that, when overlapped by the player, surfaces an
- * interaction prompt. On confirmation (E key), the scene transitions
- * to targetSceneKey and records targetLocationId in game state.
+ * interaction prompt. On confirmation, the scene transitions to
+ * targetSceneKey and records targetLocationId in game state.
  *
  * If scriptedBattle is present, targetSceneKey must be 'BattleScene'
  * and the battle is driven entirely by scriptedBattle's data.
@@ -59,10 +143,8 @@ export interface ScriptedBattle {
 export interface WorldTrigger extends Rect {
   id: string;
   label: string;
-  /** Scene to transition to. Use the MapSceneKey union — not raw strings. */
   targetSceneKey: MapSceneKey;
   targetLocationId: string;
-  /** If set, this trigger launches a scripted battle rather than a scene transition. */
   scriptedBattle?: ScriptedBattle;
 }
 
@@ -74,13 +156,23 @@ export interface WorldMapConfig {
   playerStartY: number;
   /** Solid rectangles the player cannot walk through. */
   collisionRects: Rect[];
-  /** Interaction triggers (town entrances, route entrances, etc.). */
+  /** Interaction triggers (town entrances, scripted battle entry, etc.). */
   triggers: WorldTrigger[];
   /**
    * Named zones for encounter tracking and HUD display.
    * List more-specific zones before broader fallback zones.
    */
   zones: WorldZone[];
+
+  // ── Visual / structural layers (all optional, consumed by world-renderer) ──
+  regions?: WorldRegion[];
+  roads?: WorldRoad[];
+  rivers?: WorldRiver[];
+  landmarks?: WorldLandmark[];
+
+  // ── Future expansion (placeholder data only, not yet wired up) ──
+  seaRoutes?: SeaRoute[];
+  fastTravelNodes?: FastTravelNode[];
 }
 
 /** Optional data passed to WorldMapScene.init() when returning from another scene. */

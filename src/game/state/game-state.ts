@@ -9,9 +9,9 @@ import type { GameState } from './game-state-types';
 // Party and inventory are populated by the new-game action.
 //
 // currentLocation stores the player CENTER in world-space pixels.
-// These coordinates match CFG.playerStartX/Y (240, 528) + half player size (14, 18)
-// as defined in world-map-config.ts. They are always overwritten immediately by
-// initNewGame() or loadGame() before any scene reads them.
+// These coordinates are placeholders — initNewGame() and loadGame() always
+// overwrite them with values derived from elerion-world-config.ts before any
+// scene reads them.
 const DEFAULT_STATE: GameState = {
   initialized: false,
   gold: 0,
@@ -19,9 +19,9 @@ const DEFAULT_STATE: GameState = {
   inventory: [],
   storyFlags: {},
   currentLocation: {
-    locationId: 'border_fields',
-    x: 254,  // playerStartX 240 + PLAYER_W/2 14
-    y: 546,  // playerStartY 528 + PLAYER_H/2 18
+    locationId: 'world_map',
+    x: 0,
+    y: 0,
   },
 };
 

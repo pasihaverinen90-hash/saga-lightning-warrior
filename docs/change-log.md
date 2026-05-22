@@ -8,7 +8,9 @@ Reverse-chronological record of significant changes. Entries are grouped by feat
 
 | Version | Change |
 |---------|--------|
-| **5** (current) | `PartyMember` gained `equipment: EquipmentSlots ({ weapon, armor })`. Saves from v4 lack this field; loading would produce `undefined` equipment causing `resolveEffectiveStats()` to produce NaN bonuses silently. |
+| **7** (current) | World map rebuilt from single `Border Fields` scene into the two-continent world of **Elerion**. Locations renamed: `border_fields` → `world_map`, `north_pass` → `mountain_pass`, `ashenveil_road` removed. Old saves reference removed `locationId`s and were placed at coordinates that no longer exist — intentionally invalidated. |
+| 6 | `currentLocation.x/y` semantics changed to "coordinates in the scene named by `locationId`". v5 saves would place the player at world-map coordinates on a town map — intentionally invalidated. |
+| 5 | `PartyMember` gained `equipment: EquipmentSlots ({ weapon, armor })`. Saves from v4 lack this field; loading would produce `undefined` equipment causing `resolveEffectiveStats()` to produce NaN bonuses silently. |
 | 4 | `PartyMember.xp` semantics changed from "XP remainder toward next level" to "total lifetime XP earned". Intentionally invalidated to prevent corrupt state. |
 | 3 | `PartyMember` gained `level: number` and `xp: number`. `EnemyDef` gained `xpReward: number` (not serialised). |
 | 2 | `PartyMember` gained `colorHex: number` for battle sprite colour identity. |

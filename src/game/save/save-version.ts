@@ -16,7 +16,14 @@
 //       (even when locationId is a town)" to "coordinates in the scene named
 //       by locationId". Saves in Lumen Town / Ashenveil now resume in the
 //       town they were saved in at the saved position; world-map saves resume
-//       on the world map at the saved position. v5 saves would place the
-//       player at world-map coordinates on a town map — intentionally invalidated.
+//       on the world map at the saved world-map position. v5 saves would place
+//       the player at world-map coordinates on a town map — intentionally invalidated.
+//   7 → World map rebuilt from a single Border Fields scene into the
+//       two-continent world of Elerion. Locations renamed:
+//         'border_fields' → 'world_map'
+//         'north_pass'    → 'mountain_pass'
+//         'ashenveil_road' → (removed; unused alias)
+//       Old saves reference removed locationIds and would resume at
+//       world-map coordinates that no longer exist — intentionally invalidated.
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
