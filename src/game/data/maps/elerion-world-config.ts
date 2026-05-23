@@ -1,48 +1,51 @@
 // src/game/data/maps/elerion-world-config.ts
 //
-// Layout configuration for the world of Elerion.
-// Two-continent greybox foundation — placeholder visuals, real structure.
+// Layout configuration for the world of Elerion (5120 × 2880).
+// Reference-aligned greybox: structure follows the Saga of the Lightning
+// Warrior world-map concept image — two continents, central sea, Suikoden
+// II-style overworld.
 //
-// Map is 5120 × 2880 (grew from 4096 × 2304 in the macro-scale pass — the
-// western start area was too cramped for the intended Suikoden II-style
-// travel feel: Start Village → Lumen now winds across the lower-west
-// continent rather than sitting a few seconds apart).
+// Western continent layout (matches reference):
+//   - Northern Tundra band along the very top (snow strip across the
+//     entire west land mass).
+//   - Northwind Peaks — NW mountain cluster.
+//   - Spine Mountains — horizontal band south of the tundra, with a
+//     north-south pass at x:1100-1300 leading from the central plains
+//     up into Northern Tundra. Mountain Gate City sits at the pass.
+//   - Evergreen Forest mid-west, threaded by the main road.
+//   - Verdant River runs N→S with a gentle bend south of Bridgeford
+//     (the river crossing east of Lumen).
+//   - Start Village (Hawthorn-like) deep SW.
+//   - Lumen — the central capital, west of the river.
+//   - West Port on the SE coast of the western continent.
+//   - Highland Ruins on the western coast, Saint's Sanctuary mid-south.
 //
-// Plan view (not to scale):
+// Central sea: 5 placeholder islands distributed N→S
+//   (Whisper, Lighthouse, Merchant Atoll, Storm Shrine, Tempest Spire).
 //
-//   0                                                                  5120
-//   ┌─────────────────────────────────────────────────────────────────────┐ 0
-//   │   WESTERN CONTINENT             SEA            EASTERN CONTINENT    │
-//   │                                                                     │
-//   │ ▒▒ Evergreen Woods ▒▒                            War Fortress       │
-//   │                                ~ Lighthouse                         │
-//   │  Forest Shrine                ~                  Black Reach        │
-//   │                                                  ╔════════╗         │
-//   │                Lumen (Cap)  ║║ Bridgeford   ~~~  ║ Citadel║         │
-//   │                    ●─road──╪╪═══════════── ~~~ ●─road─●  ║         │
-//   │                            ║║       Spine     ~~~                  │
-//   │                  ─road─    ║║       Mts.      ~~~ River City        │
-//   │  ▒ Thornwood ▒             ║║──Pass── Gate City   Frontier Town     │
-//   │                            ║║                                      │
-//   │                            ║║                ~~~ Ancient Ruins      │
-//   │                            ║║                                      │
-//   │  Start Village (SW)        ▼▼  West Port                             │
-//   └─────────────────────────────────────────────────────────────────────┘ 2880
+// Eastern continent layout:
+//   - East Port (Ashenveil) on the west coast.
+//   - Frontier Town inland east of the port.
+//   - River City / Ironbridge at the Ironflow River crossing.
+//   - War Fortress beyond the river.
+//   - Ancient Ruins south-east.
+//   - Dark Citadel in the far NE within Black Reach corruption.
 //
-// Movement chokepoints (collisionRects match regions exactly so the
-// invisible wall lines up with the visible water/wall):
-//   • Mountain Pass on Spine Mts. (x:1900-2120, gap y:1300-1500).
-//   • Bridgeford on Verdant River (x:1450-1530, gap y:1000-1140).
-//   • Iron Bridge on Ironflow River (x:3900-4000, gap y:1200-1320).
-//   • Central Sea (x:2400-3200) blocks all foot travel between continents.
+// Collision invariants (single source of truth — visible water/wall = block):
+//   - River regions (terrainKind 'sea') and their matching collisionRects
+//     share coordinates exactly. The Bridgeford / Iron Bridge gaps have
+//     no collision and are painted as walkable rocky spans.
+//   - Mountain regions and their matching collisionRects share coords.
 //
-// Story flags (placeholders, none wired into triggers — map fully traversable
-// for testing): CHAPTER_2_MOUNTAIN_PASS_OPEN, CHAPTER_3_SEA_TRAVEL_UNLOCKED,
-// CHAPTER_4_RIVER_CROSSING_OPEN, CHAPTER_6_FINAL_REGION_OPEN.
+// Travel chokepoints:
+//   - Bridgeford (Verdant River, x:1400-1480, gap y:1040-1180).
+//   - Iron Bridge (Ironflow River, x:3900-4000, gap y:1200-1320).
+//   - Mountain Pass (Spine Mts top band, gap x:1100-1300, y:280-500).
+//   - Central Sea (x:2400-3200) blocks all foot travel between continents.
 //
 // TODO: story/quest triggers will be redesigned later. The old 'Investigate
-// Clearing' trigger was disabled in a prior pass; the Grove Warden enemy
-// and dialogue data remain available for the new quest design.
+// Clearing' (Grove Warden) trigger is disabled. Enemy + dialogue data remain
+// available for the next quest design.
 
 import type { WorldMapConfig } from '../../world/types/world-types';
 import { STORY_FLAGS } from '../story/story-events';
@@ -54,23 +57,38 @@ const MAP_H = 2880;
 
 const OUTER_OCEAN  = 60;
 const WEST_X_START = 80;
-const WEST_X_END   = 2400;            // western continent occupies x: 80–2400
-const SEA_X_START  = 2400;
-const SEA_X_END    = 3200;            // central sea occupies x: 2400–3200
+const WEST_X_END   = 2300;            // western continent x: 80–2300
+const SEA_X_START  = 2300;
+const SEA_X_END    = 3200;            // central sea x: 2300–3200
 const EAST_X_START = 3200;
-const EAST_X_END   = 5040;            // eastern continent occupies x: 3200–5040
+const EAST_X_END   = 5040;            // eastern continent x: 3200–5040
 
-// Spine Mountains chokepoint (western continent, splits west land from east coast)
-const MTN_X         = 1900;
-const MTN_W         = 220;
-const PASS_Y_START  = 1300;
-const PASS_Y_END    = 1500;
+// Northern Tundra strip (top, full western continent)
+const TUNDRA_Y_START = OUTER_OCEAN;
+const TUNDRA_Y_END   = 280;
 
-// Verdant River chokepoint (western continent, splits Lumen side from Mountain Gate)
-const VRIVER_X            = 1450;
+// Spine Mountains — horizontal top band, north-south pass through it.
+const MTN_BAND_Y_START = TUNDRA_Y_END;     // 280
+const MTN_BAND_Y_END   = 500;
+const PASS_X_START     = 1100;
+const PASS_X_END       = 1300;
+// Northwind Peaks NW cluster (west of the pass, extends below the top band)
+const NORTHWIND_X      = 120;
+const NORTHWIND_Y      = MTN_BAND_Y_START;
+const NORTHWIND_W      = 580;
+const NORTHWIND_H      = 420;
+
+// Verdant River — vertical N→S strip with Bridgeford gap and a small bend
+// south of the bridge so the river isn't a perfect rectangle.
+const VRIVER_X            = 1400;
 const VRIVER_W            = 80;
-const BRIDGEFORD_Y_START  = 1000;
-const BRIDGEFORD_Y_END    = 1140;
+const BRIDGEFORD_Y_START  = 1040;
+const BRIDGEFORD_Y_END    = 1180;
+const VRIVER_BEND_Y_START = 2040;
+const VRIVER_BEND_Y_END   = 2120;
+const VRIVER_SOUTH_X      = 1320;          // river shifts west after the bend
+const VRIVER_BEND_X       = 1320;          // bend connector spans 1320–1480
+const VRIVER_BEND_W       = 160;
 
 // Ironflow River chokepoint (eastern continent)
 const IRIVER_X          = 3900;
@@ -84,18 +102,16 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
   mapWidth:  MAP_W,
   mapHeight: MAP_H,
 
-  // Start Village in the SW corner of the western continent. Spawn sits just
-  // north of Thornwood's encounter zone so the HUD-less game opens in a safe
-  // area. Pushed deep into the corner so the journey to Lumen feels real.
-  playerStartX: 200,
+  // Start Village (Hawthorn-style) in the SW corner. Spawn just north of
+  // Thornwood so the game opens in a safe zone.
+  playerStartX: 220,
   playerStartY: 2740,
 
   // ── Regions ────────────────────────────────────────────────────────────────
-  // Drawn in array order; later regions paint over earlier ones.
-  // RIVER REGIONS (terrainKind 'sea') share coordinates with collisionRects
-  // below — same source of truth so visible water and blocked area match.
+  // Painted in array order; later regions paint over earlier ones.
+  // River and mountain regions share coordinates with collisionRects below.
   regions: [
-    // Western continent plains base (covers the entire west land mass)
+    // Western continent plains base
     {
       id: 'vergant_fields',
       displayName: 'Vergant Fields',
@@ -104,66 +120,72 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
       height: MAP_H - OUTER_OCEAN * 2,
       terrainKind: 'plains',
     },
-    // Northern verdant woods band
+    // Northern Tundra snow band along the top
     {
-      id: 'evergreen_woods',
-      displayName: 'Evergreen Woods',
-      x: 120, y: 140, width: 1100, height: 360,
-      terrainKind: 'forest',
+      id: 'northern_tundra',
+      displayName: 'Northern Tundra',
+      x: WEST_X_START, y: TUNDRA_Y_START,
+      width: WEST_X_END - WEST_X_START,
+      height: TUNDRA_Y_END - TUNDRA_Y_START,
+      terrainKind: 'snow',
     },
-    // Mid grove near Lumen
+    // Northwind Peaks — NW snowy mountain cluster
     {
-      id: 'lumen_grove',
-      displayName: 'Lumen Grove',
-      x: 1200, y: 540, width: 320, height: 260,
-      terrainKind: 'forest',
-    },
-    // Southwest corrupted forest
-    {
-      id: 'thornwood_region',
-      displayName: 'Thornwood',
-      x: 120, y: 2200, width: 900, height: 600,
-      terrainKind: 'corrupted_forest',
-    },
-    // Spine Mountains — north and south flanks
-    {
-      id: 'spine_mts_north',
-      displayName: 'Spine Mountains',
-      x: MTN_X, y: OUTER_OCEAN,
-      width: MTN_W,
-      height: PASS_Y_START - OUTER_OCEAN,
+      id: 'northwind_peaks',
+      displayName: 'Northwind Peaks',
+      x: NORTHWIND_X, y: NORTHWIND_Y,
+      width: NORTHWIND_W, height: NORTHWIND_H,
       terrainKind: 'mountain',
     },
+    // Spine Mountains — top band west of the pass
     {
-      id: 'spine_mts_south',
+      id: 'spine_band_west',
       displayName: 'Spine Mountains',
-      x: MTN_X, y: PASS_Y_END,
-      width: MTN_W,
-      height: (MAP_H - OUTER_OCEAN) - PASS_Y_END,
+      x: NORTHWIND_X + NORTHWIND_W, y: MTN_BAND_Y_START,
+      width: PASS_X_START - (NORTHWIND_X + NORTHWIND_W),
+      height: MTN_BAND_Y_END - MTN_BAND_Y_START,
+      terrainKind: 'mountain',
+    },
+    // Spine Mountains — top band east of the pass
+    {
+      id: 'spine_band_east',
+      displayName: 'Spine Mountains',
+      x: PASS_X_END, y: MTN_BAND_Y_START,
+      width: WEST_X_END - PASS_X_END - 100,   // leaves a coastal sliver
+      height: MTN_BAND_Y_END - MTN_BAND_Y_START,
       terrainKind: 'mountain',
     },
 
-    // Verdant River — vertical strip with Bridgeford gap.
-    // The polyline-style river in the previous map had collision drifting
-    // far from the visible water; the river is now a single-source-of-truth
-    // pair of rects matching the collisionRects below exactly.
+    // Western forests
+    {
+      id: 'evergreen_forest',
+      displayName: 'Evergreen Forest',
+      x: 200, y: 800, width: 620, height: 540,
+      terrainKind: 'forest',
+    },
+    {
+      id: 'lumen_grove',
+      displayName: 'Lumen Grove',
+      x: 780, y: 1300, width: 340, height: 260,
+      terrainKind: 'forest',
+    },
+    {
+      id: 'thornwood_region',
+      displayName: 'Thornwood',
+      x: 120, y: 2300, width: 920, height: 540,
+      terrainKind: 'corrupted_forest',
+    },
+
+    // ── Verdant River — five segments (with one bend south of Bridgeford) ──
+    // North half (top of map to Bridgeford gap)
     {
       id: 'verdant_river_n',
       displayName: 'Verdant River',
-      x: VRIVER_X, y: OUTER_OCEAN,
-      width: VRIVER_W,
-      height: BRIDGEFORD_Y_START - OUTER_OCEAN,
+      x: VRIVER_X, y: 0,
+      width: VRIVER_W, height: BRIDGEFORD_Y_START,
       terrainKind: 'sea',
     },
-    {
-      id: 'verdant_river_s',
-      displayName: 'Verdant River',
-      x: VRIVER_X, y: BRIDGEFORD_Y_END,
-      width: VRIVER_W,
-      height: (MAP_H - OUTER_OCEAN) - BRIDGEFORD_Y_END,
-      terrainKind: 'sea',
-    },
-    // Bridgeford bridge surface — rocky span between the two river halves.
+    // Bridgeford bridge surface (walkable rocky span across the gap)
     {
       id: 'verdant_bridge',
       displayName: 'Bridgeford',
@@ -172,16 +194,45 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
       height: BRIDGEFORD_Y_END - BRIDGEFORD_Y_START,
       terrainKind: 'rocky',
     },
+    // South-upper segment (Bridgeford to bend)
+    {
+      id: 'verdant_river_s1',
+      displayName: 'Verdant River',
+      x: VRIVER_X, y: BRIDGEFORD_Y_END,
+      width: VRIVER_W,
+      height: VRIVER_BEND_Y_START - BRIDGEFORD_Y_END,
+      terrainKind: 'sea',
+    },
+    // Bend connector — horizontal stretch where the river shifts west
+    {
+      id: 'verdant_river_bend',
+      displayName: 'Verdant River',
+      x: VRIVER_BEND_X, y: VRIVER_BEND_Y_START,
+      width: VRIVER_BEND_W,
+      height: VRIVER_BEND_Y_END - VRIVER_BEND_Y_START,
+      terrainKind: 'sea',
+    },
+    // South-lower segment (post-bend, shifted west)
+    {
+      id: 'verdant_river_s2',
+      displayName: 'Verdant River',
+      x: VRIVER_SOUTH_X, y: VRIVER_BEND_Y_END,
+      width: VRIVER_W,
+      height: MAP_H - VRIVER_BEND_Y_END,
+      terrainKind: 'sea',
+    },
 
-    // ── Central sea islands ──
+    // ── Central sea islands (5 distributed N→S to match reference) ──
+    { id: 'whisper_isle',    displayName: 'Whisper Isle',
+      x: 2460, y: 380,  width: 160, height: 110, terrainKind: 'sand' },
     { id: 'lighthouse_isle', displayName: 'Lighthouse Isle',
-      x: 2480, y: 760,  width: 170, height: 140, terrainKind: 'sand' },
-    { id: 'merchant_isle',   displayName: 'Merchant Isle',
-      x: 2680, y: 1280, width: 220, height: 160, terrainKind: 'sand' },
+      x: 2700, y: 840,  width: 140, height: 110, terrainKind: 'sand' },
+    { id: 'merchant_atoll',  displayName: 'Merchant Atoll',
+      x: 2460, y: 1320, width: 220, height: 160, terrainKind: 'sand' },
     { id: 'storm_isle',      displayName: 'Storm Shrine Isle',
-      x: 2820, y: 1880, width: 180, height: 150, terrainKind: 'rocky' },
-    { id: 'ruin_isle',       displayName: 'Ruin Isle',
-      x: 2520, y: 2220, width: 160, height: 110, terrainKind: 'sand' },
+      x: 2760, y: 1820, width: 180, height: 140, terrainKind: 'rocky' },
+    { id: 'tempest_spire',   displayName: 'Tempest Spire',
+      x: 2480, y: 2280, width: 160, height: 120, terrainKind: 'sand' },
 
     // Eastern continent rocky base
     {
@@ -196,8 +247,8 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     {
       id: 'eastern_dustlands',
       displayName: 'Greymarch Dustlands',
-      x: 3200, y: 1700,
-      width: IRIVER_X - 3200,
+      x: EAST_X_START, y: 1700,
+      width: IRIVER_X - EAST_X_START,
       height: MAP_H - 1700 - OUTER_OCEAN,
       terrainKind: 'dust',
     },
@@ -226,7 +277,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
       height: IBRIDGE_Y_END - IBRIDGE_Y_START,
       terrainKind: 'rocky',
     },
-    // Twilight Marches east of the river (paints over rocky base)
+    // Twilight Marches east of the river
     {
       id: 'twilight_marches',
       displayName: 'Twilight Marches',
@@ -235,69 +286,83 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
       height: MAP_H - OUTER_OCEAN * 2,
       terrainKind: 'dust',
     },
-    // Black Reach corruption belt in the far east
+    // Blackwoods (eastern forest) south-central
+    {
+      id: 'blackwoods',
+      displayName: 'Blackwoods',
+      x: 4040, y: 1800, width: 540, height: 460,
+      terrainKind: 'corrupted_forest',
+    },
+    // Black Reach corruption belt — far NE
     {
       id: 'black_reach',
       displayName: 'Black Reach',
-      x: 4640, y: OUTER_OCEAN,
-      width: EAST_X_END - 4640,
+      x: 4620, y: OUTER_OCEAN,
+      width: EAST_X_END - 4620,
       height: 1100,
       terrainKind: 'blight',
     },
   ],
 
   // ── Roads ──────────────────────────────────────────────────────────────────
-  // Western main road winds ~3000 px from Start Village to Lumen so the trip
-  // takes ~20 seconds at PLAYER_SPEED=150. Then continues east through
-  // Bridgeford → Mountain Pass → West Port.
   roads: [
+    // West main road: Start Village → Lumen south gate (~3300 px @ 150 px/s ≈ 22s)
     {
       id: 'west_main_road',
       width: 10,
       style: 'dirt',
       points: [
-        // Start Village → Lumen south gate winds ~3000 px so a road-following
-        // journey at PLAYER_SPEED=150 takes ~20 s, the JRPG travel feel.
-        { x: 200, y: 2780 },   // Start Village
-        { x: 340, y: 2660 },
-        { x: 500, y: 2540 },
-        { x: 660, y: 2400 },
-        { x: 820, y: 2240 },
-        { x: 940, y: 2060 },
-        { x: 820, y: 1900 },   // bend west
-        { x: 640, y: 1800 },
-        { x: 480, y: 1700 },
-        { x: 380, y: 1540 },
-        { x: 480, y: 1400 },   // bend east
-        { x: 640, y: 1320 },
-        { x: 820, y: 1240 },
-        { x: 1000, y: 1140 },
-        { x: 1180, y: 1040 },
-        { x: 1320, y: 940 },
-        { x: 1320, y: 880 },   // Lumen south gate
-        // From Lumen east through Bridgeford → Mountain Gate → West Port
-        { x: 1400, y: 980 },
-        { x: 1490, y: 1070 },  // Bridgeford crossing (in the bridge gap)
-        { x: 1620, y: 1200 },
-        { x: 1780, y: 1340 },
-        { x: 1920, y: 1410 },  // into Mountain Pass
-        { x: 2120, y: 1410 },  // out of Mountain Pass
-        { x: 2240, y: 1600 },
-        { x: 2280, y: 1840 },  // West Port
+        { x: 200, y: 2780 },    // Start Village
+        { x: 340, y: 2680 },
+        { x: 520, y: 2580 },
+        { x: 680, y: 2460 },
+        { x: 840, y: 2320 },
+        { x: 920, y: 2140 },
+        { x: 820, y: 1960 },    // bend west
+        { x: 660, y: 1820 },
+        { x: 500, y: 1720 },
+        { x: 380, y: 1560 },
+        { x: 320, y: 1380 },    // climbing through Evergreen edge
+        { x: 380, y: 1200 },
+        { x: 520, y: 1080 },
+        { x: 680, y:  990 },
+        { x: 860, y:  920 },
+        { x: 1080, y: 880 },    // Lumen south gate
+        // Lumen → Bridgeford → Mountain Gate region
+        { x: 1240, y: 1000 },
+        { x: 1380, y: 1080 },
+        { x: 1480, y: 1100 },   // Bridgeford bridge crossing
+        { x: 1640, y: 1200 },
+        { x: 1820, y: 1380 },
+        { x: 2000, y: 1580 },
+        { x: 2120, y: 1820 },   // West Port
       ],
     },
-    // Optional shrine branch in the far NW
+    // North branch from Lumen up through the Mountain Pass to Northern Tundra
+    {
+      id: 'mountain_pass_road',
+      width: 8,
+      style: 'dirt',
+      points: [
+        { x: 1080, y: 880 },    // Lumen north
+        { x: 1120, y: 660 },
+        { x: 1180, y: 500 },    // pass entry
+        { x: 1180, y: 380 },    // Mountain Gate
+        { x: 1180, y: 200 },    // into Northern Tundra
+      ],
+    },
+    // Western shrine branch — Forest Shrine in Evergreen Forest
     {
       id: 'west_shrine_branch',
       width: 8,
       style: 'dirt',
       points: [
-        { x: 540, y: 1080 },
-        { x: 360, y: 700 },
-        { x: 280, y: 360 },
+        { x: 420, y: 1180 },
+        { x: 380, y:  920 },
+        { x: 380, y:  720 },
       ],
     },
-    // Eastern main road
+    // Eastern main road (unchanged shape, just preserved)
     {
       id: 'east_main_road',
       width: 10,
@@ -313,7 +378,6 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
         { x: 4280, y: 800 },    // War Fortress
       ],
     },
-    // East ruins branch
     {
       id: 'east_ruins_branch',
       width: 8,
@@ -324,7 +388,6 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
         { x: 4380, y: 1820 },   // Ancient Ruins
       ],
     },
-    // Citadel stone road
     {
       id: 'citadel_road',
       width: 10,
@@ -337,58 +400,57 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     },
   ],
 
-  // No decorative river polylines — the verdant river is now driven entirely
-  // by regions + collisionRects (see above) for fair, matching collision.
-
-  // ── Landmarks ──────────────────────────────────────────────────────────────
+  // ── Landmarks (visual + label, no collision; triggers below for entries) ───
   landmarks: [
     // Western continent
-    { id: 'lm_start_village',  kind: 'village',  label: 'Start Village',
+    { id: 'lm_start_village',   kind: 'village',  label: 'Start Village',
       x: 140, y: 2740, width: 130, height: 110 },
-    { id: 'lm_forest_shrine',  kind: 'shrine',   label: 'Forest Shrine',
-      x: 240, y: 300, width: 90,  height: 80 },
-    { id: 'lm_lumen_capital',  kind: 'capital',  label: 'Lumen',
-      x: 1230, y: 700, width: 180, height: 160 },
-    // Bridgeford — sits ON the bridge gap (y:1000-1140). Future quest hook:
-    // repair the bridge, help the village, recruit a river scout / bridge
-    // guard / healer, then unlock additional crossings.
-    { id: 'lm_bridgeford',     kind: 'village',  label: 'Bridgeford',
-      x: 1390, y: 990, width: 200, height: 160 },
-    { id: 'lm_mountain_gate',  kind: 'gate',     label: 'Mountain Gate',
-      x: 1900, y: 1340, width: 220, height: 160 },
-    { id: 'lm_west_port',      kind: 'port',     label: 'West Port',
-      x: 2220, y: 1800, width: 140, height: 110 },
+    { id: 'lm_highland_ruins',  kind: 'ruin',     label: 'Highland Ruins',
+      x: 140, y: 1660, width: 110, height: 90 },
+    { id: 'lm_forest_shrine',   kind: 'shrine',   label: 'Forest Shrine',
+      x: 320, y: 660,  width: 110, height: 90 },
+    { id: 'lm_lumen_capital',   kind: 'capital',  label: 'Lumen',
+      x: 1000, y: 720, width: 180, height: 160 },
+    { id: 'lm_saints_sanctuary',kind: 'shrine',   label: 'Saint’s Sanctuary',
+      x: 880, y: 2440, width: 130, height: 110 },
+    { id: 'lm_bridgeford',      kind: 'village',  label: 'Bridgeford',
+      x: 1390, y: 1020, width: 200, height: 160 },
+    { id: 'lm_mountain_gate',   kind: 'gate',     label: 'Mountain Gate',
+      x: 1100, y: 300,  width: 200, height: 200 },
+    { id: 'lm_west_port',       kind: 'port',     label: 'West Port',
+      x: 2080, y: 1800, width: 140, height: 120 },
 
     // Central sea islands
-    { id: 'lm_lighthouse',     kind: 'island',   label: 'Lighthouse',
-      x: 2490, y: 780, width: 130, height: 90 },
-    { id: 'lm_merchant_isle',  kind: 'island',   label: 'Merchant Isle',
-      x: 2700, y: 1300, width: 170, height: 110 },
-    { id: 'lm_storm_shrine',   kind: 'island',   label: 'Storm Shrine',
-      x: 2830, y: 1900, width: 130, height: 100 },
-    { id: 'lm_ruin_isle',      kind: 'island',   label: 'Ruin Isle',
-      x: 2540, y: 2240, width: 120, height: 80 },
+    { id: 'lm_whisper',     kind: 'island',  label: 'Whisper Isle',
+      x: 2470, y: 400,  width: 130, height: 90 },
+    { id: 'lm_lighthouse',  kind: 'island',  label: 'Lighthouse Isle',
+      x: 2710, y: 860,  width: 120, height: 90 },
+    { id: 'lm_merchant',    kind: 'island',  label: 'Merchant Atoll',
+      x: 2490, y: 1340, width: 170, height: 130 },
+    { id: 'lm_storm',       kind: 'island',  label: 'Storm Shrine',
+      x: 2780, y: 1840, width: 130, height: 110 },
+    { id: 'lm_tempest',     kind: 'island',  label: 'Tempest Spire',
+      x: 2500, y: 2300, width: 120, height: 100 },
 
     // Eastern continent
     { id: 'lm_east_port',      kind: 'port',     label: 'East Port (Ashenveil)',
       x: 3280, y: 1500, width: 140, height: 110 },
     { id: 'lm_frontier_town',  kind: 'town',     label: 'Frontier Town',
-      x: 3580, y: 1390, width: 120, height: 100 },
-    { id: 'lm_river_city',     kind: 'gate',     label: 'River City',
+      x: 3580, y: 1380, width: 120, height: 100 },
+    { id: 'lm_river_city',     kind: 'gate',     label: 'River City (Ironbridge)',
       x: 3800, y: 1180, width: 150, height: 120 },
     { id: 'lm_ancient_ruins',  kind: 'ruin',     label: 'Ancient Ruins',
       x: 4320, y: 1780, width: 130, height: 100 },
     { id: 'lm_war_fortress',   kind: 'fortress', label: 'War Fortress',
-      x: 4220, y: 720, width: 150, height: 130 },
+      x: 4220, y: 720,  width: 150, height: 130 },
     { id: 'lm_dark_citadel',   kind: 'citadel',  label: 'Dark Citadel',
-      x: 4760, y: 280, width: 170, height: 150 },
+      x: 4760, y: 280,  width: 170, height: 150 },
   ],
 
   // ── Solid obstacles ────────────────────────────────────────────────────────
-  // River and mountain collision coordinates MATCH the matching regions above
-  // so visible water/wall and the invisible block line up to the pixel.
+  // River and mountain coords match regions above (single source of truth).
   collisionRects: [
-    // Outer ocean rim — full-map border the player cannot cross
+    // Outer ocean rim
     { x: 0,           y: 0,                    width: MAP_W,                  height: OUTER_OCEAN },
     { x: 0,           y: MAP_H - OUTER_OCEAN,  width: MAP_W,                  height: OUTER_OCEAN },
     { x: 0,           y: 0,                    width: WEST_X_START,           height: MAP_H },
@@ -398,20 +460,34 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     { x: SEA_X_START, y: 0,
       width: SEA_X_END - SEA_X_START, height: MAP_H },
 
-    // Spine Mountains — matches spine_mts_* regions
-    { x: MTN_X, y: 0,
-      width: MTN_W, height: PASS_Y_START },
-    { x: MTN_X, y: PASS_Y_END,
-      width: MTN_W, height: MAP_H - PASS_Y_END },
+    // Northwind Peaks (matches region)
+    { x: NORTHWIND_X, y: NORTHWIND_Y,
+      width: NORTHWIND_W, height: NORTHWIND_H },
+    // Spine Mountains top band — west of pass (matches region)
+    { x: NORTHWIND_X + NORTHWIND_W, y: MTN_BAND_Y_START,
+      width: PASS_X_START - (NORTHWIND_X + NORTHWIND_W),
+      height: MTN_BAND_Y_END - MTN_BAND_Y_START },
+    // Spine Mountains top band — east of pass (matches region)
+    { x: PASS_X_END, y: MTN_BAND_Y_START,
+      width: WEST_X_END - PASS_X_END - 100,
+      height: MTN_BAND_Y_END - MTN_BAND_Y_START },
 
-    // Verdant River — matches verdant_river_* regions (NOT verdant_bridge,
-    // which is the walkable rocky span across the gap)
+    // Verdant River — 4 collision rects matching the 4 river regions
+    // (NOT the bridge, which is walkable rocky terrain)
+    // North half
     { x: VRIVER_X, y: 0,
       width: VRIVER_W, height: BRIDGEFORD_Y_START },
+    // South-upper (Bridgeford to bend)
     { x: VRIVER_X, y: BRIDGEFORD_Y_END,
-      width: VRIVER_W, height: MAP_H - BRIDGEFORD_Y_END },
+      width: VRIVER_W, height: VRIVER_BEND_Y_START - BRIDGEFORD_Y_END },
+    // Bend connector
+    { x: VRIVER_BEND_X, y: VRIVER_BEND_Y_START,
+      width: VRIVER_BEND_W, height: VRIVER_BEND_Y_END - VRIVER_BEND_Y_START },
+    // South-lower (post-bend, shifted west)
+    { x: VRIVER_SOUTH_X, y: VRIVER_BEND_Y_END,
+      width: VRIVER_W, height: MAP_H - VRIVER_BEND_Y_END },
 
-    // Ironflow River — matches ironflow_river_* regions (NOT iron_bridge)
+    // Ironflow River — matches regions (NOT iron_bridge)
     { x: IRIVER_X, y: 0,
       width: IRIVER_W, height: IBRIDGE_Y_START },
     { x: IRIVER_X, y: IBRIDGE_Y_END,
@@ -420,18 +496,18 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
 
   // ── Scene transition triggers ──────────────────────────────────────────────
   triggers: [
-    // Lumen capital entrance — south gate, on the road
+    // Lumen capital entrance — south gate
     {
       id: 'lumen_town_entrance',
-      x: 1280, y: 840, width: 90, height: 110,
+      x: 1060, y: 870, width: 90, height: 110,
       label: 'Enter Lumen',
       targetSceneKey: 'TownScene',
       targetLocationId: 'lumen_town',
     },
-    // Mountain Pass boss — flag-gated by SERELLE_JOINED, consumed by win
+    // Mountain Pass boss (Shadecaster Veyr) — flag-gated by SERELLE_JOINED
     {
       id: 'mountain_pass_boss',
-      x: 1990, y: 1380, width: 140, height: 130,
+      x: 1140, y: 360, width: 140, height: 130,
       label: 'Confront the Shadecaster',
       targetSceneKey: 'BattleScene',
       targetLocationId: 'mountain_pass',
@@ -445,7 +521,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
         consumedByFlag: STORY_FLAGS.BOSS_VEYR_DEFEATED,
       },
     },
-    // East Port — Ashenveil town entrance (eastern arrival)
+    // East Port — Ashenveil town entrance
     {
       id: 'east_port_entrance',
       x: 3280, y: 1500, width: 140, height: 110,
@@ -461,19 +537,25 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
       id: 'thornwood_zone',
       displayName: 'Thornwood',
       type: 'encounter',
-      x: 100, y: 2180, width: 940, height: 640,
+      x: 100, y: 2280, width: 960, height: 580,
     },
     {
       id: 'mountain_pass_zone',
       displayName: 'Mountain Pass',
       type: 'encounter',
-      x: 1800, y: 1280, width: 440, height: 240,
+      x: 1060, y: 280, width: 280, height: 440,
     },
     {
       id: 'western_forest_zone',
-      displayName: 'Evergreen Woods',
+      displayName: 'Evergreen Forest',
       type: 'encounter',
-      x: 100, y: 60, width: 1140, height: 440,
+      x: 180, y: 780, width: 660, height: 560,
+    },
+    {
+      id: 'northern_tundra_zone',
+      displayName: 'Northern Tundra',
+      type: 'encounter',
+      x: 80, y: 60, width: WEST_X_END - 80, height: TUNDRA_Y_END - 60,
     },
     {
       id: 'eastern_frontier_zone',
@@ -485,13 +567,13 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
       id: 'eastern_warfields_zone',
       displayName: 'Twilight Marches',
       type: 'encounter',
-      x: IRIVER_X + IRIVER_W, y: 60, width: 640, height: 2760,
+      x: IRIVER_X + IRIVER_W, y: 60, width: 620, height: 2760,
     },
     {
       id: 'blightlands_zone',
       displayName: 'Black Reach',
       type: 'encounter',
-      x: 4640, y: 60, width: EAST_X_END - 4640, height: 1140,
+      x: 4620, y: 60, width: EAST_X_END - 4620, height: 1140,
     },
     {
       id: 'elerion_safe',
@@ -512,7 +594,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     {
       id: 'ferry_east_to_west',
       fromTriggerId: 'east_port_ferry',
-      toX: 2240, toY: 1820,
+      toX: 2080, toY: 1820,
       requiresFlag: STORY_FLAGS.CHAPTER_3_SEA_TRAVEL_UNLOCKED,
     },
   ],

@@ -150,14 +150,14 @@ export const LUMEN_TOWN_CONFIG: TownMapConfig = {
 
   // ── Exit trigger ─────────────────────────────────────────────────────────────
   // worldReturnX/Y place the player just south of the Lumen entrance trigger
-  // on the world map (trigger at x=1280, y=840, 90×110), clear of its rect so
+  // on the world map (trigger at x=1060, y=870, 90×110), clear of its rect so
   // it does not immediately re-fire.
   exit: {
     x: 1220, y: 2320,
     width: 360, height: 60,
     targetLocationId: 'world_map',
-    worldReturnX: 1300,
-    worldReturnY: 970,
+    worldReturnX: 1080,
+    worldReturnY: 1000,
   },
 
   shopStock: ['herb_tonic', 'clearwater_drop'],
