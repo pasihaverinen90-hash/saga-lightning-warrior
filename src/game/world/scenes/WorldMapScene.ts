@@ -38,7 +38,12 @@ const CFG = ELERION_WORLD_CONFIG;
 const MAP_W = CFG.mapWidth;
 const MAP_H = CFG.mapHeight;
 
-const PLAYER_SPEED = 200; // px/sec
+/**
+ * World map walking speed in px/sec. Tuned downward from 200 so journeys
+ * across Elerion feel a touch more meaningful. Towns use their own
+ * PLAYER_SPEED constant in TownScene; this only affects the overworld.
+ */
+const PLAYER_SPEED = 165;
 
 /**
  * Caps the per-frame movement delta. Phaser supplies the raw frame delta in
@@ -50,11 +55,13 @@ const PLAYER_SPEED = 200; // px/sec
 const MAX_DELTA_MS = 50;
 
 /**
- * Camera zoom for the overworld. 1.10 shrinks the visible world area by ~10%
- * so the player feels less tiny. Safe to set back to 1.0 if zoom ever causes
- * stutter — the HUD that used to clip at zoom > 1 has been removed.
+ * Camera zoom for the overworld. 1.15 brings the world a step closer than
+ * 1.10 so places feel slightly farther apart without losing readability.
+ * Cap this at 1.15 for greybox — higher values make scanning ahead awkward.
+ * Safe to lower back to 1.0 if zoom ever causes stutter; the HUD that used
+ * to clip at zoom > 1 has been removed.
  */
-const WORLD_MAP_ZOOM = 1.10;
+const WORLD_MAP_ZOOM = 1.15;
 
 /**
  * How often (ms) to write the player's world position into game state while

@@ -64,11 +64,19 @@ const MOUNTAIN_W    = 200;
 const PASS_Y_START  = 1000;
 const PASS_Y_END    = 1150;
 
-// Ironflow River chokepoint
+// Ironflow River chokepoint (eastern continent)
 const RIVER_X        = 3150;
 const RIVER_W        = 100;
 const BRIDGE_Y_START = 980;
 const BRIDGE_Y_END   = 1080;
+
+// Verdant River chokepoint (western continent)
+// The river is drawn as a meandering polyline; collision is approximated by
+// a few axis-aligned rects that roughly trace the polyline's path. The gap
+// at y:VERDANT_BRIDGE_Y_START..VERDANT_BRIDGE_Y_END is the Bridgeford
+// crossing — the only walkable break in the western river.
+const VERDANT_BRIDGE_Y_START = 1040;
+const VERDANT_BRIDGE_Y_END   = 1130;
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -300,8 +308,12 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
       x: 320, y: 1530, width: 110, height: 90 },
     { id: 'lm_lumen_capital',  kind: 'capital',  label: 'Lumen',
       x: 440, y: 1040, width: 160, height: 140 },
-    { id: 'lm_riverside',      kind: 'village',  label: 'Riverside',
-      x: 330, y: 1470, width: 90,  height: 70 },
+    // Bridgeford — Verdant River bridge village. Sits at the only break in
+    // the western river collision so the main road can cross here and the
+    // crossing feels intentional. Future quest hook: repair the bridge,
+    // unlock passage, recruit a river scout, etc.
+    { id: 'lm_bridgeford',     kind: 'village',  label: 'Bridgeford',
+      x: 700, y: 1050, width: 110, height: 90 },
     { id: 'lm_forest_shrine',  kind: 'shrine',   label: 'Forest Shrine',
       x: 210, y: 220, width: 90,  height: 80 },
     { id: 'lm_mountain_gate',  kind: 'gate',     label: 'Mountain Gate',
@@ -356,6 +368,18 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
       width: RIVER_W, height: BRIDGE_Y_START },
     { x: RIVER_X, y: BRIDGE_Y_END,
       width: RIVER_W, height: MAP_H - BRIDGE_Y_END },
+
+    // ── Verdant River (western continent) ──────────────────────────────────
+    // Three rects roughly tracing the polyline north → south, with a gap at
+    // Bridgeford (y:1040–1130). The middle bend slides west as the river
+    // does; the bottom rect catches the river where it curves to x≈640.
+    // North of Bridgeford
+    { x: 700, y: 0,                       width: 80, height: VERDANT_BRIDGE_Y_START },
+    // Bridgeford gap — no collision here, road and village pass through
+    // South of Bridgeford (upper segment, river center ~x:770→730)
+    { x: 700, y: VERDANT_BRIDGE_Y_END,    width: 80, height: 340 },
+    // South of Bridgeford (lower segment, river bends west to x:680→640)
+    { x: 620, y: 1470,                    width: 90, height: MAP_H - 1470 },
   ],
 
   // ── Scene transition triggers ──────────────────────────────────────────────
@@ -368,22 +392,11 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
       targetSceneKey: 'TownScene',
       targetLocationId: 'lumen_town',
     },
-    // Thornwood scripted clearing (Grove Warden) — consumed after victory
-    {
-      id: 'thornwood_clearing',
-      x: 320, y: 1900, width: 140, height: 110,
-      label: 'Investigate Clearing',
-      targetSceneKey: 'BattleScene',
-      targetLocationId: 'thornwood',
-      scriptedBattle: {
-        enemyIds: ['grove_warden'],
-        backgroundColorHex: '#0d1f10',
-        introDialogueId: 'thornwood_warden_intro',
-        outroDialogueId: 'thornwood_warden_defeat',
-        isBoss: false,
-        consumedByFlag: STORY_FLAGS.THORNWOOD_CLEARED,
-      },
-    },
+    // TODO: story/quest triggers will be redesigned from scratch later.
+    // The old 'Investigate Clearing' (Grove Warden) trigger lived here.
+    // Disabled for now — random Thornwood encounters still work via the
+    // encounter zone, and the Grove Warden enemy + dialogue data remain
+    // available in data/enemies and data/dialogue for the new quest design.
     // Mountain Pass boss (was North Pass) — flag-gated by recruitment
     {
       id: 'mountain_pass_boss',
