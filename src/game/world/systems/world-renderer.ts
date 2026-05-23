@@ -4,9 +4,16 @@
 // Reads a WorldMapConfig and paints terrain, rivers, roads, and landmarks
 // using Phaser Graphics primitives. Placeholder visuals — no art assets.
 //
+// Performance-first: the entire map is drawn into a small number of
+// Phaser.Graphics objects (sea / regions / rivers / roads / landmarks),
+// and decoration is intentionally sparse. Even though we only build the
+// command buffer once (in scene create), Phaser re-submits Graphics
+// geometry every frame — so total shape count is what governs FPS.
+//
 // Render order (back to front):
 //   1. Sea base — covers the entire map; shows through where no region paints.
 //   2. Regions — painted in array order; later regions overwrite earlier ones.
+//      Decoration is layered on top of regions in the SAME graphics object.
 //   3. Rivers — decorative polylines on top of regions.
 //   4. Roads — polylines connecting waypoints.
 //   5. Landmarks — labelled rectangles for towns / dungeons / ports / etc.
@@ -25,6 +32,33 @@ import type {
   LandmarkKind,
   TerrainKind,
 } from '../types/world-types';
+
+// ─── Detail toggles ──────────────────────────────────────────────────────────
+
+/**
+ * Master switch for any decoration beyond the base terrain colour fill.
+ * Turn off for the cheapest possible render — base regions, rivers, roads,
+ * and landmark icons only, no trees / pebbles / mountain peaks / wisps.
+ */
+const ENABLE_WORLD_DECORATION = true;
+
+/**
+ * 'low'     — sparse trees + occasional mountain peaks + a few blight wisps.
+ *             Skips pebbles, sand specks, wave glints, and accent ellipses.
+ *             Suggested default for greybox; ~150 decoration shapes total.
+ * 'minimal' — base region colour only; ignores ENABLE_WORLD_DECORATION
+ *             when set, since there is nothing extra to draw.
+ */
+type DetailLevel = 'low' | 'minimal';
+const WORLD_RENDER_DETAIL: DetailLevel = 'low';
+
+/**
+ * Visual size multiplier applied to landmark rectangles. The config carries
+ * a "footprint" size; the renderer paints the icon at this fraction of that
+ * footprint, centred on the original centre. Tune here to scale all
+ * landmarks at once without touching individual config entries.
+ */
+const LANDMARK_VISUAL_SCALE = 0.6;
 
 // ─── Palettes ────────────────────────────────────────────────────────────────
 
@@ -68,30 +102,25 @@ const LANDMARK: Record<LandmarkKind, LandmarkPalette> = {
   dungeon:  { fill: 0x6a6260, roof: 0x4a3e3c, accent: 0x2a1c1c, label: COLOR_HEX.villainName },
 };
 
-/**
- * Visual size multiplier applied to landmark rectangles. The config carries
- * a "footprint" size; the renderer paints the icon at this fraction of that
- * footprint, centred on the original centre. Tune here to scale all
- * landmarks at once without touching individual config entries.
- */
-const LANDMARK_VISUAL_SCALE = 0.62;
-
-const ROAD_COLOR: Record<WorldRoad['style'], { edge: number; main: number; centre: number }> = {
-  dirt:  { edge: 0x6a5028, main: 0xc4a866, centre: 0xd4bc7e },
-  stone: { edge: 0x4a4a52, main: 0xa0a0a8, centre: 0xc4c4cc },
-  wood:  { edge: 0x4a2e18, main: 0x8a6840, centre: 0xb09060 },
+const ROAD_COLOR: Record<WorldRoad['style'], { edge: number; main: number }> = {
+  dirt:  { edge: 0x6a5028, main: 0xc4a866 },
+  stone: { edge: 0x4a4a52, main: 0xa0a0a8 },
+  wood:  { edge: 0x4a2e18, main: 0x8a6840 },
 };
 
 // ─── Public entry point ──────────────────────────────────────────────────────
 
 /**
  * Paints the full world map onto the given scene from config data.
- * Call once during scene.create(). All draws happen on independent
- * Phaser.Graphics objects, so they cleanly tear down when the scene shuts down.
+ * Call once during scene.create().
+ *
+ * Uses 5 Graphics objects (sea, terrain, rivers, roads, landmarks) plus
+ * one Text per landmark label. Total shape count in 'low' detail is well
+ * under 300, which keeps Phaser's per-frame Graphics submission cheap.
  */
 export function renderWorld(scene: Phaser.Scene, config: WorldMapConfig): void {
   drawSea(scene, config);
-  drawRegions(scene, config.regions ?? []);
+  drawTerrain(scene, config.regions ?? []);
   drawRivers(scene, config.rivers ?? []);
   drawRoads(scene, config.roads ?? []);
   drawLandmarks(scene, config.landmarks ?? []);
@@ -101,185 +130,126 @@ export function renderWorld(scene: Phaser.Scene, config: WorldMapConfig): void {
 
 function drawSea(scene: Phaser.Scene, config: WorldMapConfig): void {
   const g = scene.add.graphics();
-  const sea = TERRAIN.sea;
-
-  g.fillStyle(sea.base, 1);
+  g.fillStyle(TERRAIN.sea.base, 1);
   g.fillRect(0, 0, config.mapWidth, config.mapHeight);
-
-  // Sparse wave glints for visual interest at sea-level zoom
-  g.fillStyle(sea.accent, 0.22);
-  for (let y = 40; y < config.mapHeight; y += 110) {
-    const offset = (y / 110) % 2 === 0 ? 0 : 60;
-    for (let x = 40 + offset; x < config.mapWidth; x += 140) {
-      g.fillEllipse(x, y, 28, 6);
-    }
-  }
+  // Wave glints removed — they cost ~600 ellipses per frame and the
+  // sea reads fine as a flat colour at greybox stage.
 }
 
-// ─── Regions ─────────────────────────────────────────────────────────────────
+// ─── Terrain (regions + decoration, all into one Graphics) ───────────────────
 
-function drawRegions(scene: Phaser.Scene, regions: WorldRegion[]): void {
+function drawTerrain(scene: Phaser.Scene, regions: WorldRegion[]): void {
+  const g = scene.add.graphics();
+
+  // Pass 1: base region fills. Painted in array order so later regions can
+  // override earlier ones (e.g. mountains overwrite the plains beneath them).
   for (const region of regions) {
     const palette = TERRAIN[region.terrainKind];
-    const g = scene.add.graphics();
-
-    // Base fill
     g.fillStyle(palette.base, 1);
     g.fillRect(region.x, region.y, region.width, region.height);
+  }
 
-    // Lightweight accent variation — a handful of ellipses gives the region
-    // some surface variation without exploding the draw count.
-    g.fillStyle(palette.accent, 0.28);
-    for (let i = 0; i < 5; i++) {
-      const ex = region.x + 40 + ((i * 137 + region.id.length * 13) % Math.max(40, region.width - 80));
-      const ey = region.y + 30 + ((i * 91  + region.id.length * 17) % Math.max(30, region.height - 60));
-      const ew = 60 + ((i * 17) % 80);
-      const eh = 30 + ((i * 13) % 50);
-      g.fillEllipse(ex, ey, ew, eh);
-    }
-    g.fillStyle(palette.shadow, 0.20);
-    for (let i = 0; i < 3; i++) {
-      const ex = region.x + 60 + ((i * 211 + region.id.length * 7) % Math.max(40, region.width - 100));
-      const ey = region.y + 50 + ((i * 173 + region.id.length * 23) % Math.max(40, region.height - 80));
-      const ew = 80 + ((i * 19) % 70);
-      const eh = 40 + ((i * 11) % 40);
-      g.fillEllipse(ex, ey, ew, eh);
-    }
+  // Pass 2: sparse decoration. Skipped entirely in minimal mode or when
+  // ENABLE_WORLD_DECORATION is false.
+  if (!ENABLE_WORLD_DECORATION || WORLD_RENDER_DETAIL === 'minimal') return;
 
-    drawTerrainTexture(g, region);
+  for (const region of regions) {
+    decorateRegion(g, region);
   }
 }
 
-function drawTerrainTexture(g: Phaser.GameObjects.Graphics, region: WorldRegion): void {
+function decorateRegion(
+  g: Phaser.GameObjects.Graphics,
+  region: WorldRegion,
+): void {
   switch (region.terrainKind) {
     case 'forest':
     case 'corrupted_forest': {
-      const treeMain   = region.terrainKind === 'forest' ? 0x2a6428 : 0x1c2a14;
-      const treeAccent = region.terrainKind === 'forest' ? 0x3e8c3a : 0x2a4418;
-      const treeShadow = region.terrainKind === 'forest' ? 0x14380e : 0x080e06;
-      const stepX = 56;
-      const stepY = 46;
-      for (let ty = region.y + 18; ty < region.y + region.height - 18; ty += stepY) {
-        for (let tx = region.x + 18; tx < region.x + region.width - 18; tx += stepX) {
-          const jx = ((tx * 17 + ty * 11) % 13) - 6;
-          const jy = ((tx * 13 + ty * 7)  % 11) - 5;
-          const r  = 10 + ((tx * 5 + ty * 3) % 5);
-          g.fillStyle(treeShadow, 0.55);
-          g.fillCircle(tx + jx + 3, ty + jy + 3, r);
-          g.fillStyle(treeMain, 1);
-          g.fillCircle(tx + jx, ty + jy, r);
-          g.fillStyle(treeAccent, 0.45);
-          g.fillCircle(tx + jx - 2, ty + jy - 2, r * 0.5);
-        }
-      }
-      // Sickly wisp glow over corrupted forest
-      if (region.terrainKind === 'corrupted_forest') {
-        g.fillStyle(0x3a8888, 0.18);
-        for (let wy = region.y + 60; wy < region.y + region.height - 40; wy += 110) {
-          for (let wx = region.x + 70; wx < region.x + region.width - 60; wx += 140) {
-            g.fillCircle(wx, wy, 18);
-          }
+      // Sparse single-pass tree dots. ~1 tree per 90×90 area = ~25 trees
+      // for the largest forest region in the world.
+      const treeColor = region.terrainKind === 'forest' ? 0x2a6428 : 0x1a2812;
+      const stepX = 90;
+      const stepY = 90;
+      g.fillStyle(treeColor, 1);
+      for (let ty = region.y + 30; ty < region.y + region.height - 30; ty += stepY) {
+        for (let tx = region.x + 30; tx < region.x + region.width - 30; tx += stepX) {
+          const jx = ((tx * 13) % 19) - 9;
+          const jy = ((ty * 11) % 17) - 8;
+          g.fillCircle(tx + jx, ty + jy, 11);
         }
       }
       break;
     }
 
     case 'mountain': {
-      // Peak ellipses to suggest crags from overhead
-      const stepX = 80;
-      const stepY = 70;
-      for (let py = region.y + 30; py < region.y + region.height - 20; py += stepY) {
-        for (let px = region.x + 40; px < region.x + region.width - 40; px += stepX) {
-          const jx = ((px * 13) % 21) - 10;
-          // SE shadow
-          g.fillStyle(0x4e4030, 0.5);
-          g.fillEllipse(px + jx + 6, py + 6, 64, 38);
-          // peak body
-          g.fillStyle(0x9a8c78, 1);
-          g.fillEllipse(px + jx, py, 64, 38);
-          // NW highlight
-          g.fillStyle(0xc8bcA0, 0.45);
-          g.fillEllipse(px + jx - 8, py - 6, 30, 18);
+      // ~1 peak per 110×100 area.
+      g.fillStyle(0x9a8c78, 1);
+      const stepX = 110;
+      const stepY = 100;
+      for (let py = region.y + 40; py < region.y + region.height - 40; py += stepY) {
+        for (let px = region.x + 50; px < region.x + region.width - 50; px += stepX) {
+          g.fillEllipse(px, py, 56, 32);
         }
       }
       break;
     }
 
     case 'blight': {
-      // Purple corruption wisps + sparse skull-grey patches
-      g.fillStyle(0x6c30aa, 0.30);
-      for (let wy = region.y + 30; wy < region.y + region.height - 20; wy += 70) {
-        for (let wx = region.x + 30; wx < region.x + region.width - 20; wx += 80) {
-          const jx = ((wx * 11) % 13) - 6;
-          g.fillCircle(wx + jx, wy, 20);
-        }
-      }
-      g.fillStyle(0x8a4cd4, 0.18);
-      for (let wy = region.y + 50; wy < region.y + region.height - 40; wy += 100) {
-        for (let wx = region.x + 70; wx < region.x + region.width - 50; wx += 120) {
-          g.fillCircle(wx, wy, 10);
+      // ~1 wisp per 130×120 area.
+      g.fillStyle(0x6c30aa, 0.35);
+      const stepX = 130;
+      const stepY = 120;
+      for (let py = region.y + 50; py < region.y + region.height - 30; py += stepY) {
+        for (let px = region.x + 50; px < region.x + region.width - 30; px += stepX) {
+          g.fillCircle(px, py, 22);
         }
       }
       break;
     }
 
-    case 'rocky':
-    case 'dust': {
-      // Pebbles and dust specks
-      const speckColor = region.terrainKind === 'rocky' ? 0x5a4e3c : 0x6e4c28;
-      g.fillStyle(speckColor, 0.55);
-      const stepX = 40;
-      const stepY = 36;
-      for (let ry = region.y + 14; ry < region.y + region.height - 10; ry += stepY) {
-        for (let rx = region.x + 14; rx < region.x + region.width - 10; rx += stepX) {
-          const r = 2 + (((rx * 7 + ry * 11) % 5));
-          g.fillCircle(rx, ry, r);
-        }
-      }
-      break;
-    }
-
-    // plains, sea, sand, snow — base + accent ellipses are enough
+    // rocky / dust / plains / sea / sand / snow: base colour is enough.
+    // The thousands of pebble specks the old renderer produced were the
+    // main per-frame cost and offered marginal visual value.
     default:
       break;
   }
 }
 
-// ─── Rivers ──────────────────────────────────────────────────────────────────
+// ─── Rivers (all into one Graphics) ─────────────────────────────────────────
 
 function drawRivers(scene: Phaser.Scene, rivers: WorldRiver[]): void {
+  if (rivers.length === 0) return;
+  const g = scene.add.graphics();
   for (const river of rivers) {
     if (river.points.length < 2) continue;
-    const g = scene.add.graphics();
-    // Sandy banks
-    drawPolyline(g, river.points, river.width + 10, 0xd6b870, 0.85);
-    // Water body
-    drawPolyline(g, river.points, river.width, TERRAIN.sea.base, 1);
-    // Sparkle line
-    drawPolyline(g, river.points, Math.max(2, river.width - 12), TERRAIN.sea.accent, 0.55);
+    // Bank + water — sparkle pass removed for perf and clarity.
+    drawPolyline(g, river.points, river.width + 6, 0xd6b870, 0.85);
+    drawPolyline(g, river.points, river.width,     TERRAIN.sea.base, 1);
   }
 }
 
-// ─── Roads ───────────────────────────────────────────────────────────────────
+// ─── Roads (all into one Graphics) ───────────────────────────────────────────
 
 function drawRoads(scene: Phaser.Scene, roads: WorldRoad[]): void {
+  if (roads.length === 0) return;
+  const g = scene.add.graphics();
   for (const road of roads) {
     if (road.points.length < 2) continue;
-    const colors = ROAD_COLOR[road.style];
-    const g = scene.add.graphics();
-    drawPolyline(g, road.points, road.width + 4, colors.edge,   0.75);
-    drawPolyline(g, road.points, road.width,     colors.main,   1);
-    drawPolyline(g, road.points, Math.max(2, road.width - 6),
-                                 colors.centre, 0.5);
+    const c = ROAD_COLOR[road.style];
+    // Edge + main — centre highlight pass removed for perf.
+    drawPolyline(g, road.points, road.width + 3, c.edge, 0.75);
+    drawPolyline(g, road.points, road.width,     c.main, 1);
   }
 }
 
-// ─── Landmarks ───────────────────────────────────────────────────────────────
+// ─── Landmarks (icons batched into one Graphics; labels as Text objects) ────
 
 function drawLandmarks(scene: Phaser.Scene, landmarks: WorldLandmark[]): void {
+  if (landmarks.length === 0) return;
+  const g = scene.add.graphics();
+
   for (const lm of landmarks) {
     const palette = LANDMARK[lm.kind];
-    const g = scene.add.graphics();
 
     // Scale around the original footprint centre so labels remain anchored.
     const cx = lm.x + lm.width  / 2;
@@ -289,19 +259,15 @@ function drawLandmarks(scene: Phaser.Scene, landmarks: WorldLandmark[]): void {
     const x  = cx - w / 2;
     const y  = cy - h / 2;
 
-    // Drop shadow
-    g.fillStyle(0x000000, 0.40);
-    g.fillRoundedRect(x + 4, y + 4, w, h, 5);
-
     // Footprint
     g.fillStyle(palette.fill, 1);
-    g.fillRoundedRect(x, y, w, h, 5);
+    g.fillRoundedRect(x, y, w, h, 4);
 
-    // Roof / inner emblem block
-    const innerW = w * 0.70;
-    const innerH = h * 0.55;
+    // Inner emblem block
+    const innerW = w * 0.66;
+    const innerH = h * 0.52;
     g.fillStyle(palette.roof, 1);
-    g.fillRoundedRect(cx - innerW / 2, cy - innerH / 2, innerW, innerH, 4);
+    g.fillRoundedRect(cx - innerW / 2, cy - innerH / 2, innerW, innerH, 3);
 
     // Accent dot
     g.fillStyle(palette.accent, 1);
@@ -309,18 +275,24 @@ function drawLandmarks(scene: Phaser.Scene, landmarks: WorldLandmark[]): void {
 
     // Border
     g.lineStyle(2, 0x0a0808, 0.85);
-    g.strokeRoundedRect(x, y, w, h, 5);
+    g.strokeRoundedRect(x, y, w, h, 4);
+  }
 
-    if (lm.label) {
-      scene.add.text(cx, y - 4, lm.label, {
-        fontFamily: FONTS.ui,
-        fontSize:   '14px',
-        color:      palette.label,
-        fontStyle:  'bold',
-        stroke:     '#0a0f1a',
-        strokeThickness: 3,
-      }).setOrigin(0.5, 1);
-    }
+  // Labels are separate game objects because Phaser Graphics can't paint text.
+  for (const lm of landmarks) {
+    if (!lm.label) continue;
+    const palette = LANDMARK[lm.kind];
+    const cx = lm.x + lm.width  / 2;
+    const h  = lm.height * LANDMARK_VISUAL_SCALE;
+    const top = (lm.y + lm.height / 2) - h / 2;
+    scene.add.text(cx, top - 4, lm.label, {
+      fontFamily: FONTS.ui,
+      fontSize:   '13px',
+      color:      palette.label,
+      fontStyle:  'bold',
+      stroke:     '#0a0f1a',
+      strokeThickness: 3,
+    }).setOrigin(0.5, 1);
   }
 }
 

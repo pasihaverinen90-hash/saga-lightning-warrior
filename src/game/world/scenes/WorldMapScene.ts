@@ -9,19 +9,17 @@
 //   Zone / encounter  → world/systems/encounter-system.ts  (pure TS)
 //   Scripted battles  → trigger.scriptedBattle data        (flag-gated, data-driven)
 //   Map data          → data/maps/elerion-world-config.ts
+//
+// UI: this scene intentionally has NO fixed HUD. The previous zone panel
+// (top-left), DANGER badge (top-centre), and [SPACE] hint (bottom-centre)
+// were removed because setScrollFactor(0) elements still respect camera
+// zoom, which caused them to clip out of the viewport at WORLD_MAP_ZOOM>1.
+// Interaction is communicated through world-space trigger labels drawn
+// directly on the map.
 
 import Phaser from 'phaser';
 import { SCENE_KEYS } from '../../core/scene-keys';
-import {
-  GAME_WIDTH,
-  GAME_HEIGHT,
-  COLORS,
-  COLOR_HEX,
-  FONTS,
-  FONT_SIZES,
-  PANEL,
-} from '../../core/config';
-import { drawPanel } from '../../ui/common/panel';
+import { COLORS, COLOR_HEX, FONTS } from '../../core/config';
 import { computeMovement, type MovementInput } from '../../shared/movement-system';
 import { getActiveTrigger } from '../systems/transition-system';
 import { getActiveZone, EncounterTracker } from '../systems/encounter-system';
@@ -45,31 +43,38 @@ const PLAYER_SPEED = 200; // px/sec
 /**
  * Caps the per-frame movement delta. Phaser supplies the raw frame delta in
  * ms; a tab-switch or GC pause can produce a single 500 ms delta that would
- * teleport the player across the map. 50 ms (≈ 20 fps floor) keeps movement
- * predictable after any frame spike while still letting normal 60 fps frames
- * (~16.7 ms) pass through untouched.
+ * teleport the player across the map. 50 ms (~20 fps floor) keeps movement
+ * predictable after any frame spike while normal 60 fps frames (~16.7 ms)
+ * pass through untouched.
  */
 const MAX_DELTA_MS = 50;
 
 /**
  * Camera zoom for the overworld. 1.10 shrinks the visible world area by ~10%
- * so the player feels less tiny and travel feels a little more meaningful,
- * while still keeping enough of the world on screen to read terrain ahead.
+ * so the player feels less tiny. Safe to set back to 1.0 if zoom ever causes
+ * stutter — the HUD that used to clip at zoom > 1 has been removed.
  */
 const WORLD_MAP_ZOOM = 1.10;
 
 /**
  * How often (ms) to write the player's world position into game state while
- * walking. Battle launches and trigger activations always write the precise
- * position synchronously; this throttle only governs the "save resume"
- * heartbeat, which can be coarse because world-map saves are disabled.
+ * walking. Battle launches and trigger activations always write synchronously;
+ * this throttle only governs the "save resume" heartbeat, which is coarse
+ * because world-map saves are disabled anyway.
  */
 const LOCATION_UPDATE_INTERVAL_MS = 250;
 
 /** Camera follow lerp — slightly snappier than 0.09 to reduce floaty drift. */
 const CAMERA_LERP = 0.12;
 
-// locationId recorded in game state while the player is walking the overworld.
+/**
+ * Dev-only FPS readout in the top-left corner. Keep off in normal play.
+ * Renders as a single fixed-position Text object with depth 1000; uses
+ * scrollFactor 0 so it follows the camera regardless of zoom.
+ */
+const DEBUG_FPS = false;
+
+// locationId recorded in game state while the player walks the overworld.
 // Town entrances overwrite this with their own locationId on trigger activation.
 const WORLD_LOCATION_ID = 'world_map';
 
@@ -92,12 +97,8 @@ export class WorldMapScene extends Phaser.Scene {
   };
   private keyMenu!: Phaser.Input.Keyboard.Key;
 
-  // ── HUD (fixed to camera via setScrollFactor(0)) ───────────────────────────
-  private hudZonePanel!: Phaser.GameObjects.Graphics;
-  private hudZoneText!: Phaser.GameObjects.Text;
-  private hudDangerBadge!: Phaser.GameObjects.Container;
-  private hudHintPanel!: Phaser.GameObjects.Graphics;
-  private hudHintText!: Phaser.GameObjects.Text;
+  // ── Debug ──────────────────────────────────────────────────────────────────
+  private fpsText: Phaser.GameObjects.Text | null = null;
 
   // ── State ──────────────────────────────────────────────────────────────────
   private activeTrigger: WorldTrigger | null = null;
@@ -164,8 +165,8 @@ export class WorldMapScene extends Phaser.Scene {
     this.drawTriggerMarkers();
 
     this.createPlayer();
-    this.createHUD();
     this.setupInput();
+    this.createDebugOverlay();
 
     cam.startFollow(this.player, true, CAMERA_LERP, CAMERA_LERP);
     cam.setFollowOffset(-PLAYER_W / 2, -PLAYER_H / 2);
@@ -253,10 +254,12 @@ export class WorldMapScene extends Phaser.Scene {
       }
     }
 
-    this.updateHUD();
-
     if (this.activeTrigger && Phaser.Input.Keyboard.JustDown(this.cursors.space)) {
       this.activateTrigger(this.activeTrigger);
+    }
+
+    if (this.fpsText) {
+      this.fpsText.setText(`fps ${Math.round(this.game.loop.actualFps)}`);
     }
   }
 
@@ -270,10 +273,11 @@ export class WorldMapScene extends Phaser.Scene {
   }
 
   private drawTriggerMarkers(): void {
+    // All triggers in one Graphics object to keep the display list short.
+    const gfx = this.add.graphics();
     for (const trigger of CFG.triggers) {
       if (this.isTriggerConsumed(trigger)) continue;
 
-      const gfx = this.add.graphics();
       const isTownEntry = trigger.targetSceneKey === SCENE_KEYS.TOWN;
       const color       = isTownEntry ? COLORS.goldAccent : COLORS.dangerCrimson;
       const labelColor  = isTownEntry ? COLOR_HEX.goldAccent : '#D97A7A';
@@ -286,7 +290,7 @@ export class WorldMapScene extends Phaser.Scene {
       this.add.text(
         trigger.x + trigger.width / 2,
         trigger.y - 4,
-        `▲ ${trigger.label}`,
+        `▲ [SPACE] ${trigger.label}`,
         {
           fontFamily: FONTS.ui,
           fontSize: '13px',
@@ -347,76 +351,20 @@ export class WorldMapScene extends Phaser.Scene {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // HUD
+  // Debug overlay (opt-in via DEBUG_FPS)
   // ─────────────────────────────────────────────────────────────────────────
 
-  private createHUD(): void {
-    this.createZonePanel();
-    this.createDangerBadge();
-    this.createHintPanel();
-  }
-
-  private createZonePanel(): void {
-    const W = 240; const H = 38;
-    const X = 16;  const Y = 16;
-
-    this.hudZonePanel = drawPanel(this, { x: X, y: Y, width: W, height: H });
-    this.hudZonePanel.setScrollFactor(0).setDepth(100);
-
-    this.hudZoneText = this.add.text(X + 14, Y + H / 2, 'Elerion', {
+  private createDebugOverlay(): void {
+    if (!DEBUG_FPS) return;
+    this.fpsText = this.add.text(8, 8, 'fps —', {
       fontFamily: FONTS.ui,
-      fontSize: `${FONT_SIZES.locationLabel}px`,
-      color: COLOR_HEX.parchment,
-      fontStyle: 'bold',
-    })
-      .setOrigin(0, 0.5)
-      .setScrollFactor(0)
-      .setDepth(101);
-  }
-
-  private createDangerBadge(): void {
-    const W = 190; const H = 34;
-    const X = GAME_WIDTH / 2 - W / 2;
-    const Y = 16;
-
-    const bg = this.add.graphics();
-    bg.fillStyle(COLORS.dangerCrimson, 0.88);
-    bg.fillRoundedRect(X, Y, W, H, PANEL.cornerRadius);
-    bg.lineStyle(2, 0xff6060, 1);
-    bg.strokeRoundedRect(X, Y, W, H, PANEL.cornerRadius);
-    bg.setScrollFactor(0).setDepth(100);
-
-    const text = this.add.text(GAME_WIDTH / 2, Y + H / 2, '⚠  DANGER AREA', {
-      fontFamily: FONTS.ui,
-      fontSize: '16px',
-      fontStyle: 'bold',
+      fontSize: '12px',
       color: '#F3EBD2',
+      stroke: '#000000',
+      strokeThickness: 3,
     })
-      .setOrigin(0.5)
       .setScrollFactor(0)
-      .setDepth(101);
-
-    this.hudDangerBadge = this.add.container(0, 0, [bg, text]);
-    this.hudDangerBadge.setScrollFactor(0).setDepth(100).setVisible(false);
-  }
-
-  private createHintPanel(): void {
-    const W = 320; const H = 38;
-    const X = GAME_WIDTH / 2 - W / 2;
-    const Y = GAME_HEIGHT - 58;
-
-    this.hudHintPanel = drawPanel(this, { x: X, y: Y, width: W, height: H });
-    this.hudHintPanel.setScrollFactor(0).setDepth(100).setVisible(false);
-
-    this.hudHintText = this.add.text(GAME_WIDTH / 2, Y + H / 2, '', {
-      fontFamily: FONTS.ui,
-      fontSize: `${FONT_SIZES.hint}px`,
-      color: COLOR_HEX.parchment,
-    })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(101)
-      .setVisible(false);
+      .setDepth(1000);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -455,26 +403,6 @@ export class WorldMapScene extends Phaser.Scene {
       left:  this.cursors.left.isDown  || this.keyWASD.A.isDown,
       right: this.cursors.right.isDown || this.keyWASD.D.isDown,
     };
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // HUD per-frame updates
-  // ─────────────────────────────────────────────────────────────────────────
-
-  private updateHUD(): void {
-    const zoneName    = this.activeZone?.displayName ?? 'Elerion';
-    const isEncounter = this.activeZone?.type === 'encounter';
-    this.hudZoneText.setText(zoneName);
-    this.hudZoneText.setColor(isEncounter ? COLOR_HEX.villainName : COLOR_HEX.parchment);
-
-    this.hudDangerBadge.setVisible(isEncounter);
-
-    const hasTrigger = this.activeTrigger !== null;
-    this.hudHintPanel.setVisible(hasTrigger);
-    this.hudHintText.setVisible(hasTrigger);
-    if (hasTrigger) {
-      this.hudHintText.setText(`[SPACE]  ${this.activeTrigger!.label}`);
-    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
