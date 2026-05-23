@@ -285,9 +285,12 @@ function drawLandmarks(scene: Phaser.Scene, landmarks: WorldLandmark[]): void {
     const cx = lm.x + lm.width  / 2;
     const h  = lm.height * LANDMARK_VISUAL_SCALE;
     const top = (lm.y + lm.height / 2) - h / 2;
+    // Smaller font compensates for WORLD_MAP_ZOOM scaling the text up.
+    // At zoom 1.25 this renders at ~14 px on screen, comparable to the
+    // pre-zoom 13 px.
     scene.add.text(cx, top - 4, lm.label, {
       fontFamily: FONTS.ui,
-      fontSize:   '13px',
+      fontSize:   '11px',
       color:      palette.label,
       fontStyle:  'bold',
       stroke:     '#0a0f1a',

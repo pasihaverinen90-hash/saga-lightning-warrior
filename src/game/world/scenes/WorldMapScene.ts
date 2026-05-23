@@ -39,11 +39,12 @@ const MAP_W = CFG.mapWidth;
 const MAP_H = CFG.mapHeight;
 
 /**
- * World map walking speed in px/sec. Tuned downward from 200 so journeys
- * across Elerion feel a touch more meaningful. Towns use their own
+ * World map walking speed in px/sec. Paired with the 5120×2880 map and the
+ * long winding road from Start Village to Lumen, 150 makes the western
+ * starting region feel like a real ~20 second journey. Towns use their own
  * PLAYER_SPEED constant in TownScene; this only affects the overworld.
  */
-const PLAYER_SPEED = 165;
+const PLAYER_SPEED = 150;
 
 /**
  * Caps the per-frame movement delta. Phaser supplies the raw frame delta in
@@ -55,13 +56,13 @@ const PLAYER_SPEED = 165;
 const MAX_DELTA_MS = 50;
 
 /**
- * Camera zoom for the overworld. 1.15 brings the world a step closer than
- * 1.10 so places feel slightly farther apart without losing readability.
- * Cap this at 1.15 for greybox — higher values make scanning ahead awkward.
- * Safe to lower back to 1.0 if zoom ever causes stutter; the HUD that used
- * to clip at zoom > 1 has been removed.
+ * Camera zoom for the overworld. 1.25 brings the world close enough to feel
+ * like a JRPG overworld now that the map is 5120×2880 and locations are
+ * properly spaced. Cap at 1.35 for greybox — higher makes scanning ahead
+ * awkward. Safe to lower if zoom ever causes stutter; the HUD that used to
+ * clip at zoom > 1 has been removed.
  */
-const WORLD_MAP_ZOOM = 1.15;
+const WORLD_MAP_ZOOM = 1.25;
 
 /**
  * How often (ms) to write the player's world position into game state while
@@ -299,8 +300,11 @@ export class WorldMapScene extends Phaser.Scene {
         trigger.y - 4,
         `▲ [SPACE] ${trigger.label}`,
         {
+          // Smaller font compensates for WORLD_MAP_ZOOM scaling the text up;
+          // at zoom 1.25 this renders at ~14 px on screen, comparable to the
+          // pre-zoom 13 px.
           fontFamily: FONTS.ui,
-          fontSize: '13px',
+          fontSize: '11px',
           color: labelColor,
           stroke: '#0a0f1a',
           strokeThickness: 2,
