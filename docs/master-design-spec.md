@@ -1,5 +1,13 @@
 # Master Design Spec — Saga of the Lightning Warrior
 
+> ⚠ **Pre-canon content.** This spec captures the project's original design
+> intent, much of which predates the current world map canon. See
+> [`world-map-canon.md`](world-map-canon.md) for the canonical world
+> structure. Specific location names (e.g. "Border Fields", "North Pass",
+> "Ashenveil Road") and the Chapter 1 story flow below describe pre-canon
+> content. The story and quest progression will be redesigned later; this
+> doc will be rewritten then.
+
 This document records the original design intent for the project. It describes the intended complete game. The current build implements Chapter 1 as a complete vertical slice. Items not yet implemented are marked **[FUTURE]**.
 
 ---

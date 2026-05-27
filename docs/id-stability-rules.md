@@ -1,5 +1,12 @@
 # ID Stability Rules
 
+> ⚠ **Pre-canon content tables.** The id stability principles below are
+> still authoritative, but some specific ids listed (e.g. `border_fields`,
+> `north_pass`, `ashenveil_road`) refer to the pre-canon world map and no
+> longer exist. See [`world-map-canon.md`](world-map-canon.md) for the
+> canonical world structure. This doc will be rewritten once story / region
+> identity design lands.
+
 Internal identifiers are the connective tissue of this codebase. They appear in data files, save data, dialogue sequences, world triggers, encounter tables, and NPC configs. Renaming or removing any id without a full audit is a breaking change.
 
 ---

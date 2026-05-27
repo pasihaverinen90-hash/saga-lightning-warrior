@@ -2,6 +2,11 @@
 
 Reverse-chronological record of significant changes. Entries are grouped by feature area. Save format changes are highlighted.
 
+> Note: pre-v7 map / location / story content described in older entries
+> below is **non-canon placeholder** under the new world map foundation.
+> See [`world-map-canon.md`](world-map-canon.md) for the canonical world
+> structure going forward.
+
 ---
 
 ## Save version history

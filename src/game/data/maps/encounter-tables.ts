@@ -71,7 +71,7 @@ export const ENCOUNTER_TABLES: Record<string, EncounterTable> = {
     regionId: 'eastern_frontier_zone',
     minStepsBeforeEncounter: 6,
     chancePerStep: 0.13,
-    backgroundId: 'bg_ashenveil_road',
+    backgroundId: 'bg_frontier',
     groups: [
       { enemyIds: ['ashenveil_patrol'],                            weight: 4 },
       { enemyIds: ['ashenveil_patrol', 'ashenveil_patrol'],        weight: 2 },

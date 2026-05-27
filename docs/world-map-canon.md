@@ -2,6 +2,8 @@
 
 This document points at the canonical reference images for the Elerion world map and states the rules for how they should be used by future implementation work.
 
+Current implementation aligned: commit `a659ee7` (`src/game/data/maps/elerion-world-config.ts`).
+
 ---
 
 ## Reference images

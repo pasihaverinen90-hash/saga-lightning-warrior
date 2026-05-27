@@ -1,5 +1,12 @@
 # Content Bible
 
+> ⚠ **Pre-canon content.** This doc was written before the world map canon
+> was set. See [`world-map-canon.md`](world-map-canon.md) for the canonical
+> world structure. Some location ids and display names below
+> (e.g. `border_fields`, `north_pass`, `ashenveil_road`, "Border Fields",
+> "Ashenveil Road") refer to the pre-canon layout and no longer exist in
+> code. This doc will be rewritten once story / region identity design lands.
+
 All canonical content identifiers and values. These ids are stable references used across data files, save data, dialogue, and world configuration. Do not rename any id without a full cross-reference audit and a `SAVE_VERSION` bump if the id is stored in save data. See `docs/id-stability-rules.md` for the full rules.
 
 ---

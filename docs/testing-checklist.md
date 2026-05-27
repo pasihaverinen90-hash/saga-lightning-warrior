@@ -1,5 +1,12 @@
 # Testing Checklist
 
+> ⚠ **Pre-canon content.** Some test items below reference pre-canon
+> location names (e.g. "Border Fields", "North Pass", "Ashenveil Road")
+> that no longer exist in the world map. See
+> [`world-map-canon.md`](world-map-canon.md) for the canonical world
+> structure. This doc will be rewritten once story / region identity
+> design lands.
+
 Manual test protocol. Run these checks after any non-trivial change. Each item is binary: pass or fail.
 
 Run `npm run typecheck` before everything else. TS2339 and TS2307 are expected ambient-type noise from absent `node_modules`. Any other `error TS` is a real failure that must be fixed before testing.

@@ -64,7 +64,7 @@ Application entry point. Constructs the Phaser game instance and registers all s
 |------|---------|
 | `save-types.ts` | `SaveData` type `{ version, timestamp, state }` and `SAVE_SLOT_KEY` constant |
 | `save-service.ts` | `saveGame()`, `loadGame()`, `hasSaveData()`, `deleteSave()`, `getSaveMeta()` — the only file that touches `localStorage` |
-| `save-version.ts` | `SAVE_VERSION = 5` with full version history in comments |
+| `save-version.ts` | `SAVE_VERSION = 7` with full version history in comments |
 
 **Version history:**
 
@@ -92,7 +92,7 @@ All files are pure TypeScript — no Phaser, no `localStorage`. No import from `
 | `equipment/equipment.ts` | `EQUIPMENT` record — all `EquipmentDef` objects |
 | `equipment/equipment-system.ts` | `resolveEffectiveStats(member)` — applies equipment bonuses over base stats. Pure, no mutations. |
 | `maps/locations.ts` | `LOCATIONS` record — all `LocationDef` objects |
-| `maps/world-map-config.ts` | `BORDER_FIELDS_CONFIG` — world map triggers, zones, collision, player spawn |
+| `maps/elerion-world-config.ts` | `ELERION_WORLD_CONFIG` — world map dimensions, regions, roads, rivers, landmarks, collision, triggers, zones, sea routes. Canonical foundation (see `docs/world-map-canon.md`) |
 | `maps/lumen-town-config.ts` | `LUMEN_TOWN_CONFIG` — Lumen Town layout, NPCs, interactables |
 | `maps/ashenveil-town-config.ts` | `ASHENVEIL_TOWN_CONFIG` — Ashenveil layout, NPCs, interactables |
 | `maps/encounter-tables.ts` | `ENCOUNTER_TABLES` — per-zone enemy groups, weights, step thresholds |
