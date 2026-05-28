@@ -86,6 +86,20 @@ const DEBUG_FPS = false;
 // Town entrances overwrite this with their own locationId on trigger activation.
 const WORLD_LOCATION_ID = 'world_map';
 
+/**
+ * Returns true when the URL query contains `?worldDebug=1`. Used to gate the
+ * temporary world-map debug traversal mode (no-clip + encounter toggle).
+ * Normal play does NOT pass this flag, so all debug behaviour is opt-in.
+ */
+function isWorldDebugEnabled(): boolean {
+  if (typeof window === 'undefined' || !window.location) return false;
+  try {
+    return new URLSearchParams(window.location.search).get('worldDebug') === '1';
+  } catch {
+    return false;
+  }
+}
+
 // ─── Scene ────────────────────────────────────────────────────────────────────
 
 export class WorldMapScene extends Phaser.Scene {
@@ -107,6 +121,14 @@ export class WorldMapScene extends Phaser.Scene {
 
   // ── Debug ──────────────────────────────────────────────────────────────────
   private fpsText: Phaser.GameObjects.Text | null = null;
+
+  /** Temporary world-map debug traversal mode, gated by ?worldDebug=1. */
+  private worldDebugEnabled = false;
+  private noClipActive       = false;
+  private encountersDisabled = false;
+  private keyDebugNoClip!:     Phaser.Input.Keyboard.Key;
+  private keyDebugEncounters!: Phaser.Input.Keyboard.Key;
+  private debugText: Phaser.GameObjects.Text | null = null;
 
   // ── State ──────────────────────────────────────────────────────────────────
   private activeTrigger: WorldTrigger | null = null;
@@ -146,6 +168,12 @@ export class WorldMapScene extends Phaser.Scene {
     this.locationUpdateAccum = 0;
     this.locationDirty       = false;
     this.encounterTracker.onBattleFired();
+
+    // Debug mode is re-evaluated each scene.start() so the URL flag can flip
+    // on/off across reloads without restarting the game. Toggle state resets.
+    this.worldDebugEnabled = isWorldDebugEnabled();
+    this.noClipActive       = false;
+    this.encountersDisabled = false;
   }
 
   // ─── create ───────────────────────────────────────────────────────────────
@@ -195,6 +223,19 @@ export class WorldMapScene extends Phaser.Scene {
       return;
     }
 
+    // Debug-only toggles. The keys are only registered when worldDebugEnabled,
+    // so this block does nothing in normal play.
+    if (this.worldDebugEnabled) {
+      if (Phaser.Input.Keyboard.JustDown(this.keyDebugNoClip)) {
+        this.noClipActive = !this.noClipActive;
+        this.updateDebugText();
+      }
+      if (Phaser.Input.Keyboard.JustDown(this.keyDebugEncounters)) {
+        this.encountersDisabled = !this.encountersDisabled;
+        this.updateDebugText();
+      }
+    }
+
     // Clamp delta to prevent teleport-jumps after tab-switches, GC pauses,
     // or any single-frame spike. Normal 16.7 ms frames pass through unchanged.
     const movementDelta = Math.min(delta, MAX_DELTA_MS);
@@ -204,6 +245,10 @@ export class WorldMapScene extends Phaser.Scene {
     const prevX = this.px;
     const prevY = this.py;
 
+    // No-clip (debug only) bypasses every collisionRect while still passing
+    // map width/height — the player remains clamped inside the world bounds.
+    const activeCollisionRects = this.noClipActive ? [] : CFG.collisionRects;
+
     const result = computeMovement(
       this.px, this.py,
       input,
@@ -211,7 +256,7 @@ export class WorldMapScene extends Phaser.Scene {
       movementDelta,
       MAP_W, MAP_H,
       PLAYER_W, PLAYER_H,
-      CFG.collisionRects,
+      activeCollisionRects,
     );
 
     this.px = result.x;
@@ -248,7 +293,7 @@ export class WorldMapScene extends Phaser.Scene {
       this.previousZoneId = currentZoneId;
     }
 
-    if (result.moving && this.activeZone?.type === 'encounter') {
+    if (result.moving && !this.encountersDisabled && this.activeZone?.type === 'encounter') {
       const table = ENCOUNTER_TABLES[this.activeZone.id];
       if (table) {
         const dx = result.x - prevX;
@@ -366,16 +411,44 @@ export class WorldMapScene extends Phaser.Scene {
   // ─────────────────────────────────────────────────────────────────────────
 
   private createDebugOverlay(): void {
-    if (!DEBUG_FPS) return;
-    this.fpsText = this.add.text(8, 8, 'fps —', {
-      fontFamily: FONTS.ui,
-      fontSize: '12px',
-      color: '#F3EBD2',
-      stroke: '#000000',
-      strokeThickness: 3,
-    })
-      .setScrollFactor(0)
-      .setDepth(1000);
+    if (DEBUG_FPS) {
+      this.fpsText = this.add.text(8, 8, 'fps —', {
+        fontFamily: FONTS.ui,
+        fontSize: '12px',
+        color: '#F3EBD2',
+        stroke: '#000000',
+        strokeThickness: 3,
+      })
+        .setScrollFactor(0)
+        .setDepth(1000);
+    }
+
+    // World-debug overlay is added only when the URL flag is set, so
+    // normal play sees nothing here. Placed at the top-left corner with
+    // small font + scrollFactor 0 to stay clear of the viewport edges
+    // at WORLD_MAP_ZOOM. Positioned below the optional FPS readout.
+    if (this.worldDebugEnabled) {
+      const y = DEBUG_FPS ? 30 : 8;
+      this.debugText = this.add.text(8, y, '', {
+        fontFamily: FONTS.ui,
+        fontSize: '10px',
+        color: '#F3EBD2',
+        stroke: '#000000',
+        strokeThickness: 3,
+      })
+        .setScrollFactor(0)
+        .setDepth(1000);
+      this.updateDebugText();
+    }
+  }
+
+  private updateDebugText(): void {
+    if (!this.debugText) return;
+    const nc = this.noClipActive       ? 'ON'  : 'OFF';
+    const en = this.encountersDisabled ? 'OFF' : 'ON';
+    this.debugText.setText(
+      `WORLD DEBUG\nN: NoClip ${nc}\nE: Encounters ${en}`,
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -391,6 +464,13 @@ export class WorldMapScene extends Phaser.Scene {
       D: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D),
     };
     this.keyMenu = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.M);
+
+    // Debug-only keys. Registered only when worldDebugEnabled so they don't
+    // intercept any future repurposing of N / E in normal gameplay.
+    if (this.worldDebugEnabled) {
+      this.keyDebugNoClip     = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.N);
+      this.keyDebugEncounters = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+    }
   }
 
   private openMenu(): void {
