@@ -201,10 +201,11 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
       height: BRIDGEFORD_Y_END - BRIDGEFORD_Y_START,
       terrainKind: 'rocky',
     },
-    // South-upper segment (Bridgeford to bend)
+    // South-upper segment (Bridgeford to bend) — label suppressed; the
+    // `verdant_river_n` segment carries the single visible river label.
     {
       id: 'verdant_river_s1',
-      displayName: 'Verdant River',
+      displayName: '',
       x: VRIVER_X, y: BRIDGEFORD_Y_END,
       width: VRIVER_W,
       height: VRIVER_BEND_Y_START - BRIDGEFORD_Y_END,
@@ -213,7 +214,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // Bend connector — horizontal stretch where the river shifts west
     {
       id: 'verdant_river_bend',
-      displayName: 'Verdant River',
+      displayName: '',
       x: VRIVER_BEND_X, y: VRIVER_BEND_Y_START,
       width: VRIVER_BEND_W,
       height: VRIVER_BEND_Y_END - VRIVER_BEND_Y_START,
@@ -222,7 +223,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // South-lower segment (post-bend, shifted west)
     {
       id: 'verdant_river_s2',
-      displayName: 'Verdant River',
+      displayName: '',
       x: VRIVER_SOUTH_X, y: VRIVER_BEND_Y_END,
       width: VRIVER_W,
       height: MAP_H - VRIVER_BEND_Y_END,
@@ -232,9 +233,11 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // ── Central sea islands (5 distributed N→S to match reference) ──
     { id: 'whisper_isle',    displayName: 'Whisper Isle',
       x: 2460, y: 380,  width: 160, height: 110, terrainKind: 'sand' },
-    { id: 'lighthouse_isle', displayName: 'Lighthouse Isle',
+    // lighthouse_isle / merchant_atoll: reserved for future side content;
+    // labels hidden so only the three canonical islands name themselves.
+    { id: 'lighthouse_isle', displayName: '',
       x: 2700, y: 840,  width: 140, height: 110, terrainKind: 'sand' },
-    { id: 'merchant_atoll',  displayName: 'Merchant Atoll',
+    { id: 'merchant_atoll',  displayName: '',
       x: 2460, y: 1320, width: 220, height: 160, terrainKind: 'sand' },
     { id: 'storm_isle',      displayName: 'Saint’s Isle',
       x: 2760, y: 1820, width: 180, height: 140, terrainKind: 'rocky' },
@@ -540,11 +543,14 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
 
   // ── Encounter zones (most-specific first) ──────────────────────────────────
   zones: [
+    // Thornwood encounter zone starts east of the Dawnkeep landmark so the
+    // game opens in a safe area; the visual `thornwood_region` corruption
+    // patch is unchanged and still surrounds the village for tone.
     {
       id: 'thornwood_zone',
       displayName: 'Thornwood',
       type: 'encounter',
-      x: 100, y: 2280, width: 960, height: 580,
+      x: 320, y: 2280, width: 740, height: 580,
     },
     {
       id: 'mountain_pass_zone',
@@ -566,7 +572,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     },
     {
       id: 'eastern_frontier_zone',
-      displayName: 'Greymarsh Frontier',
+      displayName: 'Greymarsh Wilds',
       type: 'encounter',
       x: EAST_X_START, y: 1400, width: IRIVER_X - EAST_X_START, height: 1420,
     },
