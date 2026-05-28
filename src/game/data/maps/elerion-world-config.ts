@@ -1,35 +1,42 @@
 // src/game/data/maps/elerion-world-config.ts
 //
 // Layout configuration for the world of Elerion (5120 × 2880).
-// Reference-aligned greybox: structure follows the Saga of the Lightning
-// Warrior world-map concept image — two continents, central sea, Suikoden
-// II-style overworld.
+// Canonical-name aligned: visible labels follow the reference image at
+// docs/reference/world-map-overview.png; see docs/world-map-canon.md for
+// the canonical place-names table.
 //
-// Western continent layout (matches reference):
-//   - Northern Tundra band along the very top (snow strip across the
-//     entire west land mass).
-//   - Northwind Peaks — NW mountain cluster.
-//   - Spine Mountains — horizontal band south of the tundra, with a
-//     north-south pass at x:1100-1300 leading from the central plains
-//     up into Northern Tundra. Mountain Gate City sits at the pass.
-//   - Evergreen Forest mid-west, threaded by the main road.
-//   - Verdant River runs N→S with a gentle bend south of Bridgeford
-//     (the river crossing east of Lumen).
-//   - Start Village (Hawthorn-like) deep SW.
-//   - Lumen — the central capital, west of the river.
-//   - West Port on the SE coast of the western continent.
-//   - Highland Ruins on the western coast, Saint's Sanctuary mid-south.
+// IMPORTANT: technical ids (e.g. `lumen_town`, `lm_start_village`,
+// `vergant_fields`) are kept stable even though their visible names have
+// been replaced with canon names. Don't rename ids without a SAVE_VERSION
+// bump and a full audit.
 //
-// Central sea: 5 placeholder islands distributed N→S
-//   (Whisper, Lighthouse, Merchant Atoll, Storm Shrine, Tempest Spire).
+// Western continent layout (canonical names):
+//   - Frostnorth Tundra band along the very top (snow strip).
+//   - Silverwall Mountains form the horizontal top barrier, split by a
+//     north-south Northwind Pass at x:1100-1300. Stonegate sits at the
+//     pass. The NW snow cluster (`northwind_peaks`) is part of the
+//     Silverwall range; its label is hidden as a sub-cluster.
+//   - Everdawn Forest mid-west, threaded by the main road.
+//   - Verdant River runs N→S with a gentle bend south of the Bridgeford
+//     bridge (the river crossing at Riverdale, east of Eldric).
+//   - Dawnkeep (start village) deep SW.
+//   - Eldric — the central capital, west of the river.
+//   - Harborwatch on the SE coast of the western continent.
+//   - Highland Ruins on the west coast, Light's Sanctuary mid-south.
 //
-// Eastern continent layout:
-//   - East Port (Ashenveil) on the west coast.
-//   - Frontier Town inland east of the port.
-//   - River City / Ironbridge at the Ironflow River crossing.
-//   - War Fortress beyond the river.
-//   - Ancient Ruins south-east.
-//   - Dark Citadel in the far NE within Black Reach corruption.
+// Central sea: structurally five island placeholders distributed N→S.
+// Visible canon labels: Whisper Isle, Tempest Isles, Saint's Isle.
+// The two non-canon island placeholders (`lighthouse_isle`, `merchant_atoll`)
+// keep their geometry but their labels are hidden — reserved for future
+// side content.
+//
+// Eastern continent layout (canonical names):
+//   - Dreadshore on the west coast (arrival port).
+//   - Riverrun at the Ironflow River crossing (Iron Bridge).
+//   - Warfortress beyond the river.
+//   - Twilight Grove — eastern dark/corrupted forest.
+//   - Greymarsh Wilds — broader eastern wild region (base terrain).
+//   - Black Citadel in the far NE.
 //
 // Collision invariants (single source of truth — visible water/wall = block):
 //   - River regions (terrainKind 'sea') and their matching collisionRects
@@ -38,10 +45,10 @@
 //   - Mountain regions and their matching collisionRects share coords.
 //
 // Travel chokepoints:
-//   - Bridgeford (Verdant River, x:1400-1480, gap y:1040-1180).
+//   - Bridgeford bridge (Verdant River, x:1400-1480, gap y:1040-1180).
 //   - Iron Bridge (Ironflow River, x:3900-4000, gap y:1200-1320).
-//   - Mountain Pass (Spine Mts top band, gap x:1100-1300, y:280-500).
-//   - Central Sea (x:2400-3200) blocks all foot travel between continents.
+//   - Northwind Pass (Silverwall Mts top band, gap x:1100-1300, y:280-500).
+//   - Central Sea (x:2300-3200) blocks all foot travel between continents.
 //
 // TODO: story/quest triggers will be redesigned later. The old 'Investigate
 // Clearing' (Grove Warden) trigger is disabled. Enemy + dialogue data remain
@@ -63,16 +70,16 @@ const SEA_X_END    = 3200;            // central sea x: 2300–3200
 const EAST_X_START = 3200;
 const EAST_X_END   = 5040;            // eastern continent x: 3200–5040
 
-// Northern Tundra strip (top, full western continent)
+// Frostnorth Tundra strip (top, full western continent)
 const TUNDRA_Y_START = OUTER_OCEAN;
 const TUNDRA_Y_END   = 280;
 
-// Spine Mountains — horizontal top band, north-south pass through it.
+// Silverwall Mountains — horizontal top band, with Northwind Pass through it.
 const MTN_BAND_Y_START = TUNDRA_Y_END;     // 280
 const MTN_BAND_Y_END   = 500;
 const PASS_X_START     = 1100;
 const PASS_X_END       = 1300;
-// Northwind Peaks NW cluster (west of the pass, extends below the top band)
+// Northwind Peaks NW sub-cluster of Silverwall (west of the pass, extends below the top band)
 const NORTHWIND_X      = 120;
 const NORTHWIND_Y      = MTN_BAND_Y_START;
 const NORTHWIND_W      = 580;
@@ -102,8 +109,8 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
   mapWidth:  MAP_W,
   mapHeight: MAP_H,
 
-  // Start Village (Hawthorn-style) in the SW corner. Spawn just north of
-  // Thornwood so the game opens in a safe zone.
+  // Dawnkeep (start village) in the SW corner. Spawn just north of the
+  // corrupted-forest edge so the game opens in a safe area.
   playerStartX: 220,
   playerStartY: 2740,
 
@@ -114,42 +121,42 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // Western continent plains base
     {
       id: 'vergant_fields',
-      displayName: 'Vergant Fields',
+      displayName: 'Verdant Fields',
       x: WEST_X_START, y: OUTER_OCEAN,
       width: WEST_X_END - WEST_X_START,
       height: MAP_H - OUTER_OCEAN * 2,
       terrainKind: 'plains',
     },
-    // Northern Tundra snow band along the top
+    // Frostnorth Tundra snow band along the top
     {
       id: 'northern_tundra',
-      displayName: 'Northern Tundra',
+      displayName: 'Frostnorth Tundra',
       x: WEST_X_START, y: TUNDRA_Y_START,
       width: WEST_X_END - WEST_X_START,
       height: TUNDRA_Y_END - TUNDRA_Y_START,
       terrainKind: 'snow',
     },
-    // Northwind Peaks — NW snowy mountain cluster
+    // Northwind Peaks — NW snowy sub-cluster of Silverwall Mountains
     {
       id: 'northwind_peaks',
-      displayName: 'Northwind Peaks',
+      displayName: '',
       x: NORTHWIND_X, y: NORTHWIND_Y,
       width: NORTHWIND_W, height: NORTHWIND_H,
       terrainKind: 'mountain',
     },
-    // Spine Mountains — top band west of the pass
+    // Silverwall Mountains — top band west of the pass
     {
       id: 'spine_band_west',
-      displayName: 'Spine Mountains',
+      displayName: 'Silverwall Mountains',
       x: NORTHWIND_X + NORTHWIND_W, y: MTN_BAND_Y_START,
       width: PASS_X_START - (NORTHWIND_X + NORTHWIND_W),
       height: MTN_BAND_Y_END - MTN_BAND_Y_START,
       terrainKind: 'mountain',
     },
-    // Spine Mountains — top band east of the pass
+    // Silverwall Mountains — top band east of the pass
     {
       id: 'spine_band_east',
-      displayName: 'Spine Mountains',
+      displayName: 'Silverwall Mountains',
       x: PASS_X_END, y: MTN_BAND_Y_START,
       width: WEST_X_END - PASS_X_END - 100,   // leaves a coastal sliver
       height: MTN_BAND_Y_END - MTN_BAND_Y_START,
@@ -159,19 +166,19 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // Western forests
     {
       id: 'evergreen_forest',
-      displayName: 'Evergreen Forest',
+      displayName: 'Everdawn Forest',
       x: 200, y: 800, width: 620, height: 540,
       terrainKind: 'forest',
     },
     {
       id: 'lumen_grove',
-      displayName: 'Lumen Grove',
+      displayName: '',
       x: 780, y: 1300, width: 340, height: 260,
       terrainKind: 'forest',
     },
     {
       id: 'thornwood_region',
-      displayName: 'Thornwood',
+      displayName: '',
       x: 120, y: 2300, width: 920, height: 540,
       terrainKind: 'corrupted_forest',
     },
@@ -229,15 +236,15 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
       x: 2700, y: 840,  width: 140, height: 110, terrainKind: 'sand' },
     { id: 'merchant_atoll',  displayName: 'Merchant Atoll',
       x: 2460, y: 1320, width: 220, height: 160, terrainKind: 'sand' },
-    { id: 'storm_isle',      displayName: 'Storm Shrine Isle',
+    { id: 'storm_isle',      displayName: 'Saint’s Isle',
       x: 2760, y: 1820, width: 180, height: 140, terrainKind: 'rocky' },
-    { id: 'tempest_spire',   displayName: 'Tempest Spire',
+    { id: 'tempest_spire',   displayName: 'Tempest Isles',
       x: 2480, y: 2280, width: 160, height: 120, terrainKind: 'sand' },
 
     // Eastern continent rocky base
     {
       id: 'greymarch_wilds',
-      displayName: 'Greymarch Wilds',
+      displayName: 'Greymarsh Wilds',
       x: EAST_X_START, y: OUTER_OCEAN,
       width: EAST_X_END - EAST_X_START,
       height: MAP_H - OUTER_OCEAN * 2,
@@ -246,7 +253,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // Frontier dust band south of the river
     {
       id: 'eastern_dustlands',
-      displayName: 'Greymarch Dustlands',
+      displayName: '',
       x: EAST_X_START, y: 1700,
       width: IRIVER_X - EAST_X_START,
       height: MAP_H - 1700 - OUTER_OCEAN,
@@ -255,7 +262,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // Ironflow River (eastern) — same single-source-of-truth pattern
     {
       id: 'ironflow_river_n',
-      displayName: 'Ironflow River',
+      displayName: '',
       x: IRIVER_X, y: OUTER_OCEAN,
       width: IRIVER_W,
       height: IBRIDGE_Y_START - OUTER_OCEAN,
@@ -263,7 +270,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     },
     {
       id: 'ironflow_river_s',
-      displayName: 'Ironflow River',
+      displayName: '',
       x: IRIVER_X, y: IBRIDGE_Y_END,
       width: IRIVER_W,
       height: (MAP_H - OUTER_OCEAN) - IBRIDGE_Y_END,
@@ -271,7 +278,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     },
     {
       id: 'iron_bridge',
-      displayName: 'Iron Bridge',
+      displayName: '',
       x: IRIVER_X, y: IBRIDGE_Y_START,
       width: IRIVER_W,
       height: IBRIDGE_Y_END - IBRIDGE_Y_START,
@@ -280,23 +287,23 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // Twilight Marches east of the river
     {
       id: 'twilight_marches',
-      displayName: 'Twilight Marches',
+      displayName: '',
       x: IRIVER_X + IRIVER_W, y: OUTER_OCEAN,
       width: EAST_X_END - (IRIVER_X + IRIVER_W),
       height: MAP_H - OUTER_OCEAN * 2,
       terrainKind: 'dust',
     },
-    // Blackwoods (eastern forest) south-central
+    // Twilight Grove (eastern dark forest) south-central
     {
       id: 'blackwoods',
-      displayName: 'Blackwoods',
+      displayName: 'Twilight Grove',
       x: 4040, y: 1800, width: 540, height: 460,
       terrainKind: 'corrupted_forest',
     },
     // Black Reach corruption belt — far NE
     {
       id: 'black_reach',
-      displayName: 'Black Reach',
+      displayName: '',
       x: 4620, y: OUTER_OCEAN,
       width: EAST_X_END - 4620,
       height: 1100,
@@ -306,13 +313,13 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
 
   // ── Roads ──────────────────────────────────────────────────────────────────
   roads: [
-    // West main road: Start Village → Lumen south gate (~3300 px @ 150 px/s ≈ 22s)
+    // West main road: Dawnkeep → Eldric south gate (~3300 px @ 150 px/s ≈ 22s)
     {
       id: 'west_main_road',
       width: 10,
       style: 'dirt',
       points: [
-        { x: 200, y: 2780 },    // Start Village
+        { x: 200, y: 2780 },    // Dawnkeep
         { x: 340, y: 2680 },
         { x: 520, y: 2580 },
         { x: 680, y: 2460 },
@@ -327,31 +334,31 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
         { x: 520, y: 1080 },
         { x: 680, y:  990 },
         { x: 860, y:  920 },
-        { x: 1080, y: 880 },    // Lumen south gate
-        // Lumen → Bridgeford → Mountain Gate region
+        { x: 1080, y: 880 },    // Eldric south gate
+        // Eldric → Riverdale (Bridgeford bridge) → Stonegate region
         { x: 1240, y: 1000 },
         { x: 1380, y: 1080 },
         { x: 1480, y: 1100 },   // Bridgeford bridge crossing
         { x: 1640, y: 1200 },
         { x: 1820, y: 1380 },
         { x: 2000, y: 1580 },
-        { x: 2120, y: 1820 },   // West Port
+        { x: 2120, y: 1820 },   // Harborwatch
       ],
     },
-    // North branch from Lumen up through the Mountain Pass to Northern Tundra
+    // North branch from Eldric up through the Northwind Pass to Frostnorth Tundra
     {
       id: 'mountain_pass_road',
       width: 8,
       style: 'dirt',
       points: [
-        { x: 1080, y: 880 },    // Lumen north
+        { x: 1080, y: 880 },    // Eldric north
         { x: 1120, y: 660 },
         { x: 1180, y: 500 },    // pass entry
-        { x: 1180, y: 380 },    // Mountain Gate
-        { x: 1180, y: 200 },    // into Northern Tundra
+        { x: 1180, y: 380 },    // Stonegate
+        { x: 1180, y: 200 },    // into Frostnorth Tundra
       ],
     },
-    // Western shrine branch — Forest Shrine in Evergreen Forest
+    // Western shrine branch (reserved side-content; landmark label hidden)
     {
       id: 'west_shrine_branch',
       width: 8,
@@ -368,14 +375,14 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
       width: 10,
       style: 'dirt',
       points: [
-        { x: 3320, y: 1520 },   // East Port (Ashenveil)
+        { x: 3320, y: 1520 },   // Dreadshore
         { x: 3520, y: 1460 },
         { x: 3700, y: 1380 },
         { x: 3840, y: 1280 },
         { x: 3950, y: 1260 },   // bridge entry
         { x: 4050, y: 1260 },   // bridge exit
         { x: 4200, y: 1100 },
-        { x: 4280, y: 800 },    // War Fortress
+        { x: 4280, y: 800 },    // Warfortress
       ],
     },
     {
@@ -403,47 +410,47 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
   // ── Landmarks (visual + label, no collision; triggers below for entries) ───
   landmarks: [
     // Western continent
-    { id: 'lm_start_village',   kind: 'village',  label: 'Start Village',
+    { id: 'lm_start_village',   kind: 'village',  label: 'Dawnkeep',
       x: 140, y: 2740, width: 130, height: 110 },
     { id: 'lm_highland_ruins',  kind: 'ruin',     label: 'Highland Ruins',
       x: 140, y: 1660, width: 110, height: 90 },
-    { id: 'lm_forest_shrine',   kind: 'shrine',   label: 'Forest Shrine',
+    { id: 'lm_forest_shrine',   kind: 'shrine',   label: '',
       x: 320, y: 660,  width: 110, height: 90 },
-    { id: 'lm_lumen_capital',   kind: 'capital',  label: 'Lumen',
+    { id: 'lm_lumen_capital',   kind: 'capital',  label: 'Eldric',
       x: 1000, y: 720, width: 180, height: 160 },
-    { id: 'lm_saints_sanctuary',kind: 'shrine',   label: 'Saint’s Sanctuary',
+    { id: 'lm_saints_sanctuary',kind: 'shrine',   label: 'Light’s Sanctuary',
       x: 880, y: 2440, width: 130, height: 110 },
-    { id: 'lm_bridgeford',      kind: 'village',  label: 'Bridgeford',
+    { id: 'lm_bridgeford',      kind: 'village',  label: 'Riverdale',
       x: 1390, y: 1020, width: 200, height: 160 },
-    { id: 'lm_mountain_gate',   kind: 'gate',     label: 'Mountain Gate',
+    { id: 'lm_mountain_gate',   kind: 'gate',     label: 'Stonegate',
       x: 1100, y: 300,  width: 200, height: 200 },
-    { id: 'lm_west_port',       kind: 'port',     label: 'West Port',
+    { id: 'lm_west_port',       kind: 'port',     label: 'Harborwatch',
       x: 2080, y: 1800, width: 140, height: 120 },
 
     // Central sea islands
     { id: 'lm_whisper',     kind: 'island',  label: 'Whisper Isle',
       x: 2470, y: 400,  width: 130, height: 90 },
-    { id: 'lm_lighthouse',  kind: 'island',  label: 'Lighthouse Isle',
+    { id: 'lm_lighthouse',  kind: 'island',  label: '',
       x: 2710, y: 860,  width: 120, height: 90 },
-    { id: 'lm_merchant',    kind: 'island',  label: 'Merchant Atoll',
+    { id: 'lm_merchant',    kind: 'island',  label: '',
       x: 2490, y: 1340, width: 170, height: 130 },
-    { id: 'lm_storm',       kind: 'island',  label: 'Storm Shrine',
+    { id: 'lm_storm',       kind: 'island',  label: 'Saint’s Isle',
       x: 2780, y: 1840, width: 130, height: 110 },
-    { id: 'lm_tempest',     kind: 'island',  label: 'Tempest Spire',
+    { id: 'lm_tempest',     kind: 'island',  label: 'Tempest Isles',
       x: 2500, y: 2300, width: 120, height: 100 },
 
     // Eastern continent
-    { id: 'lm_east_port',      kind: 'port',     label: 'East Port (Ashenveil)',
+    { id: 'lm_east_port',      kind: 'port',     label: 'Dreadshore',
       x: 3280, y: 1500, width: 140, height: 110 },
-    { id: 'lm_frontier_town',  kind: 'town',     label: 'Frontier Town',
+    { id: 'lm_frontier_town',  kind: 'town',     label: '',
       x: 3580, y: 1380, width: 120, height: 100 },
-    { id: 'lm_river_city',     kind: 'gate',     label: 'River City (Ironbridge)',
+    { id: 'lm_river_city',     kind: 'gate',     label: 'Riverrun',
       x: 3800, y: 1180, width: 150, height: 120 },
-    { id: 'lm_ancient_ruins',  kind: 'ruin',     label: 'Ancient Ruins',
+    { id: 'lm_ancient_ruins',  kind: 'ruin',     label: '',
       x: 4320, y: 1780, width: 130, height: 100 },
-    { id: 'lm_war_fortress',   kind: 'fortress', label: 'War Fortress',
+    { id: 'lm_war_fortress',   kind: 'fortress', label: 'Warfortress',
       x: 4220, y: 720,  width: 150, height: 130 },
-    { id: 'lm_dark_citadel',   kind: 'citadel',  label: 'Dark Citadel',
+    { id: 'lm_dark_citadel',   kind: 'citadel',  label: 'Black Citadel',
       x: 4760, y: 280,  width: 170, height: 150 },
   ],
 
@@ -463,11 +470,11 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     // Northwind Peaks (matches region)
     { x: NORTHWIND_X, y: NORTHWIND_Y,
       width: NORTHWIND_W, height: NORTHWIND_H },
-    // Spine Mountains top band — west of pass (matches region)
+    // Silverwall Mountains top band — west of pass (matches region)
     { x: NORTHWIND_X + NORTHWIND_W, y: MTN_BAND_Y_START,
       width: PASS_X_START - (NORTHWIND_X + NORTHWIND_W),
       height: MTN_BAND_Y_END - MTN_BAND_Y_START },
-    // Spine Mountains top band — east of pass (matches region)
+    // Silverwall Mountains top band — east of pass (matches region)
     { x: PASS_X_END, y: MTN_BAND_Y_START,
       width: WEST_X_END - PASS_X_END - 100,
       height: MTN_BAND_Y_END - MTN_BAND_Y_START },
@@ -500,7 +507,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     {
       id: 'lumen_town_entrance',
       x: 1060, y: 870, width: 90, height: 110,
-      label: 'Enter Lumen',
+      label: 'Enter Eldric',
       targetSceneKey: 'TownScene',
       targetLocationId: 'lumen_town',
     },
@@ -525,7 +532,7 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     {
       id: 'east_port_entrance',
       x: 3280, y: 1500, width: 140, height: 110,
-      label: 'Enter Ashenveil',
+      label: 'Enter Dreadshore',
       targetSceneKey: 'TownScene',
       targetLocationId: 'ashenveil_town',
     },
@@ -541,31 +548,31 @@ export const ELERION_WORLD_CONFIG: WorldMapConfig = {
     },
     {
       id: 'mountain_pass_zone',
-      displayName: 'Mountain Pass',
+      displayName: 'Northwind Pass',
       type: 'encounter',
       x: 1060, y: 280, width: 280, height: 440,
     },
     {
       id: 'western_forest_zone',
-      displayName: 'Evergreen Forest',
+      displayName: 'Everdawn Forest',
       type: 'encounter',
       x: 180, y: 780, width: 660, height: 560,
     },
     {
       id: 'northern_tundra_zone',
-      displayName: 'Northern Tundra',
+      displayName: 'Frostnorth Tundra',
       type: 'encounter',
       x: 80, y: 60, width: WEST_X_END - 80, height: TUNDRA_Y_END - 60,
     },
     {
       id: 'eastern_frontier_zone',
-      displayName: 'Greymarch Frontier',
+      displayName: 'Greymarsh Frontier',
       type: 'encounter',
       x: EAST_X_START, y: 1400, width: IRIVER_X - EAST_X_START, height: 1420,
     },
     {
       id: 'eastern_warfields_zone',
-      displayName: 'Twilight Marches',
+      displayName: 'Twilight Grove',
       type: 'encounter',
       x: IRIVER_X + IRIVER_W, y: 60, width: 620, height: 2760,
     },

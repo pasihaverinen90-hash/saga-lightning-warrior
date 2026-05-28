@@ -32,13 +32,13 @@ export const LOCATIONS: Record<string, LocationDef> = {
   // Towns with full TownScene implementations.
   lumen_town: {
     id: 'lumen_town',
-    displayName: 'Lumen',
+    displayName: 'Eldric',
     encounterEnabled: false,
     sceneType: 'town',
   },
   ashenveil_town: {
     id: 'ashenveil_town',
-    displayName: 'Ashenveil',
+    displayName: 'Dreadshore',
     encounterEnabled: false,
     sceneType: 'town',
   },
@@ -52,7 +52,7 @@ export const LOCATIONS: Record<string, LocationDef> = {
   },
   mountain_pass: {
     id: 'mountain_pass',
-    displayName: 'Mountain Pass',
+    displayName: 'Northwind Pass',
     encounterEnabled: true,
     sceneType: 'world',
   },
