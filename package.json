@@ -10,7 +10,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "ci": "tsc --noEmit && vite build"
+    "assets": "node tools/asset-pipeline/index.mjs",
+    "assets:preview": "node tools/asset-pipeline/preview-maps.mjs --scale 0.3",
+    "ci": "tsc --noEmit && node tools/asset-pipeline/validate-maps.mjs && vite build",
+    "assets:validate": "node tools/asset-pipeline/validate-maps.mjs"
   },
   "dependencies": {
     "phaser": "^3.60.0"

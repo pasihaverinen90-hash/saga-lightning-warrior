@@ -18,8 +18,10 @@ import { SCENE_KEYS } from './scene-keys';
 import type { GameState } from '../state/game-state-types';
 import type { WorldMapInitData } from '../world/types/world-types';
 import type { TownInitData } from '../town/types/town-types';
-import { PLAYER_W, PLAYER_H } from '../shared/constants/player';
+import type { TileMapInitData } from '../maps/map-types';
+import { PLAYER_W, PLAYER_H, PLAYER_BODY_W, PLAYER_BODY_H } from '../shared/constants/player';
 import { LOCATIONS } from '../data/maps/locations';
+import { isTileMapId, STARTING_MAP_ID, STARTING_SPAWN_ID } from '../maps/map-registry';
 
 export interface ResumeTarget {
   sceneKey: string;
@@ -36,6 +38,20 @@ export interface ResumeTarget {
  */
 export function getResumeScene(state: GameState): ResumeTarget {
   const { locationId, x, y } = state.currentLocation;
+
+  // Tilemaps are checked first: their ids are the authoritative map list, and
+  // they use the smaller feet-sized collision body rather than the legacy
+  // full-sprite hitbox, so the centre→top-left conversion differs.
+  if (isTileMapId(locationId)) {
+    return {
+      sceneKey: SCENE_KEYS.TILE_MAP,
+      initData: {
+        mapId: locationId,
+        startX: Math.max(0, Math.round(x - PLAYER_BODY_W / 2)),
+        startY: Math.max(0, Math.round(y - PLAYER_BODY_H / 2)),
+      } satisfies TileMapInitData,
+    };
+  }
 
   // Convert center → top-left (scenes store positions as top-left internally).
   const topLeftX = Math.max(0, Math.round(x - PLAYER_W / 2));
@@ -54,8 +70,19 @@ export function getResumeScene(state: GameState): ResumeTarget {
     };
   }
 
+  // An unrecognised locationId means the save predates the tilemap rebuild or
+  // names a location that no longer exists. SAVE_VERSION gating should already
+  // have rejected those, so this is a last-resort fallback: start the player at
+  // the beginning of the travel map rather than at coordinates from a map that
+  // is no longer loaded.
   return {
-    sceneKey: SCENE_KEYS.WORLD_MAP,
-    initData: { returnX: topLeftX, returnY: topLeftY } satisfies WorldMapInitData,
+    sceneKey: SCENE_KEYS.TILE_MAP,
+    initData: {
+      mapId: STARTING_MAP_ID,
+      spawnId: STARTING_SPAWN_ID,
+    } satisfies TileMapInitData,
   };
 }
+
+/** Retained so the legacy world-map init shape stays exercised by the compiler. */
+export type LegacyWorldResume = WorldMapInitData;

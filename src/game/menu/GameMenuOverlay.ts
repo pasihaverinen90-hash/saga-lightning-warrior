@@ -531,7 +531,7 @@ export class GameMenuOverlay extends Phaser.Scene {
       this.scene.stop(SCENE_KEYS.DIALOGUE_OVERLAY);
     }
     this.scene.stop(SCENE_KEYS.TOWN);
-    this.scene.stop(SCENE_KEYS.WORLD_MAP);
+    this.scene.stop(SCENE_KEYS.TILE_MAP);
     this.scene.stop(SCENE_KEYS.BATTLE);
     // scene.start stops this scene (GameMenuOverlay) and launches TitleScene.
     this.scene.start(SCENE_KEYS.TITLE);

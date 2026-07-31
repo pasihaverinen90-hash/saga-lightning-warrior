@@ -164,6 +164,12 @@ export interface BattleInitData {
   returnX?: number;
   returnY?: number;
   /**
+   * Tilemap id to return to. Set by TileMapScene so the battle knows which of
+   * the several tilemaps to come back to; WorldMapScene and TownScene leave it
+   * undefined because they each have only one map.
+   */
+  returnMapId?: string;
+  /**
    * Dialogue sequence ID to play before the first player command.
    * Used for boss encounter introductions.
    */

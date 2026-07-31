@@ -155,9 +155,12 @@ export const LUMEN_TOWN_CONFIG: TownMapConfig = {
   exit: {
     x: 1220, y: 2320,
     width: 360, height: 60,
-    targetLocationId: 'world_map',
+    targetLocationId: 'elerion_west',
+    // Legacy coordinates from the old procedural world map, kept only so the
+    // TownExit shape stays satisfied. Placement now uses returnSpawnId.
     worldReturnX: 1080,
     worldReturnY: 1000,
+    returnSpawnId: 'from_eldric',
   },
 
   shopStock: ['herb_tonic', 'clearwater_drop'],

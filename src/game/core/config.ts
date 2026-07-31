@@ -69,6 +69,8 @@ export const FONT_SIZES = {
   hpMp: 20,
   locationLabel: 18,
   hint: 16,
+  /** Debug overlays only — never used by anything the player sees in normal play. */
+  debug: 14,
 } as const;
 
 // ─── Panel defaults ───────────────────────────────────────────────────────────

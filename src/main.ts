@@ -9,7 +9,7 @@ import { PHASER_CONFIG_BASE } from './game/core/config';
 import { BootScene }        from './game/core/scenes/BootScene';
 import { PreloadScene }     from './game/core/scenes/PreloadScene';
 import { TitleScene }       from './game/ui/title/TitleScene';
-import { WorldMapScene }    from './game/world/scenes/WorldMapScene';
+import { TileMapScene }     from './game/maps/scenes/TileMapScene';
 import { TownScene }        from './game/town/scenes/TownScene';
 import { BattleScene }      from './game/battle/scenes/BattleScene';
 import { DialogueOverlay }  from './game/dialogue/DialogueOverlay';
@@ -23,7 +23,11 @@ const config: Phaser.Types.Core.GameConfig = {
     BootScene,
     PreloadScene,
     TitleScene,
-    WorldMapScene,
+    // TileMapScene replaces the old procedural WorldMapScene: the overworld,
+    // towns, field maps and interiors are all tilemaps now.
+    TileMapScene,
+    // TownScene is retained only for Eldric and Dreadshore, which have not been
+    // ported to tilemaps yet and still hold the Serelle and Kael join events.
     TownScene,
     BattleScene,
     DialogueOverlay,

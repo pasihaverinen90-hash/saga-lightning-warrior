@@ -144,9 +144,16 @@ export const ASHENVEIL_TOWN_CONFIG: TownMapConfig = {
   exit: {
     x: 640, y: 820,
     width:  320, height: 60,
-    targetLocationId: 'world_map',
+    targetLocationId: 'elerion_west',
+    // Dreadshore sits on the EASTERN continent, which the Chapter 1 travel map
+    // (western Elerion) does not cover — so this town has no entrance on the
+    // current overworld and is reachable only via the debug map cycle. It was
+    // already unreachable before the rebuild: crossing the Central Sea needed a
+    // ferry that was never implemented. Exiting drops the player at the travel
+    // map's default spawn so the scene cannot strand them.
     worldReturnX: 3320,
     worldReturnY: 1640,
+    returnSpawnId: 'default',
   },
 
   // ── Shop stock ────────────────────────────────────────────────────────────────

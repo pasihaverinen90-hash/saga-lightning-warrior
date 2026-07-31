@@ -6,8 +6,7 @@ import { getState, patchState, setState, resetState } from './game-state';
 import type { GameState, PartyMember, WorldPosition } from './game-state-types';
 import type { EquipmentSlot } from '../data/equipment/equipment';
 import { STARTING_PARTY } from '../data/characters/party-members';
-import { ELERION_WORLD_CONFIG } from '../data/maps/elerion-world-config';
-import { PLAYER_W, PLAYER_H } from '../shared/constants/player';
+import { STARTING_MAP_ID } from '../maps/map-registry';
 import { processMemberXp, splitXp } from '../battle/engine/xp-system';
 import type { MemberXpResult } from '../battle/engine/xp-system';
 import { resolveEffectiveStats } from '../data/equipment/equipment-system';
@@ -16,8 +15,11 @@ import { resolveEffectiveStats } from '../data/equipment/equipment-system';
 
 /**
  * Initializes a fresh game state. Called when the player starts a New Game.
- * Spawn position is derived from the world map config so there is a single
- * source of truth — changing playerStartX/Y in elerion-world-config.ts is enough.
+ *
+ * The spawn position is left at 0,0 deliberately. Under the tilemap system the
+ * starting position lives in map data as the `new_game` spawn point in
+ * elerion-west.json, so TileMapScene resolves it by name — there is no longer a
+ * coordinate here that could drift out of sync with the map.
  *
  * Starting HP/MP: each member spawns at their EFFECTIVE max (base stats +
  * starting-equipment bonuses). Without this, Hugo's leather_vest (+10 maxHP)
@@ -40,10 +42,10 @@ export function initNewGame(): void {
     inventory: [{ itemId: 'herb_tonic', quantity: 2 }],
     storyFlags: {},
     currentLocation: {
-      locationId: 'world_map',
-      // Store CENTER coordinates — convention used throughout the save system.
-      x: ELERION_WORLD_CONFIG.playerStartX + PLAYER_W / 2,
-      y: ELERION_WORLD_CONFIG.playerStartY + PLAYER_H / 2,
+      locationId: STARTING_MAP_ID,
+      // Resolved from the map's `new_game` spawn point when the scene starts.
+      x: 0,
+      y: 0,
     },
   });
 }

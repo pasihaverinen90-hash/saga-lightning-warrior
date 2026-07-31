@@ -1,0 +1,2558 @@
+{
+  "generatedFrom": "overworldtile2.png",
+  "tileSize": 64,
+  "count": 121,
+  "categories": {
+    "forest": 8,
+    "tree": 21,
+    "rock": 38,
+    "mountain": 9,
+    "cliff": 9,
+    "prop": 6,
+    "bush": 14,
+    "fence": 16
+  },
+  "objects": [
+    {
+      "name": "forest_01",
+      "category": "forest",
+      "width": 204,
+      "height": 101,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 8,
+        "y": 71,
+        "width": 188,
+        "height": 30
+      },
+      "tileSpan": {
+        "x": 3,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_01",
+      "category": "tree",
+      "width": 64,
+      "height": 101,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 19,
+        "y": 85,
+        "width": 27,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_02",
+      "category": "tree",
+      "width": 53,
+      "height": 99,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 16,
+        "y": 83,
+        "width": 22,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_03",
+      "category": "tree",
+      "width": 58,
+      "height": 99,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 17,
+        "y": 83,
+        "width": 24,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_04",
+      "category": "tree",
+      "width": 58,
+      "height": 99,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 17,
+        "y": 83,
+        "width": 24,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_05",
+      "category": "tree",
+      "width": 110,
+      "height": 101,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 32,
+        "y": 85,
+        "width": 46,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_06",
+      "category": "tree",
+      "width": 56,
+      "height": 97,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 16,
+        "y": 81,
+        "width": 24,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_07",
+      "category": "tree",
+      "width": 66,
+      "height": 98,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 19,
+        "y": 82,
+        "width": 28,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_08",
+      "category": "tree",
+      "width": 78,
+      "height": 98,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 23,
+        "y": 82,
+        "width": 33,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_09",
+      "category": "tree",
+      "width": 55,
+      "height": 96,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 16,
+        "y": 81,
+        "width": 23,
+        "height": 15
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_10",
+      "category": "tree",
+      "width": 53,
+      "height": 94,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 16,
+        "y": 79,
+        "width": 22,
+        "height": 15
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "tree_11",
+      "category": "tree",
+      "width": 53,
+      "height": 95,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 16,
+        "y": 80,
+        "width": 22,
+        "height": 15
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "tree_12",
+      "category": "tree",
+      "width": 69,
+      "height": 105,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 20,
+        "y": 88,
+        "width": 29,
+        "height": 17
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "forest_02",
+      "category": "forest",
+      "width": 101,
+      "height": 84,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 59,
+        "width": 93,
+        "height": 25
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "tree_13",
+      "category": "tree",
+      "width": 100,
+      "height": 106,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 29,
+        "y": 89,
+        "width": 42,
+        "height": 17
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_14",
+      "category": "tree",
+      "width": 80,
+      "height": 105,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 23,
+        "y": 88,
+        "width": 34,
+        "height": 17
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "forest_03",
+      "category": "forest",
+      "width": 124,
+      "height": 107,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 75,
+        "width": 114,
+        "height": 32
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_15",
+      "category": "tree",
+      "width": 63,
+      "height": 103,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 19,
+        "y": 87,
+        "width": 26,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_16",
+      "category": "tree",
+      "width": 60,
+      "height": 102,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 18,
+        "y": 86,
+        "width": 25,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "forest_04",
+      "category": "forest",
+      "width": 164,
+      "height": 101,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 7,
+        "y": 71,
+        "width": 151,
+        "height": 30
+      },
+      "tileSpan": {
+        "x": 3,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_17",
+      "category": "tree",
+      "width": 57,
+      "height": 99,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 17,
+        "y": 83,
+        "width": 24,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_18",
+      "category": "tree",
+      "width": 61,
+      "height": 99,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 18,
+        "y": 83,
+        "width": 26,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_19",
+      "category": "tree",
+      "width": 58,
+      "height": 98,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 17,
+        "y": 82,
+        "width": 24,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "tree_20",
+      "category": "tree",
+      "width": 91,
+      "height": 85,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 27,
+        "y": 71,
+        "width": 38,
+        "height": 14
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_01",
+      "category": "rock",
+      "width": 147,
+      "height": 88,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 13,
+        "y": 46,
+        "width": 121,
+        "height": 42
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "forest_05",
+      "category": "forest",
+      "width": 97,
+      "height": 84,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 59,
+        "width": 89,
+        "height": 25
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "mountain_01",
+      "category": "mountain",
+      "width": 90,
+      "height": 85,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 6,
+        "y": 49,
+        "width": 79,
+        "height": 36
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "cliff_01",
+      "category": "cliff",
+      "width": 102,
+      "height": 83,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 37,
+        "width": 102,
+        "height": 46
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "mountain_02",
+      "category": "mountain",
+      "width": 92,
+      "height": 82,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 6,
+        "y": 48,
+        "width": 81,
+        "height": 34
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "cliff_02",
+      "category": "cliff",
+      "width": 114,
+      "height": 79,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 36,
+        "width": 114,
+        "height": 43
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "mountain_03",
+      "category": "mountain",
+      "width": 96,
+      "height": 79,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 6,
+        "y": 46,
+        "width": 84,
+        "height": 33
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "prop_01",
+      "category": "prop",
+      "width": 63,
+      "height": 73,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 10,
+        "y": 44,
+        "width": 44,
+        "height": 29
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "mountain_04",
+      "category": "mountain",
+      "width": 75,
+      "height": 71,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 41,
+        "width": 66,
+        "height": 30
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "tree_21",
+      "category": "tree",
+      "width": 64,
+      "height": 62,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 19,
+        "y": 52,
+        "width": 27,
+        "height": 10
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_02",
+      "category": "rock",
+      "width": 75,
+      "height": 56,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 7,
+        "y": 29,
+        "width": 61,
+        "height": 27
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_03",
+      "category": "rock",
+      "width": 210,
+      "height": 61,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 19,
+        "y": 32,
+        "width": 172,
+        "height": 29
+      },
+      "tileSpan": {
+        "x": 3,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_04",
+      "category": "rock",
+      "width": 161,
+      "height": 62,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 15,
+        "y": 32,
+        "width": 132,
+        "height": 30
+      },
+      "tileSpan": {
+        "x": 3,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_05",
+      "category": "rock",
+      "width": 52,
+      "height": 53,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 28,
+        "width": 43,
+        "height": 25
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_06",
+      "category": "rock",
+      "width": 131,
+      "height": 61,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 12,
+        "y": 32,
+        "width": 107,
+        "height": 29
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_07",
+      "category": "rock",
+      "width": 43,
+      "height": 51,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 27,
+        "width": 35,
+        "height": 24
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_08",
+      "category": "rock",
+      "width": 62,
+      "height": 49,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 6,
+        "y": 25,
+        "width": 51,
+        "height": 24
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_09",
+      "category": "rock",
+      "width": 56,
+      "height": 50,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 26,
+        "width": 46,
+        "height": 24
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_10",
+      "category": "rock",
+      "width": 51,
+      "height": 49,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 25,
+        "width": 42,
+        "height": 24
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_11",
+      "category": "rock",
+      "width": 40,
+      "height": 39,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 20,
+        "width": 33,
+        "height": 19
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "cliff_03",
+      "category": "cliff",
+      "width": 313,
+      "height": 68,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 31,
+        "width": 313,
+        "height": 37
+      },
+      "tileSpan": {
+        "x": 5,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_12",
+      "category": "rock",
+      "width": 91,
+      "height": 62,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 8,
+        "y": 32,
+        "width": 75,
+        "height": 30
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_01",
+      "category": "bush",
+      "width": 88,
+      "height": 40,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 13,
+        "y": 24,
+        "width": 62,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_13",
+      "category": "rock",
+      "width": 99,
+      "height": 63,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 9,
+        "y": 33,
+        "width": 81,
+        "height": 30
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "cliff_04",
+      "category": "cliff",
+      "width": 176,
+      "height": 67,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 30,
+        "width": 176,
+        "height": 37
+      },
+      "tileSpan": {
+        "x": 3,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_14",
+      "category": "rock",
+      "width": 67,
+      "height": 62,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 6,
+        "y": 32,
+        "width": 55,
+        "height": 30
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_15",
+      "category": "rock",
+      "width": 73,
+      "height": 55,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 7,
+        "y": 29,
+        "width": 60,
+        "height": 26
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_16",
+      "category": "rock",
+      "width": 47,
+      "height": 54,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 28,
+        "width": 39,
+        "height": 26
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_01",
+      "category": "fence",
+      "width": 66,
+      "height": 26,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 14,
+        "width": 66,
+        "height": 12
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "cliff_05",
+      "category": "cliff",
+      "width": 101,
+      "height": 82,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 37,
+        "width": 101,
+        "height": 45
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "prop_02",
+      "category": "prop",
+      "width": 62,
+      "height": 84,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 10,
+        "y": 50,
+        "width": 43,
+        "height": 34
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "forest_06",
+      "category": "forest",
+      "width": 129,
+      "height": 84,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 59,
+        "width": 119,
+        "height": 25
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "cliff_06",
+      "category": "cliff",
+      "width": 57,
+      "height": 81,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 36,
+        "width": 57,
+        "height": 45
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "forest_07",
+      "category": "forest",
+      "width": 127,
+      "height": 82,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 57,
+        "width": 117,
+        "height": 25
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_17",
+      "category": "rock",
+      "width": 64,
+      "height": 52,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 6,
+        "y": 27,
+        "width": 52,
+        "height": 25
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_18",
+      "category": "rock",
+      "width": 37,
+      "height": 46,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 24,
+        "width": 30,
+        "height": 22
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_19",
+      "category": "rock",
+      "width": 56,
+      "height": 50,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 26,
+        "width": 46,
+        "height": 24
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_02",
+      "category": "bush",
+      "width": 55,
+      "height": 48,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 8,
+        "y": 29,
+        "width": 39,
+        "height": 19
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_03",
+      "category": "bush",
+      "width": 91,
+      "height": 48,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 14,
+        "y": 29,
+        "width": 64,
+        "height": 19
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_04",
+      "category": "bush",
+      "width": 57,
+      "height": 46,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 9,
+        "y": 28,
+        "width": 40,
+        "height": 18
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_02",
+      "category": "fence",
+      "width": 92,
+      "height": 42,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 23,
+        "width": 92,
+        "height": 19
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_03",
+      "category": "fence",
+      "width": 80,
+      "height": 49,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 27,
+        "width": 80,
+        "height": 22
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_04",
+      "category": "fence",
+      "width": 87,
+      "height": 47,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 26,
+        "width": 87,
+        "height": 21
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_05",
+      "category": "fence",
+      "width": 79,
+      "height": 48,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 26,
+        "width": 79,
+        "height": 22
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_06",
+      "category": "fence",
+      "width": 80,
+      "height": 46,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 25,
+        "width": 80,
+        "height": 21
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_07",
+      "category": "fence",
+      "width": 99,
+      "height": 42,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 23,
+        "width": 99,
+        "height": 19
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "cliff_07",
+      "category": "cliff",
+      "width": 299,
+      "height": 74,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 33,
+        "width": 299,
+        "height": 41
+      },
+      "tileSpan": {
+        "x": 5,
+        "y": 1
+      }
+    },
+    {
+      "name": "cliff_08",
+      "category": "cliff",
+      "width": 187,
+      "height": 70,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 31,
+        "width": 187,
+        "height": 39
+      },
+      "tileSpan": {
+        "x": 3,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_08",
+      "category": "fence",
+      "width": 84,
+      "height": 53,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 29,
+        "width": 84,
+        "height": 24
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_20",
+      "category": "rock",
+      "width": 46,
+      "height": 48,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 25,
+        "width": 38,
+        "height": 23
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_09",
+      "category": "fence",
+      "width": 70,
+      "height": 45,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 25,
+        "width": 70,
+        "height": 20
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_21",
+      "category": "rock",
+      "width": 46,
+      "height": 45,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 23,
+        "width": 38,
+        "height": 22
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_22",
+      "category": "rock",
+      "width": 53,
+      "height": 42,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 22,
+        "width": 43,
+        "height": 20
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_23",
+      "category": "rock",
+      "width": 58,
+      "height": 42,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 22,
+        "width": 48,
+        "height": 20
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_10",
+      "category": "fence",
+      "width": 59,
+      "height": 40,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 22,
+        "width": 59,
+        "height": 18
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "cliff_09",
+      "category": "cliff",
+      "width": 226,
+      "height": 84,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 38,
+        "width": 226,
+        "height": 46
+      },
+      "tileSpan": {
+        "x": 4,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_24",
+      "category": "rock",
+      "width": 80,
+      "height": 60,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 7,
+        "y": 31,
+        "width": 66,
+        "height": 29
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_25",
+      "category": "rock",
+      "width": 97,
+      "height": 61,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 9,
+        "y": 32,
+        "width": 80,
+        "height": 29
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_26",
+      "category": "rock",
+      "width": 66,
+      "height": 59,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 6,
+        "y": 31,
+        "width": 54,
+        "height": 28
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_27",
+      "category": "rock",
+      "width": 95,
+      "height": 60,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 9,
+        "y": 31,
+        "width": 78,
+        "height": 29
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_11",
+      "category": "fence",
+      "width": 100,
+      "height": 48,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 26,
+        "width": 100,
+        "height": 22
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_28",
+      "category": "rock",
+      "width": 67,
+      "height": 50,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 6,
+        "y": 26,
+        "width": 55,
+        "height": 24
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_12",
+      "category": "fence",
+      "width": 68,
+      "height": 45,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 25,
+        "width": 68,
+        "height": 20
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_29",
+      "category": "rock",
+      "width": 59,
+      "height": 43,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 6,
+        "y": 22,
+        "width": 48,
+        "height": 21
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_13",
+      "category": "fence",
+      "width": 74,
+      "height": 44,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 24,
+        "width": 74,
+        "height": 20
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "mountain_05",
+      "category": "mountain",
+      "width": 79,
+      "height": 82,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 48,
+        "width": 70,
+        "height": 34
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "mountain_06",
+      "category": "mountain",
+      "width": 74,
+      "height": 73,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 42,
+        "width": 65,
+        "height": 31
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_30",
+      "category": "rock",
+      "width": 266,
+      "height": 65,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 24,
+        "y": 34,
+        "width": 218,
+        "height": 31
+      },
+      "tileSpan": {
+        "x": 4,
+        "y": 1
+      }
+    },
+    {
+      "name": "prop_03",
+      "category": "prop",
+      "width": 43,
+      "height": 61,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 7,
+        "y": 37,
+        "width": 30,
+        "height": 24
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_31",
+      "category": "rock",
+      "width": 142,
+      "height": 56,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 13,
+        "y": 29,
+        "width": 116,
+        "height": 27
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_32",
+      "category": "rock",
+      "width": 79,
+      "height": 56,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 7,
+        "y": 29,
+        "width": 65,
+        "height": 27
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_14",
+      "category": "fence",
+      "width": 95,
+      "height": 51,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 28,
+        "width": 95,
+        "height": 23
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_33",
+      "category": "rock",
+      "width": 47,
+      "height": 58,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 30,
+        "width": 39,
+        "height": 28
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_34",
+      "category": "rock",
+      "width": 41,
+      "height": 57,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 30,
+        "width": 34,
+        "height": 27
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "prop_04",
+      "category": "prop",
+      "width": 48,
+      "height": 77,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 7,
+        "y": 46,
+        "width": 34,
+        "height": 31
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "prop_05",
+      "category": "prop",
+      "width": 37,
+      "height": 74,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 6,
+        "y": 44,
+        "width": 26,
+        "height": 30
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "prop_06",
+      "category": "prop",
+      "width": 41,
+      "height": 72,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 6,
+        "y": 43,
+        "width": 29,
+        "height": 29
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_35",
+      "category": "rock",
+      "width": 121,
+      "height": 73,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 11,
+        "y": 38,
+        "width": 99,
+        "height": 35
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_05",
+      "category": "bush",
+      "width": 48,
+      "height": 69,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 7,
+        "y": 41,
+        "width": 34,
+        "height": 28
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "mountain_07",
+      "category": "mountain",
+      "width": 83,
+      "height": 71,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 41,
+        "width": 73,
+        "height": 30
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "mountain_08",
+      "category": "mountain",
+      "width": 85,
+      "height": 66,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 38,
+        "width": 75,
+        "height": 28
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_06",
+      "category": "bush",
+      "width": 121,
+      "height": 63,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 18,
+        "y": 38,
+        "width": 85,
+        "height": 25
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_36",
+      "category": "rock",
+      "width": 82,
+      "height": 60,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 8,
+        "y": 31,
+        "width": 67,
+        "height": 29
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_07",
+      "category": "bush",
+      "width": 93,
+      "height": 52,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 14,
+        "y": 31,
+        "width": 65,
+        "height": 21
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_15",
+      "category": "fence",
+      "width": 68,
+      "height": 44,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 24,
+        "width": 68,
+        "height": 20
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "mountain_09",
+      "category": "mountain",
+      "width": 87,
+      "height": 67,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 39,
+        "width": 77,
+        "height": 28
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_08",
+      "category": "bush",
+      "width": 88,
+      "height": 61,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 13,
+        "y": 37,
+        "width": 62,
+        "height": 24
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_37",
+      "category": "rock",
+      "width": 93,
+      "height": 63,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 9,
+        "y": 33,
+        "width": 76,
+        "height": 30
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_09",
+      "category": "bush",
+      "width": 104,
+      "height": 58,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 16,
+        "y": 35,
+        "width": 73,
+        "height": 23
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "fence_16",
+      "category": "fence",
+      "width": 86,
+      "height": 50,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 0,
+        "y": 27,
+        "width": 86,
+        "height": 23
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "forest_08",
+      "category": "forest",
+      "width": 96,
+      "height": 52,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 36,
+        "width": 88,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_10",
+      "category": "bush",
+      "width": 59,
+      "height": 42,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 9,
+        "y": 25,
+        "width": 41,
+        "height": 17
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "rock_38",
+      "category": "rock",
+      "width": 50,
+      "height": 40,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 21,
+        "width": 41,
+        "height": 19
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_11",
+      "category": "bush",
+      "width": 52,
+      "height": 41,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 8,
+        "y": 25,
+        "width": 36,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_12",
+      "category": "bush",
+      "width": 47,
+      "height": 40,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 7,
+        "y": 24,
+        "width": 33,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_13",
+      "category": "bush",
+      "width": 61,
+      "height": 40,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 9,
+        "y": 24,
+        "width": 43,
+        "height": 16
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bush_14",
+      "category": "bush",
+      "width": 41,
+      "height": 37,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 6,
+        "y": 22,
+        "width": 29,
+        "height": 15
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    }
+  ]
+}

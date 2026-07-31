@@ -13,13 +13,66 @@ Reverse-chronological record of significant changes. Entries are grouped by feat
 
 | Version | Change |
 |---------|--------|
-| **7** (current) | World map rebuilt from single `Border Fields` scene into the two-continent world of **Elerion**. Locations renamed: `border_fields` → `world_map`, `north_pass` → `mountain_pass`, `ashenveil_road` removed. Old saves reference removed `locationId`s and were placed at coordinates that no longer exist — intentionally invalidated. |
+| **8** (current) | World rendering rebuilt from procedural Phaser Graphics onto **Tiled tilemaps**. `currentLocation.x/y` keep their meaning ("coordinates in the scene named by `locationId`") but every coordinate now refers to a different map at a different scale, and the ids changed: `world_map` → `elerion_west`, plus new `dawnkeep`, `everdawn_forest`, `dawnkeep_inn`. A v7 save names a location that no longer exists and carries coordinates from a 5120×2880 map — intentionally invalidated. No field added to or removed from `GameState`, `PartyMember`, `InventoryEntry` or `EquipmentSlots`; semantics change only. |
+| 7 | World map rebuilt from single `Border Fields` scene into the two-continent world of **Elerion**. Locations renamed: `border_fields` → `world_map`, `north_pass` → `mountain_pass`, `ashenveil_road` removed. Old saves reference removed `locationId`s and were placed at coordinates that no longer exist — intentionally invalidated. |
 | 6 | `currentLocation.x/y` semantics changed to "coordinates in the scene named by `locationId`". v5 saves would place the player at world-map coordinates on a town map — intentionally invalidated. |
 | 5 | `PartyMember` gained `equipment: EquipmentSlots ({ weapon, armor })`. Saves from v4 lack this field; loading would produce `undefined` equipment causing `resolveEffectiveStats()` to produce NaN bonuses silently. |
 | 4 | `PartyMember.xp` semantics changed from "XP remainder toward next level" to "total lifetime XP earned". Intentionally invalidated to prevent corrupt state. |
 | 3 | `PartyMember` gained `level: number` and `xp: number`. `EnemyDef` gained `xpReward: number` (not serialised). |
 | 2 | `PartyMember` gained `colorHex: number` for battle sprite colour identity. |
 | 1 | Initial structure. |
+
+---
+
+## Tilemap rebuild (SAVE_VERSION → 8)
+
+The world is no longer drawn with Phaser Graphics primitives. See
+[`map-architecture.md`](map-architecture.md) and
+[`asset-pipeline.md`](asset-pipeline.md).
+
+**Structure.** Three scales, one scene. A **travel map** you cross between
+places (`elerion_west`, western Elerion, 60×40 tiles), separate **location maps**
+at field scale (`dawnkeep`, `everdawn_forest`), and **interiors**
+(`dawnkeep_inn`). All served by the data-driven `TileMapScene`; adding a location
+is a map file plus one registry row.
+
+**Assets.** New zero-dependency pipeline at `tools/asset-pipeline/`, run with
+`npm run assets`. Slices the supplied terrain sheet into a 229-tile 64px tileset
+(including 192 generated autotiles), extracts 121 transparent object sprites from
+the object sheet by connected-component labelling, and generates the buildings,
+interior tiles and character spritesheets that neither sheet contains.
+
+**New**
+- `src/game/maps/` — `map-types`, `map-loader`, `map-registry`,
+  `systems/tile-collision`, `scenes/TileMapScene`
+- `tools/asset-pipeline/` — 6 generators, a Tiled JSON map composer, a grid
+  blueprint authoring format, and PNG preview/verification tools
+- `public/assets/{tilesets,atlases,sprites,maps}/` — all generated
+- 7 dialogue sequences for Dawnkeep, its inn and Everdawn Forest
+
+**Changed**
+- `movement-system.ts` gained a `SolidQuery` interface alongside `Rect[]`, so
+  tilemaps can use an O(1) bitmask instead of an O(n) rectangle scan. The legacy
+  `TownScene` path is unchanged.
+- `EncounterTracker` gained a `pixelsPerStep` constructor argument; one step is
+  one tile (64px) on tilemaps, still 32px for the legacy scene.
+- `BattleInitData` gained `returnMapId` so a battle knows which tilemap to
+  return to.
+- `PLAYER_BODY_W/H` (32×20, the character's **feet**) added alongside the legacy
+  `PLAYER_W/H`. A feet-sized body is what lets the sprite overlap tree canopies.
+- `FONT_SIZES.debug` added — documented in the style guide but missing from the
+  constant.
+- Eldric and Dreadshore exit to the travel map via named spawn points rather
+  than the old world-map pixel coordinates.
+
+**Removed**
+- `world/scenes/WorldMapScene.ts` and `world/systems/world-renderer.ts` —
+  superseded. `data/maps/elerion-world-config.ts` is kept but no longer imported;
+  it remains the canonical geography reference for porting the rest of Elerion.
+
+**Known gap.** Dreadshore has no entrance on the Chapter 1 travel map (eastern
+continent, not covered), so Kael cannot currently be recruited. It was already
+unreachable before this change — the Central Sea ferry was never implemented.
 
 ---
 

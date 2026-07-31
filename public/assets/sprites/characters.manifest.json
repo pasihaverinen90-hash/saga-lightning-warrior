@@ -1,0 +1,26 @@
+{
+  "generated": true,
+  "note": "Procedurally generated: neither source sheet contains a character. Replace the PNGs keeping frameWidth/frameHeight and row order to swap in real art.",
+  "frameWidth": 48,
+  "frameHeight": 64,
+  "directions": [
+    "down",
+    "left",
+    "right",
+    "up"
+  ],
+  "framesPerDirection": 4,
+  "idleFrame": 0,
+  "walkFrames": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "characters": [
+    "hugo",
+    "villager",
+    "innkeeper",
+    "elder"
+  ]
+}

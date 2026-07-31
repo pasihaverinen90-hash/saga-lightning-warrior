@@ -33,7 +33,8 @@ import { runEffects } from '../../dialogue/event-handler';
 import { shopItemLabel, shopItemPreview, purchaseItem, purchaseEquipment, isEquipmentId, getInnRestCost } from '../systems/shop-service';
 import { PLAYER_W, PLAYER_H } from '../../shared/constants/player';
 import type { Interactable, TownInitData } from '../types/town-types';
-import type { WorldMapInitData } from '../../world/types/world-types';
+import type { TileMapInitData } from '../../maps/map-types';
+import { STARTING_MAP_ID } from '../../maps/map-registry';
 
 // ─── Config registry ──────────────────────────────────────────────────────────
 // Maps locationId values (from WorldTrigger.targetLocationId) to their configs.
@@ -1641,18 +1642,22 @@ export class TownScene extends Phaser.Scene {
   // Exit to world map
   // ─────────────────────────────────────────────────────────────────────────
 
+  /**
+   * Leaves the town for the overworld.
+   *
+   * The overworld is now a tilemap, so the player is placed at a NAMED SPAWN
+   * rather than at this config's worldReturnX/Y — those are pixel coordinates
+   * from the old 5120x2880 procedural world map and do not correspond to any
+   * position on the rebuilt travel map.
+   */
   private exitToWorldMap(): void {
     this.transitionPending = true;
 
     const { exit } = this.cfg;
+    const targetMapId = STARTING_MAP_ID;
+    const spawnId = exit.returnSpawnId ?? 'default';
 
-    // Store player CENTER in state — convention used everywhere else in the save system.
-    // exit.worldReturnX/Y are TOP-LEFT, so add half-player-size to get center.
-    setCurrentLocation({
-      locationId: exit.targetLocationId,
-      x: exit.worldReturnX + PLAYER_W / 2,
-      y: exit.worldReturnY + PLAYER_H / 2,
-    });
+    setCurrentLocation({ locationId: targetMapId, x: 0, y: 0 });
 
     this.cameras.main.fadeOut(350, 0, 0, 0);
     this.cameras.main.once('camerafadeoutcomplete', () => {
@@ -1660,10 +1665,10 @@ export class TownScene extends Phaser.Scene {
       if (this.scene.isActive(SCENE_KEYS.DIALOGUE_OVERLAY)) {
         this.scene.stop(SCENE_KEYS.DIALOGUE_OVERLAY);
       }
-      this.scene.start(SCENE_KEYS.WORLD_MAP, {
-        returnX: exit.worldReturnX,
-        returnY: exit.worldReturnY,
-      } satisfies WorldMapInitData);
+      this.scene.start(SCENE_KEYS.TILE_MAP, {
+        mapId: targetMapId,
+        spawnId,
+      } satisfies TileMapInitData);
     });
   }
 }

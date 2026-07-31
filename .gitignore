@@ -21,3 +21,8 @@ Thumbs.db
 # Env / secrets
 .env
 .env.local
+
+# Asset-pipeline verification renders — regenerate with:
+#   node tools/asset-pipeline/preview-maps.mjs
+#   node tools/asset-pipeline/debug-contact-sheet.mjs
+tools/asset-pipeline/debug/

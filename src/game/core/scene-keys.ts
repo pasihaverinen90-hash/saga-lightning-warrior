@@ -5,7 +5,11 @@ export const SCENE_KEYS = {
   BOOT:             'BootScene',
   PRELOAD:          'PreloadScene',
   TITLE:            'TitleScene',
-  WORLD_MAP:        'WorldMapScene',
+  /**
+   * The data-driven tilemap scene. Serves the travel map, towns, field
+   * locations and interiors — every map in public/assets/maps/.
+   */
+  TILE_MAP:         'TileMapScene',
   TOWN:             'TownScene',
   BATTLE:           'BattleScene',
   DIALOGUE_OVERLAY: 'DialogueOverlay',

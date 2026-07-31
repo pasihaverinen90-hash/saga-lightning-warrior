@@ -1,0 +1,26 @@
+{
+  "generated": true,
+  "tileSize": 64,
+  "tileCount": 7,
+  "columns": 7,
+  "indexByName": {
+    "floor_wood": 0,
+    "floor_wood_b": 1,
+    "floor_stone": 2,
+    "carpet": 3,
+    "wall": 4,
+    "wall_plain": 5,
+    "wall_top": 6
+  },
+  "floors": [
+    "floor_wood",
+    "floor_wood_b",
+    "floor_stone",
+    "carpet"
+  ],
+  "walls": [
+    "wall",
+    "wall_plain",
+    "wall_top"
+  ]
+}

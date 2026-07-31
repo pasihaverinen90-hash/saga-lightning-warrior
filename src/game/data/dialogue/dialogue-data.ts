@@ -10,6 +10,90 @@ import { STORY_FLAGS } from '../story/story-events';
 
 export const DIALOGUE: Record<string, DialogueSequence> = {
 
+  // ── Dawnkeep (tilemap town) ───────────────────────────────────────────────
+
+  dawnkeep_villager: {
+    id: 'dawnkeep_villager',
+    lines: [
+      {
+        speaker: 'villager',
+        text: "Morning, Hugo. Storm broke over the Silverwall last night — you could hear it all the way down here.",
+      },
+      {
+        speaker: 'villager',
+        text: "Folk say the pass road isn't safe any more. Not that anyone's asking my opinion.",
+      },
+    ],
+  },
+
+  dawnkeep_elder: {
+    id: 'dawnkeep_elder',
+    lines: [
+      {
+        speaker: 'villager',
+        text: "You've your father's look about you, boy. And his habit of staring north.",
+      },
+      {
+        speaker: 'villager',
+        text: "Eldric lies up the road past the crossroads. If you mean to go, go rested — the inn's behind me.",
+      },
+      {
+        speaker: 'hugo',
+        text: "I'm not running off anywhere yet, Maren.",
+      },
+    ],
+  },
+
+  dawnkeep_child: {
+    id: 'dawnkeep_child',
+    lines: [
+      {
+        speaker: 'villager',
+        text: "Don't go in the tall grass east of the village! Something bit our goat.",
+      },
+    ],
+  },
+
+  dawnkeep_notice: {
+    id: 'dawnkeep_notice',
+    lines: [
+      {
+        speaker: 'narrator',
+        text: "DAWNKEEP NOTICE BOARD — Everdawn Forest track closed to carts. Travellers on foot proceed at own risk.",
+      },
+    ],
+  },
+
+  dawnkeep_innkeeper: {
+    id: 'dawnkeep_innkeeper',
+    lines: [
+      {
+        speaker: 'innkeeper',
+        text: "Bed's yours whenever you want it. Half price for locals, and you still count.",
+      },
+    ],
+  },
+
+  inn_hearth: {
+    id: 'inn_hearth',
+    lines: [
+      {
+        speaker: 'narrator',
+        text: "The fire has burned down to embers. The warmth is the first comfortable thing all morning.",
+      },
+    ],
+  },
+
+  everdawn_marker: {
+    id: 'everdawn_marker',
+    lines: [
+      {
+        speaker: 'narrator',
+        text: "A weathered stone marker, half swallowed by moss. The carving reads: NORTH — STONEGATE. The arrow points into the trees.",
+      },
+    ],
+  },
+
   // ── Town: Serelle first meeting (join event) ──────────────────────────────
   serelle_join_event: {
     id: 'serelle_join_event',

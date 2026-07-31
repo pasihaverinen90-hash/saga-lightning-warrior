@@ -91,11 +91,12 @@ export function pickEncounterGroup(table: EncounterTable): EnemyGroupEntry {
  * Reset when entering a safe zone or after a battle fires.
  */
 /**
- * One encounter "step" in pixels. The player must travel this far in an
- * encounter zone before a step is counted. Chosen to feel like one tile
- * of movement — independent of frame rate.
+ * Default encounter "step" in pixels. The player must travel this far in an
+ * encounter zone before a step is counted, which makes the system frame-rate
+ * independent. 32 matches the legacy WorldMapScene; the tilemap scene passes
+ * its own tile size (64) so one step is one tile there.
  */
-const PIXELS_PER_STEP = 32;
+const DEFAULT_PIXELS_PER_STEP = 32;
 
 export class EncounterTracker {
   /** Accumulated pixel distance since the last counted step. */
@@ -106,8 +107,13 @@ export class EncounterTracker {
   /**
    * @param safeStepsAfterBattle  Steps to skip rolling after a battle ends.
    *        Prevents the player being immediately caught again on return.
+   * @param pixelsPerStep  Distance that counts as one step. Pass the map's tile
+   *        size so encounter rates stay comparable across different tile scales.
    */
-  constructor(private readonly safeStepsAfterBattle = 6) {
+  constructor(
+    private readonly safeStepsAfterBattle = 6,
+    private readonly pixelsPerStep = DEFAULT_PIXELS_PER_STEP,
+  ) {
     this.safeStepsRemaining = 0;
   }
 
@@ -123,8 +129,8 @@ export class EncounterTracker {
     this.distanceAccum += distanceTraveled;
 
     // Only count a step when enough distance has been covered
-    if (this.distanceAccum < PIXELS_PER_STEP) return null;
-    this.distanceAccum -= PIXELS_PER_STEP;
+    if (this.distanceAccum < this.pixelsPerStep) return null;
+    this.distanceAccum -= this.pixelsPerStep;
 
     if (this.safeStepsRemaining > 0) {
       this.safeStepsRemaining--;

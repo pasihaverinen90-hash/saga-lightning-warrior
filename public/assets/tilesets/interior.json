@@ -1,0 +1,102 @@
+{
+  "columns": 7,
+  "image": "interior.png",
+  "imagewidth": 448,
+  "imageheight": 64,
+  "margin": 0,
+  "name": "interior",
+  "spacing": 0,
+  "tilecount": 7,
+  "tiledversion": "1.10.2",
+  "tileheight": 64,
+  "tilewidth": 64,
+  "type": "tileset",
+  "version": "1.10",
+  "tiles": [
+    {
+      "id": 0,
+      "properties": [
+        {
+          "name": "name",
+          "type": "string",
+          "value": "floor_wood"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "properties": [
+        {
+          "name": "name",
+          "type": "string",
+          "value": "floor_wood_b"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "properties": [
+        {
+          "name": "name",
+          "type": "string",
+          "value": "floor_stone"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "properties": [
+        {
+          "name": "name",
+          "type": "string",
+          "value": "carpet"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "properties": [
+        {
+          "name": "solid",
+          "type": "bool",
+          "value": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "value": "wall"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "properties": [
+        {
+          "name": "solid",
+          "type": "bool",
+          "value": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "value": "wall_plain"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "properties": [
+        {
+          "name": "solid",
+          "type": "bool",
+          "value": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "value": "wall_top"
+        }
+      ]
+    }
+  ]
+}

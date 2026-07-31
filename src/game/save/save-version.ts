@@ -26,4 +26,15 @@
 //       Old saves reference removed locationIds and would resume at
 //       world-map coordinates that no longer exist — intentionally invalidated.
 
-export const SAVE_VERSION = 7;
+//   8 → World rendering rebuilt from procedural Graphics onto Tiled tilemaps.
+//       currentLocation.x/y keep their meaning ("coordinates in the scene named
+//       by locationId") but every coordinate now refers to a different map at a
+//       different scale, and the locationId values themselves changed:
+//         'world_map' → 'elerion_west'   (rebuilt at 3840x2560, 64px tiles)
+//         new ids: 'dawnkeep', 'everdawn_forest', 'dawnkeep_inn'
+//       A v7 save names a location that no longer exists and carries
+//       coordinates from a 5120x2880 map — intentionally invalidated.
+//       No field was added to or removed from GameState, PartyMember,
+//       InventoryEntry or EquipmentSlots; this is a semantics change only.
+
+export const SAVE_VERSION = 8;

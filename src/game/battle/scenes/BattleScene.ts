@@ -1324,9 +1324,18 @@ export class BattleScene extends Phaser.Scene {
       const doTransition = () => {
         this.cameras.main.fadeOut(400, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => {
-          const returnKey = this.initData?.returnSceneKey ?? SCENE_KEYS.WORLD_MAP;
+          const returnKey = this.initData?.returnSceneKey ?? SCENE_KEYS.TILE_MAP;
           if (outcome === 'defeat') {
             this.scene.start(SCENE_KEYS.TITLE);
+          } else if (returnKey === SCENE_KEYS.TILE_MAP) {
+            // Tilemaps need to know WHICH map to restore, and take an explicit
+            // position rather than a named spawn so the player lands back
+            // exactly where the encounter interrupted them.
+            this.scene.start(returnKey, {
+              mapId: this.initData?.returnMapId,
+              startX: this.initData?.returnX,
+              startY: this.initData?.returnY,
+            } satisfies import('../../maps/map-types').TileMapInitData);
           } else {
             const worldReturn: import('../../world/types/world-types').WorldMapInitData = {
               returnX: this.initData?.returnX,

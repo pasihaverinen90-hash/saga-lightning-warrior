@@ -19,6 +19,8 @@ import { hasSaveData, loadGame, getSaveMeta } from '../../save/save-service';
 import { initNewGame } from '../../state/state-actions';
 import { getState } from '../../state/game-state';
 import { getResumeScene } from '../../core/scene-router';
+import { STARTING_MAP_ID, STARTING_SPAWN_ID } from '../../maps/map-registry';
+import type { TileMapInitData } from '../../maps/map-types';
 import { LOCATIONS } from '../../data/maps/locations';
 import { formatElapsedTime } from '../../core/utils';
 
@@ -343,7 +345,12 @@ export class TitleScene extends Phaser.Scene {
     initNewGame();
     this.cameras.main.fadeOut(400, 0, 0, 0);
     this.cameras.main.once('camerafadeoutcomplete', () => {
-      this.scene.start(SCENE_KEYS.WORLD_MAP);
+      // The starting position lives in map data as the `new_game` spawn point,
+      // not as coordinates in game state.
+      this.scene.start(SCENE_KEYS.TILE_MAP, {
+        mapId: STARTING_MAP_ID,
+        spawnId: STARTING_SPAWN_ID,
+      } satisfies TileMapInitData);
     });
   }
 

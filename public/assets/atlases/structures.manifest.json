@@ -1,0 +1,407 @@
+{
+  "generated": true,
+  "note": "Procedurally generated: Files A and B contain no buildings or furniture. Replace the PNG and keep frame names to swap in real art.",
+  "tileSize": 64,
+  "count": 19,
+  "objects": [
+    {
+      "name": "house_small",
+      "category": "building",
+      "width": 192,
+      "height": 192,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 0,
+        "width": 184,
+        "height": 192
+      },
+      "tileSpan": {
+        "x": 3,
+        "y": 3
+      }
+    },
+    {
+      "name": "house_wide",
+      "category": "building",
+      "width": 256,
+      "height": 192,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 0,
+        "width": 246,
+        "height": 192
+      },
+      "tileSpan": {
+        "x": 4,
+        "y": 3
+      }
+    },
+    {
+      "name": "house_tall",
+      "category": "building",
+      "width": 192,
+      "height": 256,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 0,
+        "width": 184,
+        "height": 256
+      },
+      "tileSpan": {
+        "x": 3,
+        "y": 4
+      }
+    },
+    {
+      "name": "house_stone",
+      "category": "building",
+      "width": 256,
+      "height": 256,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 0,
+        "width": 246,
+        "height": 256
+      },
+      "tileSpan": {
+        "x": 4,
+        "y": 4
+      }
+    },
+    {
+      "name": "cottage",
+      "category": "building",
+      "width": 192,
+      "height": 192,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 4,
+        "y": 0,
+        "width": 184,
+        "height": 192
+      },
+      "tileSpan": {
+        "x": 3,
+        "y": 3
+      }
+    },
+    {
+      "name": "inn",
+      "category": "building",
+      "width": 320,
+      "height": 256,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 7,
+        "y": 0,
+        "width": 307,
+        "height": 256
+      },
+      "tileSpan": {
+        "x": 5,
+        "y": 4
+      }
+    },
+    {
+      "name": "shop",
+      "category": "building",
+      "width": 256,
+      "height": 256,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 0,
+        "width": 246,
+        "height": 256
+      },
+      "tileSpan": {
+        "x": 4,
+        "y": 4
+      }
+    },
+    {
+      "name": "town_hall",
+      "category": "building",
+      "width": 384,
+      "height": 320,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 8,
+        "y": 0,
+        "width": 369,
+        "height": 320
+      },
+      "tileSpan": {
+        "x": 6,
+        "y": 5
+      }
+    },
+    {
+      "name": "sign_inn",
+      "category": "prop",
+      "width": 64,
+      "height": 58,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 16,
+        "y": 43,
+        "width": 32,
+        "height": 15
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "sign_shop",
+      "category": "prop",
+      "width": 64,
+      "height": 58,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 16,
+        "y": 43,
+        "width": 32,
+        "height": 15
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "table",
+      "category": "furniture",
+      "width": 128,
+      "height": 64,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 29,
+        "width": 118,
+        "height": 35
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "chair",
+      "category": "furniture",
+      "width": 64,
+      "height": 64,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 3,
+        "y": 29,
+        "width": 59,
+        "height": 35
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "bed",
+      "category": "furniture",
+      "width": 64,
+      "height": 128,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 3,
+        "y": 13,
+        "width": 59,
+        "height": 115
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "name": "counter",
+      "category": "furniture",
+      "width": 192,
+      "height": 64,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 8,
+        "y": 29,
+        "width": 177,
+        "height": 35
+      },
+      "tileSpan": {
+        "x": 3,
+        "y": 1
+      }
+    },
+    {
+      "name": "shelf",
+      "category": "furniture",
+      "width": 128,
+      "height": 64,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 29,
+        "width": 118,
+        "height": 35
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "barrel",
+      "category": "furniture",
+      "width": 64,
+      "height": 64,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 3,
+        "y": 29,
+        "width": 59,
+        "height": 35
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "fireplace",
+      "category": "furniture",
+      "width": 128,
+      "height": 84,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 38,
+        "width": 118,
+        "height": 46
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "name": "pot",
+      "category": "furniture",
+      "width": 64,
+      "height": 64,
+      "solid": true,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 3,
+        "y": 29,
+        "width": 59,
+        "height": 35
+      },
+      "tileSpan": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "name": "stairs",
+      "category": "furniture",
+      "width": 128,
+      "height": 64,
+      "solid": false,
+      "origin": {
+        "x": 0.5,
+        "y": 1
+      },
+      "footprint": {
+        "x": 5,
+        "y": 29,
+        "width": 118,
+        "height": 35
+      },
+      "tileSpan": {
+        "x": 2,
+        "y": 1
+      }
+    }
+  ]
+}

@@ -33,6 +33,20 @@ export interface MovementResult {
   moving: boolean;
 }
 
+/**
+ * Anything that can answer "is this rectangle blocked?".
+ *
+ * Tilemap scenes pass a TileCollisionGrid, which answers in O(1) per
+ * overlapped tile instead of scanning a list. Scenes with a handful of
+ * hand-placed obstacles can keep passing a plain `Rect[]`.
+ */
+export interface SolidQuery {
+  isSolid(x: number, y: number, width: number, height: number): boolean;
+}
+
+/** Either collision representation is accepted by computeMovement. */
+export type CollisionSource = Rect[] | SolidQuery;
+
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
 /** Axis-aligned rectangle overlap test (top-left coordinates). */
@@ -46,15 +60,18 @@ function overlapsRect(
     && ay + ah > b.y;
 }
 
-/** Returns true if the proposed top-left position overlaps any rect. */
+/** Returns true if the proposed top-left position is blocked. */
 function blockedAt(
   x: number, y: number, w: number, h: number,
-  rects: Rect[],
+  collision: CollisionSource,
 ): boolean {
-  for (const r of rects) {
-    if (overlapsRect(x, y, w, h, r)) return true;
+  if (Array.isArray(collision)) {
+    for (const r of collision) {
+      if (overlapsRect(x, y, w, h, r)) return true;
+    }
+    return false;
   }
-  return false;
+  return collision.isSolid(x, y, w, h);
 }
 
 const INV_SQRT2 = 0.70710678;
@@ -80,7 +97,8 @@ const INV_SQRT2 = 0.70710678;
  * @param mapHeight Hard boundary: entity cannot exceed this height
  * @param entityW   Entity width in pixels
  * @param entityH   Entity height in pixels
- * @param collisionRects  Solid obstacle rectangles
+ * @param collision Solid obstacles: either a rectangle list or a SolidQuery
+ *                  such as TileCollisionGrid
  */
 export function computeMovement(
   px: number,
@@ -92,7 +110,7 @@ export function computeMovement(
   mapHeight: number,
   entityW: number,
   entityH: number,
-  collisionRects: Rect[],
+  collision: CollisionSource,
 ): MovementResult {
   const dt = delta / 1000; // ms → seconds
 
@@ -116,14 +134,14 @@ export function computeMovement(
 
   let nextX = Math.max(0, Math.min(maxX, px + dx * normStep));
   let blockedX = false;
-  if (nextX !== px && blockedAt(nextX, py, entityW, entityH, collisionRects)) {
+  if (nextX !== px && blockedAt(nextX, py, entityW, entityH, collision)) {
     blockedX = true;
     nextX = px;
   }
 
   let nextY = Math.max(0, Math.min(maxY, py + dy * normStep));
   let blockedY = false;
-  if (nextY !== py && blockedAt(nextX, nextY, entityW, entityH, collisionRects)) {
+  if (nextY !== py && blockedAt(nextX, nextY, entityW, entityH, collision)) {
     blockedY = true;
     nextY = py;
   }
@@ -134,12 +152,12 @@ export function computeMovement(
   if (diagonal && blockedX !== blockedY) {
     if (blockedX) {
       const fullY = Math.max(0, Math.min(maxY, py + dy * moveStep));
-      if (fullY !== py && !blockedAt(nextX, fullY, entityW, entityH, collisionRects)) {
+      if (fullY !== py && !blockedAt(nextX, fullY, entityW, entityH, collision)) {
         nextY = fullY;
       }
     } else {
       const fullX = Math.max(0, Math.min(maxX, px + dx * moveStep));
-      if (fullX !== px && !blockedAt(fullX, py, entityW, entityH, collisionRects)) {
+      if (fullX !== px && !blockedAt(fullX, py, entityW, entityH, collision)) {
         nextX = fullX;
       }
     }

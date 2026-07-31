@@ -126,6 +126,16 @@ export interface TownExit extends Rect {
   /** Where to place the player on the world map (top-left of player rect). */
   worldReturnX: number;
   worldReturnY: number;
+  /**
+   * Named spawn point on the destination tilemap.
+   *
+   * These towns predate the tilemap system and still hold raw world-map pixel
+   * coordinates in worldReturnX/Y, which no longer correspond to anything —
+   * the overworld was rebuilt at a different scale. Naming a spawn point lets
+   * the exit resolve against the new map without those coordinates having to
+   * be re-derived by hand.
+   */
+  returnSpawnId?: string;
 }
 
 /** Full data-only layout definition for one town. */
